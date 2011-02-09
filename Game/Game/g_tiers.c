@@ -59,8 +59,7 @@ void checkTier(gclient_t *client){
 		}
 		if(tier > 0){
 			baseTier = &client->tiers[tier];
-			if(((baseTier->requirementButton && (ps->bitFlags & keyTierDown)) || !baseTier->requirementButton) ||
-			   (ps->powerLevel[plCurrent] < baseTier->sustainCurrent) ||
+   if(!baseTier->permanent && ((baseTier->requirementButton && (ps->bitFlags & keyTierDown)) || !baseTier->requirementButton) ||			   (ps->powerLevel[plCurrent] < baseTier->sustainCurrent) ||
 			   (ps->powerLevel[plHealth] < baseTier->sustainHealth) ||
 			   (ps->powerLevel[plFatigue] < baseTier->sustainFatigue) ||
 			   (ps->powerLevel[plMaximum] < baseTier->sustainMaximum)){
