@@ -3,6 +3,11 @@ typedef struct{
 	qboolean customWeapons;
 	qboolean permanent;
 	qboolean requirementButton;
+	qboolean capableBoost;
+	qboolean capableFly;
+	qboolean capableJump;
+	qboolean capableZanzoken;
+	qboolean capableBallFlip;
 	int requirementUseSkill;
 	int requirementCurrent;
 	int requirementMaximum;

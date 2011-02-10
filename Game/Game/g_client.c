@@ -913,7 +913,8 @@ void ClientBegin( int clientNum ) {
 	// ADDING FOR ZEQ2
 	// Set the starting cap
 	ClientUserinfoChanged(clientNum);
-	client->ps.powerLevel[plMaximum] = g_powerLevel.value;
+	client->ps.powerLevel[plMaximum] = g_powerlevel.value;
+	client->ps.powerLevel[plLimit] = g_powerlevelMaximum.value;
 	client->ps.bitFlags |= isSafe;
 	// END ADDING
 
@@ -1046,14 +1047,18 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.rolling = g_rolling.value;
 	client->ps.running = g_running.value;
 	client->ps.powerLevel[plTierCurrent] = 0;
-	if(g_powerLevel.value > 32767){
-		g_powerLevel.value = 32767;
+	if(g_powerlevel.value > 32767){
+		g_powerlevel.value = 32767;
+	}
+	if(g_powerlevelMaximum.value > 32767){
+		g_powerlevelMaximum.value = 32767;
 	}
 	// make sure all bitFlags are OFF, and explicitly turn off the aura
 	client->ps.bitFlags = 0;
 	client->ps.eFlags &= ~EF_AURA;
 	// END ADDING
-	client->ps.powerLevel[plMaximum] = client->ps.powerLevel[plMaximum] > g_powerLevel.value ? client->ps.powerLevel[plMaximum] * 0.75 : g_powerLevel.value;
+	client->ps.powerLevel[plMaximum] = client->ps.powerLevel[plMaximum] > g_powerlevel.value ? client->ps.powerLevel[plMaximum] * 0.75 : g_powerlevel.value;
+	client->ps.powerLevel[plLimit] = g_powerlevelMaximum.value;
 	client->ps.powerLevel[plCurrent] = client->ps.powerLevel[plHealth] = client->ps.powerLevel[plFatigue] = client->ps.powerLevel[plMaximum];
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );

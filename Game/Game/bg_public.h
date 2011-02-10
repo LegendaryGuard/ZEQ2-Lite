@@ -251,6 +251,7 @@ typedef enum{
 	plFatigue,
 	plHealth,
 	plMaximum,
+	plLimit,
 	plUseCurrent,
 	plUseFatigue,
 	plUseHealth,
@@ -338,6 +339,11 @@ typedef enum {
 // States
 #define isHovering		0x00000001
 #define isDashing		0x00000002
+#define canBoost		0x00000004
+#define canFly			0x00000008
+#define canZanzoken		0x00000010
+#define canJump			0x00000020
+#define canBallFlip		0x00000040
 
 
 // Options

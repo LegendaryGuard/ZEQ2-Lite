@@ -6,6 +6,16 @@ void syncTier(gclient_t *client){
 	ps = &client->ps;
 	tier = &client->tiers[ps->powerLevel[plTierCurrent]];
 	ps->breakLimitRate = (float)tier->breakLimitRate * g_breakLimitRate.value;
+	ps->states &= ~canBoost;
+	ps->states &= ~canFly;
+	ps->states &= ~canZanzoken;
+	ps->states &= ~canJump;
+	ps->states &= ~canBallFlip;
+	if(tier->capableBoost){ps->states |= canBoost;}
+	if(tier->capableFly){ps->states |= canFly;}
+	if(tier->capableZanzoken){ps->states |= canZanzoken;}
+	if(tier->capableJump){ps->states |= canJump;}
+	if(tier->capableBallFlip){ps->states |= canBallFlip;}
 	ps->stats[stSpeed] = tier->speed * 450.0;
 	ps->stats[stZanzokenDistance] = tier->zanzokenDistance * 500.0;
 	ps->stats[stZanzokenSpeed] = tier->zanzokenSpeed * 4000.0;
@@ -249,6 +259,31 @@ void parseTier(char *path,tierConfig_g *tier){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->customWeapons = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"canBoost")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->capableBoost = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"canFly")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->capableFly = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"canJump")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->capableJump = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"canZanzoken")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->capableZanzoken = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"canBallFlip")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->capableBallFlip = strlen(token) == 4 ? qtrue : qfalse;
 			}
 		}
 	}

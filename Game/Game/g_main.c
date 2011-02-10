@@ -97,7 +97,8 @@ vmCvar_t	g_proxMineTimeout;
 #endif
 // ADDING FOR ZEQ2
 vmCvar_t	g_verboseParse;
-vmCvar_t	g_powerLevel;
+vmCvar_t	g_powerlevel;
+vmCvar_t	g_powerlevelMaximum;
 vmCvar_t	g_breakLimitRate;
 vmCvar_t	g_rolling;
 vmCvar_t	g_running;
@@ -184,7 +185,8 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_rankings, "g_rankings", "0", 0, 0, qfalse },
 	// ADDING FOR ZEQ2
 	{ &g_verboseParse, "g_verboseParse", "0", CVAR_ARCHIVE, 0, qfalse },
-	{ &g_powerLevel, "g_powerLevel", "1000", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue  },
+	{ &g_powerlevel, "g_powerlevel", "1000", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue  },
+	{ &g_powerlevelMaximum, "g_powerlevelMaximum", "32767", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue  },
 	{ &g_breakLimitRate, "g_breakLimitRate", "1.0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue  },
 	{ &g_rolling, "g_rolling", "1", CVAR_ARCHIVE, 0, qtrue },
 	{ &g_running, "g_running", "0", CVAR_ARCHIVE, 0, qtrue }

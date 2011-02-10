@@ -266,6 +266,7 @@ void PM_CheckZanzoken(void){
 	vec3_t pre_vel, post_vel,minSize,maxSize,forward,up,end;
 	int speed,cost;
 	trace_t trace;
+	if(!(pm->ps->states & canZanzoken)){return;}
 	if(pm->ps->bitFlags & usingSoar || pm->ps->bitFlags & isPreparing || pm->ps->bitFlags & usingMelee){return;}
 	if(!(pm->cmd.buttons & BUTTON_TELEPORT)){
 		pm->ps->timers[tmZanzoken] = -1;
@@ -307,8 +308,9 @@ void PM_CheckZanzoken(void){
 POWER LEVEL
 ===============*/
 void PM_UsePowerLevel(){
-	int newValue,amount,stat,useType;
+	int newValue,amount,stat,useType,limit;
 	useType = 0;
+	limit = pm->ps->powerLevel[plLimit];
 	while(useType < 4){
 		stat = useType == 1 ? pm->ps->powerLevel[plFatigue] : pm->ps->powerLevel[plCurrent];
 		stat = useType == 2 ? pm->ps->powerLevel[plHealth] : stat;
@@ -316,14 +318,14 @@ void PM_UsePowerLevel(){
 		amount = useType == 1 ? pm->ps->powerLevel[plUseFatigue] : pm->ps->powerLevel[plUseCurrent];
 		amount = useType == 2 ? pm->ps->powerLevel[plUseHealth] : amount;
 		amount = useType == 3 ? pm->ps->powerLevel[plUseMaximum] : amount;
-		newValue = (stat - amount) > 32767 ? 32767 : stat - amount;
+		newValue = (stat - amount) > limit ? limit : stat - amount;
 		if(newValue <= 0 && useType == 0 && pm->ps->powerLevel[plFatigue] > 0){
 			pm->ps->powerLevel[plFatigue] -= (amount * 1.5);
 			pm->ps->powerLevel[plCurrent] = 1;
 			pm->ps->powerLevel[plUseCurrent] = 0;
 			return;
 		}
-		newValue = newValue < -32767 ? -32767 : newValue;
+		newValue = newValue < -limit ? -limit : newValue;
 		if(useType == 1){
 			pm->ps->powerLevel[plFatigue] = newValue;
 			pm->ps->powerLevel[plUseFatigue] = 0;
@@ -349,6 +351,8 @@ void PM_BurnPowerLevel(){
 	int burn;
 	int newValue;
 	int burnType;
+	int limit;
+	limit = pm->ps->powerLevel[plLimit];
 	burnType = 0;
 	while(burnType < 3){
 		burn = burnType == 1 ? pm->ps->powerLevel[plDamageFromMelee] : pm->ps->powerLevel[plDamageFromEnergy];
@@ -366,11 +370,11 @@ void PM_BurnPowerLevel(){
 		burn -= (int)(((float)pm->ps->powerLevel[plFatigue] * 0.01) * defense);
 		newValue = pm->ps->powerLevel[plHealth] - burn;
 		if(burn > 0){
-			newValue = newValue > 32767 ? 32767 : newValue;
+			newValue = newValue > limit ? limit : newValue;
 			pm->ps->powerLevel[plHealth] = newValue < 0 ? 0 : newValue;
 			newValue = pm->ps->powerLevel[plMaximum] + ((float)burn * percent) * 1.5;
 			newValue = newValue < 0 ? 0 : newValue;
-			if(burnType != 2){pm->ps->powerLevel[plMaximum] = newValue > 32767 ? 32767 : newValue;}
+			if(burnType != 2){pm->ps->powerLevel[plMaximum] = newValue > limit ? limit : newValue;}
 		}
 		if(burnType == 0){pm->ps->powerLevel[plDamageFromEnergy] = 0;}
 		else if(burnType == 1){pm->ps->powerLevel[plDamageFromMelee] = 0;}
@@ -533,7 +537,7 @@ qboolean PM_CheckTransform(void){
 	return qfalse;
 }
 void PM_CheckPowerLevel(void){
-	int plSpeed,amount;
+	int plSpeed,amount,limit;
 	int *timers,*powerLevel;
 	float lower,raise,recovery;
 	float check;
@@ -544,6 +548,7 @@ void PM_CheckPowerLevel(void){
 	powerLevel = pm->ps->powerLevel;
 	timers[tmPowerAuto] += pml.msec;
 	pm->ps->bitFlags &= ~usingAlter;
+	limit = pm->ps->powerLevel[plLimit];
 	if(pm->ps->powerLevel[plFatigue] <= 0 && pm->ps->powerLevel[plCurrent] > 0){
 		pm->ps->powerLevel[plCurrent] = 1;
 	}
@@ -564,7 +569,7 @@ void PM_CheckPowerLevel(void){
 		newValue = pm->ps->powerLevel[plHealth] + pm->ps->powerLevel[plDrainHealth];
 		if(newValue < pm->ps->powerLevel[plMaximum]){pm->ps->powerLevel[plHealth] = newValue;}
 		newValue = pm->ps->powerLevel[plMaximum] + pm->ps->powerLevel[plDrainMaximum];
-		if(newValue < 32767 &&  newValue > 0){pm->ps->powerLevel[plMaximum] = newValue;}
+		if(newValue < limit &&  newValue > 0){pm->ps->powerLevel[plMaximum] = newValue;}
 		if(powerLevel[plFatigue] + recovery < pm->ps->powerLevel[plMaximum]){
 			powerLevel[plFatigue] += recovery;
 		}
@@ -613,7 +618,7 @@ void PM_CheckPowerLevel(void){
 				if(powerLevel[plCurrent] > powerLevel[plFatigue]){raise *= 0.6;}
 				newValue = powerLevel[plCurrent] + raise;
 				if(newValue > pm->ps->powerLevel[plMaximum]){newValue = pm->ps->powerLevel[plMaximum];}
-				if(newValue > 32767){newValue = 32767;}
+				if(newValue > limit){newValue = limit;}
 				powerLevel[plCurrent] = newValue;
 				if(powerLevel[plCurrent] == pm->ps->powerLevel[plMaximum]){
 					if(!(pm->ps->bitFlags & isBreakingLimit)){PM_AddEvent(EV_POWERINGUP_START);}
@@ -623,8 +628,8 @@ void PM_CheckPowerLevel(void){
 						powerLevel[plHealth] += raise * 0.3;
 						pm->ps->powerLevel[plUseFatigue] += raise * 0.25;
 					}
-					if(powerLevel[plHealth] > 32767){powerLevel[plHealth] = 32767;}
-					if(pushLimit < 32767){
+					if(powerLevel[plHealth] > limit){powerLevel[plHealth] = limit;}
+					if(pushLimit < limit){
 						powerLevel[plCurrent] = powerLevel[plMaximum] = pushLimit;
 					}
 				}
@@ -689,6 +694,9 @@ void PM_StopMovement(void){
 	VectorClear(pm->ps->velocity);
 }
 void PM_CheckBoost(void){
+	int limit;
+	limit = pm->ps->powerLevel[plLimit];
+	if(!(pm->ps->states & canBoost)){return;}
 	if(!(pm->cmd.buttons & BUTTON_BOOST)){
 		PM_StopBoost();
 	}
@@ -696,7 +704,7 @@ void PM_CheckBoost(void){
 		pm->ps->eFlags |= EF_AURA;
 		pm->ps->powerups[PW_BOOST] += pml.msec;
 		pm->ps->timers[tmBoost] += pml.msec;
-		if(pm->ps->timers[tmBoost] > 32767){pm->ps->timers[tmBoost] = 32767;}
+		if(pm->ps->timers[tmBoost] > limit){pm->ps->timers[tmBoost] = limit;}
 		if(pm->ps->powerups[PW_BOOST] > 150){
 			pm->ps->powerLevel[plUseFatigue] += pm->ps->powerLevel[plMaximum] * 0.003;
 			pm->ps->powerups[PW_BOOST] -= 150;
@@ -901,6 +909,7 @@ void PM_CheckJump(void){
 	int jumpPower;
 	float jumpScale,jumpEmphasis;
 	vec3_t pre_vel,post_vel;
+	if(!(pm->ps->states & canJump)){return;}
 	if(pm->ps->bitFlags & usingBallFlip){return;}
 	if(pm->ps->bitFlags & usingJump){
 		if(pm->ps->bitFlags & nearGround && pm->ps->velocity[2] < 0){
@@ -1007,6 +1016,7 @@ void PM_FlyMove(void){
 	float	fadeSpeed;
 	float	scale;
 	float	boostFactor;
+	if(!(pm->ps->states & canFly)){return;}
 	if(pm->cmd.upmove > 0){
 		pm->ps->bitFlags |= usingFlight;
 		PM_StopDash();
@@ -1179,17 +1189,19 @@ void PM_AirMove(void){
 		&& !(pm->ps->bitFlags & isUnconcious) && !(pm->ps->bitFlags & isDead) && !(pm->ps->bitFlags & isCrashed))){return;}
 	if(pm->ps->bitFlags & isGuiding){return;}
 	if(!(pm->ps->bitFlags & usingFlight)){
-		if(pm->ps->bitFlags & usingJump && pm->cmd.upmove < 0){
-			pm->ps->gravity[2] = 3000;
-			pm->ps->bitFlags |= usingBallFlip;
-			if(pm->ps->bitFlags & nearGround && pm->ps->velocity[2] < 0){PM_ContinueLegsAnim(ANIM_FLY_DOWN);}
-			else{PM_ContinueLegsAnim(ANIM_JUMP_FORWARD);}
+		if((pm->ps->states & canBallFlip)){
+			if(pm->ps->bitFlags & usingJump && pm->cmd.upmove < 0){
+				pm->ps->gravity[2] = 3000;
+				pm->ps->bitFlags |= usingBallFlip;
+				if(pm->ps->bitFlags & nearGround && pm->ps->velocity[2] < 0){PM_ContinueLegsAnim(ANIM_FLY_DOWN);}
+				else{PM_ContinueLegsAnim(ANIM_JUMP_FORWARD);}
+			}
+			else if(pm->ps->bitFlags & usingJump && pm->ps->bitFlags & usingBallFlip && pm->cmd.upmove == 0){
+				pm->ps->gravity[2] = 6000;
+				pm->ps->bitFlags &= ~usingBallFlip;
+			}
+			if(pm->ps->bitFlags & usingBallFlip){PM_StopDirections();}
 		}
-		else if(pm->ps->bitFlags & usingJump && pm->ps->bitFlags & usingBallFlip && pm->cmd.upmove == 0){
-			pm->ps->gravity[2] = 6000;
-			pm->ps->bitFlags &= ~usingBallFlip;
-		}
-		if(pm->ps->bitFlags & usingBallFlip){PM_StopDirections();}
 	}
 	if(pm->ps->timers[tmMeleeIdle] < 0){
 		PM_StopDirections();
