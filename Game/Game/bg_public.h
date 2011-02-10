@@ -344,10 +344,9 @@ typedef enum {
 #define canZanzoken		0x00000010
 #define canJump			0x00000020
 #define canBallFlip		0x00000040
-
+#define advancedFlight	0x00000080
 
 // Options
-#define advancedFlight	0x00000001
 
 // Melee
 typedef enum {

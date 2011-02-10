@@ -1022,6 +1022,7 @@ void PM_FlyMove(void){
 		PM_StopDash();
 		PM_StopJump();
 	}
+	if(pm->cmd.buttons & BUTTON_POWERLEVEL && !VectorLength(pm->ps->velocity)){return;}
 	if(!(pm->ps->bitFlags & usingFlight) ||(pm->cmd.buttons & BUTTON_POWERLEVEL && !VectorLength(pm->ps->velocity))){return;}
 	boostFactor = pm->ps->bitFlags & usingBoost ? 4.4 : 1.1;
 	if(pm->cmd.buttons & BUTTON_WALKING){
@@ -1261,6 +1262,8 @@ void PM_WalkMove(void){
 	usercmd_t	cmd;
 	float		accelerate;
 	float		vel;
+	if(pm->ps->bitFlags & usingFlight){return;}
+	if(pm->cmd.buttons & BUTTON_POWERLEVEL && !VectorLength(pm->ps->velocity)){return;}
 	if(!pml.onGround || VectorLength(pm->ps->dashDir)){return;}
 	fmove = pm->cmd.forwardmove;
 	smove = pm->cmd.rightmove;
@@ -1308,6 +1311,7 @@ void PM_DashMove(void){
 	float		accelerate;
 	usercmd_t	cmd;
 	dashAmount = VectorLength(pm->ps->dashDir);
+	if(pm->cmd.buttons & BUTTON_POWERLEVEL && !VectorLength(pm->ps->velocity)){return;}
 	if((pml.onGround && !(pm->cmd.buttons & BUTTON_WALKING) && (pm->cmd.forwardmove || pm->cmd.rightmove))){
 		pm->cmd.upmove = 0;
 		boostFactor = pm->ps->bitFlags & usingBoost ? 4.4 : 1.1;
@@ -1773,7 +1777,8 @@ void PM_Footsteps(void){
 			}
 		}
 		footstep = qtrue;
-	}else{
+	}
+	else{
 		bobmove = 0.3f;
 		if(pm->cmd.forwardmove < 0){
 			PM_ContinueLegsAnim(ANIM_BACKWALK );
@@ -2925,7 +2930,7 @@ void PM_UpdateViewAngles(playerState_t *ps, const usercmd_t *cmd){
 			ps->delta_angles[i] = ANGLE2SHORT(angles[i]) - cmd->angles[i];
 		}
 	}
-	else if(pm->ps->bitFlags & usingFlight && pm->ps->options & advancedFlight){
+	else if(pm->ps->bitFlags & usingFlight && pm->ps->states & advancedFlight){
 		if(cmd->buttons & BUTTON_ROLL_LEFT){
 			roll -= 28 * (pml.msec / 200.0f);
 		}
@@ -2983,6 +2988,8 @@ void PM_UpdateViewAngles(playerState_t *ps, const usercmd_t *cmd){
 	}
 	else{
 		ps->viewangles[ROLL] = 0;
+		ps->delta_angles[ROLL] = 0;
+		offset_angles[ROLL]= 0;
 	}
 	// We've been flying and we've inverted our pitch to a good amount upside down.
 	// Cheat the view, by adjusting the yaw to 'swing around' and adjusting the pitch to match.
