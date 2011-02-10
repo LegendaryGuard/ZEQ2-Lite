@@ -1464,9 +1464,11 @@ void G_ExplodeUserWeapon( gentity_t *self ) {
 	SnapVector( origin ); // save net bandwith
 	SnapVectorTowards( origin, self->s.pos.trBase ); // save net bandwidth
 	G_SetOrigin( self, origin );
-	self->s.eType = ET_GENERAL;
+	self->s.eType = ET_EXPLOSION;
+	self->powerLevelCurrent *= 0.2;
+	self->splashEnd = level.time + self->splashDuration;
+	self->splashTimer = level.time;
 	G_AddEvent( self, EV_MISSILE_MISS_AIR, DirToByte( dir ) );
-	self->freeAfterEvent = qtrue;
 	if(self->s.eType == ET_BEAMHEAD && (self->strugglingPlayer || self->strugglingAttack)){
 		self->enemy->client->ps.bitFlags &= ~isStruggling;
 	}
@@ -1591,7 +1593,7 @@ static void Think_NormalMissileStrugglePlayer( gentity_t *self ) {
 		}
 		return;
 	}
-	else if(self->enemy->client->ps.powerLevel[plFatigue] <= 1){
+	else if(self->enemy->client->ps.powerLevel[plFatigue] <= 1 || self->enemy->client->ps.powerLevel[plCurrent] <= 1){
 		G_ExplodeUserWeapon ( self );
 		self->strugglingPlayer = qfalse;
 		self->enemy->client->ps.bitFlags &= ~isStruggling;
