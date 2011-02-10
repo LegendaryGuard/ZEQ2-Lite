@@ -696,7 +696,7 @@ void PM_StopMovement(void){
 void PM_CheckBoost(void){
 	int limit;
 	limit = pm->ps->powerLevel[plLimit];
-	if(!(pm->ps->states & canBoost)){return;}
+	if(!(pm->ps->states & canBoost && !(pm->ps->bitFlags & isStruggling))){return;}
 	if(!(pm->cmd.buttons & BUTTON_BOOST)){
 		PM_StopBoost();
 	}
