@@ -550,15 +550,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_TIERUP_FIRST:
 		DEBUGNAME("EV_TIERUP_FIRST");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.snap->ps.powerLevel[plTierCurrent]].soundTransformFirst);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.predictedPlayerState.powerLevel[plTierCurrent]].soundTransformFirst);
 		break;
 	case EV_TIERUP:
 		DEBUGNAME("EV_TIERUP");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.snap->ps.powerLevel[plTierCurrent]].soundTransformUp);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.predictedPlayerState.powerLevel[plTierCurrent]].soundTransformUp);
 		break;
 	case EV_TIERDOWN:
 		DEBUGNAME("EV_TIERDOWN");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.snap->ps.powerLevel[plTierCurrent]].soundTransformDown);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.predictedPlayerState.powerLevel[plTierCurrent]].soundTransformDown);
 		break;
 	case EV_POWER_STRUGGLE_START:
 		DEBUGNAME("EV_POWER_STRUGGLE_START");
