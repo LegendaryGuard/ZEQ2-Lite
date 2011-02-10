@@ -560,6 +560,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_TIERDOWN");
 		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.predictedPlayerState.powerLevel[plTierCurrent]].soundTransformDown);
 		break;
+	case EV_POWERINGUP_START:
+		DEBUGNAME("EV_POWERINGUP_START");
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[cg.predictedPlayerState.powerLevel[plTierCurrent]].soundPoweringUp);
+		break;
 	case EV_POWER_STRUGGLE_START:
 		DEBUGNAME("EV_POWER_STRUGGLE_START");
 		CG_AddEarthquake(position, 20000, 1, 0, 1, 100);

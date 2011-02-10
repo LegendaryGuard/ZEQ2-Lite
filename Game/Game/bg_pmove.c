@@ -616,6 +616,7 @@ void PM_CheckPowerLevel(void){
 				if(newValue > 32767){newValue = 32767;}
 				powerLevel[plCurrent] = newValue;
 				if(powerLevel[plCurrent] == pm->ps->powerLevel[plMaximum]){
+					if(!(pm->ps->bitFlags & isBreakingLimit)){PM_AddEvent(EV_POWERINGUP_START);}
 					pm->ps->bitFlags |= isBreakingLimit;
 					pushLimit = powerLevel[plCurrent] + pm->ps->breakLimitRate;
 					if(powerLevel[plHealth] + raise * 0.3 < pushLimit){

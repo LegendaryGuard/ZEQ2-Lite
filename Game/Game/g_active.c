@@ -397,6 +397,8 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 		case EV_TIERDOWN:
 			syncTier(client);
 			break;
+		case EV_POWERINGUP_START:
+			break;
 		case EV_LOCKON_START:
 			break;
 		case EV_LOCKON_END:

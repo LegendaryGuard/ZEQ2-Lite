@@ -42,6 +42,11 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
 			ci->tierConfig[i].soundTransformDown = trap_S_RegisterSound(strcat(tierPath,"transformDown.ogg"),qfalse);
 		}
+		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
+		if(trap_FS_FOpenFile(strcat(tierPath,"poweringUp.ogg"),0,FS_READ)>0){
+			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
+			ci->tierConfig[i].soundPoweringUp = trap_S_RegisterSound(strcat(tierPath,"poweringUp.ogg"),qfalse);
+		}
 		Com_sprintf(filename,sizeof(filename),"players/tierDefault.cfg",modelName,i+1);
 		parseTier(filename,&ci->tierConfig[i]);
 		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/tier.cfg",modelName,i+1);
@@ -259,6 +264,11 @@ void parseTier(char *path,tierConfig_cg *tier){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->soundTransformDown = trap_S_RegisterSound(token,qfalse);
+			}
+			else if(!Q_stricmp(token,"poweringUpSound")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->soundPoweringUp = trap_S_RegisterSound(token,qfalse);
 			}
 		}
 	}
