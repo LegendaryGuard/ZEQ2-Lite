@@ -1246,9 +1246,9 @@ void CG_AddLensFlare(lensFlareEntity_t* lfent, int quality);	// JUHOX
 //
 // cg_drawtools.c
 //
-void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
+void CG_AdjustFrom640( float *x, float *y, float *w, float *h,qboolean stretch);
 void CG_FillRect( float x, float y, float width, float height, const float *color );
-void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
+void CG_DrawPic(qboolean stretch, float x, float y, float width, float height, qhandle_t hShader );
 void CG_DrawString( float x, float y, const char *string, 
 				   float charWidth, float charHeight, const float *modulate );
 

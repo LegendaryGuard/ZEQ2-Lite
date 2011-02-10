@@ -188,7 +188,7 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 													glyph->s2,
 													glyph->t2,
 													glyph->glyph);
-				// CG_DrawPic(x, y - yadj, scale * cgDC.Assets.textFont.glyphs[text[i]].imageWidth, scale * cgDC.Assets.textFont.glyphs[text[i]].imageHeight, cgDC.Assets.textFont.glyphs[text[i]].glyph);
+				// CG_DrawPic(qtrue,x, y - yadj, scale * cgDC.Assets.textFont.glyphs[text[i]].imageWidth, scale * cgDC.Assets.textFont.glyphs[text[i]].imageHeight, cgDC.Assets.textFont.glyphs[text[i]].glyph);
 				x += (glyph->xSkip * useScale) + adjust;
 				s++;
 				count++;
@@ -256,7 +256,7 @@ static void CG_DrawField (int x, int y, int width, int value) {
 		else
 			frame = *ptr -'0';
 
-		CG_DrawPic( x,y, CHAR_WIDTH, CHAR_HEIGHT, cgs.media.numberShaders[frame] );
+		CG_DrawPic(qfalse, x,y, CHAR_WIDTH, CHAR_HEIGHT, cgs.media.numberShaders[frame] );
 		x += CHAR_WIDTH;
 		ptr++;
 		l--;
@@ -281,9 +281,9 @@ void CG_DrawHorGauge( float x, float y, float w, float h, vec4_t color_bar, vec4
 	if (color_empty[3]) {
 		trap_R_SetColor( color_empty );
 		if (!reversed) {
-			CG_DrawPic( x + bar_w, y, w - bar_w, h, cgs.media.whiteShader );
+			CG_DrawPic(qfalse, x + bar_w, y, w - bar_w, h, cgs.media.whiteShader );
 		} else {
-			CG_DrawPic( x - bar_w, y, w + bar_w, h, cgs.media.whiteShader );
+			CG_DrawPic(qfalse, x - bar_w, y, w + bar_w, h, cgs.media.whiteShader );
 		}
 	}
 	trap_R_SetColor( color_bar );
@@ -298,9 +298,9 @@ void CG_DrawHorGauge( float x, float y, float w, float h, vec4_t color_bar, vec4
 	}
 
 	if (!reversed) {
-		CG_DrawPic( x, y, bar_w, h, cgs.media.whiteShader );
+		CG_DrawPic(qfalse, x, y, bar_w, h, cgs.media.whiteShader );
 	} else {
-		CG_DrawPic( x + w - bar_w, y, bar_w, h, cgs.media.whiteShader );
+		CG_DrawPic(qfalse, x + w - bar_w, y, bar_w, h, cgs.media.whiteShader );
 	}
 
 	trap_R_SetColor( NULL );
@@ -352,9 +352,9 @@ void CG_DrawVertGauge( float x, float y, float w, float h, vec4_t color_bar, vec
 	if (color_empty[3]) {
 		trap_R_SetColor( color_empty );
 		if (reversed) {
-			CG_DrawPic( x, y + bar_h, w, h - bar_h, cgs.media.whiteShader );
+			CG_DrawPic(qfalse, x, y + bar_h, w, h - bar_h, cgs.media.whiteShader );
 		} else {
-			CG_DrawPic( x, y, w, h - bar_h, cgs.media.whiteShader );
+			CG_DrawPic(qfalse, x, y, w, h - bar_h, cgs.media.whiteShader );
 		}
 	}
 	trap_R_SetColor( color_bar );
@@ -369,9 +369,9 @@ void CG_DrawVertGauge( float x, float y, float w, float h, vec4_t color_bar, vec
 	}
 
 	if (reversed) {
-		CG_DrawPic( x, y, w, bar_h, cgs.media.whiteShader );
+		CG_DrawPic(qfalse, x, y, w, bar_h, cgs.media.whiteShader );
 	} else {
-		CG_DrawPic( x, y + h - bar_h, w, bar_h, cgs.media.whiteShader );
+		CG_DrawPic(qfalse, x, y + h - bar_h, w, bar_h, cgs.media.whiteShader );
 	}
 
 	trap_R_SetColor( NULL );
@@ -393,7 +393,7 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 		return;
 	}
 
-	CG_AdjustFrom640( &x, &y, &w, &h );
+	CG_AdjustFrom640( &x, &y, &w, &h,qtrue);
 
 	memset( &refdef, 0, sizeof( refdef ) );
 
@@ -437,7 +437,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 	vec3_t			origin;
 	vec3_t			mins, maxs;
 	ci = &cgs.clientinfo[ clientNum ];
-	CG_DrawPic( x, y, w, h, ci->tierConfig[ci->tierCurrent].icon);
+	CG_DrawPic(qfalse, x, y, w, h, ci->tierConfig[ci->tierCurrent].icon);
 /*
 	if ( cg_draw3dIcons.integer ) {
 		cm = ci->headModel[ci->tierCurrent];
@@ -460,7 +460,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 
 		CG_Draw3DModel( x, y, w, h, ci->headModel[ci->tierCurrent], ci->headSkin[ci->tierCurrent], origin, headAngles );
 	} else if ( cg_drawIcons.integer ) {
-		CG_DrawPic( x, y, w, h, ci->modelIcon );
+		CG_DrawPic(qtrue, x, y, w, h, ci->modelIcon );
 	}
 */
 }
@@ -628,7 +628,7 @@ static void CG_DrawStatusBar( void ) {
 	if((ps->powerLevel[plCurrent] > ps->powerLevel[plFatigue]) && (ps->powerLevel[plFatigue] > ps->powerLevel[plHealth])){
 		CG_DrawDiffGauge(60,449,200,16,healthFatigueColor,healthFatigueColor,ps->powerLevel[plCurrent],ps->powerLevel[plFatigue],ps->powerLevel[plMaximum],1);
 	}
-	CG_DrawPic(0,408,288,72,cgs.media.hudShader);
+	CG_DrawPic(qfalse,0,408,288,72,cgs.media.hudShader);
 	if(tier){
 		activeTier = &ci->tierConfig[ci->tierCurrent];
 		tierLast = 32767;
@@ -638,7 +638,7 @@ static void CG_DrawStatusBar( void ) {
 		if(activeTier->sustainMaximum && activeTier->sustainMaximum < tierLast){tierLast = (float)activeTier->sustainMaximum;}
 		if(tierLast < 32767){
 			tierLast = tierLast / (float)ps->powerLevel[plMaximum];
-			CG_DrawPic((187*tierLast)+60,428,13,38,cgs.media.markerDescendShader);
+			CG_DrawPic(qfalse,(187*tierLast)+60,428,13,38,cgs.media.markerDescendShader);
 		}
 	}
 	if(tier < ps->powerLevel[plTierTotal]){
@@ -651,12 +651,12 @@ static void CG_DrawStatusBar( void ) {
 		if(tierNext){
 			tierNext = tierNext / (float)ps->powerLevel[plMaximum];
 			if(tierNext < 1.0){
-				CG_DrawPic((187*tierNext)+60,428,13,38,cgs.media.markerAscendShader);
+				CG_DrawPic(qfalse,(187*tierNext)+60,428,13,38,cgs.media.markerAscendShader);
 			}
 		}
 	}
 	if(ps->powerLevel[plCurrent] == ps->powerLevel[plMaximum] && ps->bitFlags & usingAlter){
-		CG_DrawPic(243,433,40,44,cgs.media.breakLimitShader);
+		CG_DrawPic(qfalse,243,433,40,44,cgs.media.breakLimitShader);
 	}
 	if(ps->powerLevel[plCurrent] == 9001){
 		powerLevelString = "Over ^3NINE-THOUSAND!!!";
@@ -724,7 +724,7 @@ static void CG_DrawStatusLockedBar( void ) {
 	if((ps->powerLevel[plCurrent] > ps->powerLevel[plFatigue]) && (ps->powerLevel[plFatigue] > ps->powerLevel[plHealth])){
 		CG_DrawDiffGauge(60,49,200,16,healthFatigueColor,healthFatigueColor,ps->powerLevel[plCurrent],ps->powerLevel[plFatigue],ps->powerLevel[plMaximum],1);
 	}
-	CG_DrawPic(0,8,288,72,cgs.media.hudShader);
+	CG_DrawPic(qfalse,0,8,288,72,cgs.media.hudShader);
 	if(tier){
 		activeTier = &ci->tierConfig[ci->tierCurrent];
 		tierLast = 32767;
@@ -734,7 +734,7 @@ static void CG_DrawStatusLockedBar( void ) {
 		if(activeTier->sustainMaximum && activeTier->sustainMaximum < tierLast){tierLast = (float)activeTier->sustainMaximum;}
 		if(tierLast < 32767){
 			tierLast = tierLast / (float)ps->powerLevel[plMaximum];
-			CG_DrawPic((187*tierLast)+60,28,13,38,cgs.media.markerDescendShader);
+			CG_DrawPic(qfalse,(187*tierLast)+60,28,13,38,cgs.media.markerDescendShader);
 		}
 	}
 	if(tier < ps->powerLevel[plTierTotal]){
@@ -747,12 +747,12 @@ static void CG_DrawStatusLockedBar( void ) {
 		if(tierNext){
 			tierNext = tierNext / (float)ps->powerLevel[plMaximum];
 			if(tierNext < 1.0){
-				CG_DrawPic((187*tierNext)+60,28,13,38,cgs.media.markerAscendShader);
+				CG_DrawPic(qfalse,(187*tierNext)+60,28,13,38,cgs.media.markerAscendShader);
 			}
 		}
 	}
 	if(ps->powerLevel[plCurrent] == ps->powerLevel[plMaximum] && ps->bitFlags & usingAlter){
-		CG_DrawPic(243,33,40,44,cgs.media.breakLimitShader);
+		CG_DrawPic(qfalse,243,33,40,44,cgs.media.breakLimitShader);
 	}
 	if(ps->powerLevel[plCurrent] == 9001){
 		powerLevelString = "Over ^3NINE-THOUSAND!!!";
@@ -998,10 +998,10 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 			xx += TINYCHAR_WIDTH * 3;
 
 //			if ( cg_weapons[ci->curWeapon].weaponIcon ) {
-//				CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 
+//				CG_DrawPic(qtrue, xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 
 //					cg_weapons[ci->curWeapon].weaponIcon );
 //			} else {
-//				CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 
+//				CG_DrawPic(qtrue, xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 
 //					cgs.media.deferShader );
 //			}
 
@@ -1099,7 +1099,7 @@ static float CG_DrawScores( float y ) {
 		x -= w;
 		CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
 		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
-			CG_DrawPic( x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
+			CG_DrawPic(qfalse, x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
 		}
 		CG_DrawBigString( x + 4, y, s, 1.0F);
 		color[0] = 1.0f;
@@ -1111,7 +1111,7 @@ static float CG_DrawScores( float y ) {
 		x -= w;
 		CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
 		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
-			CG_DrawPic( x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
+			CG_DrawPic(qfalse, x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
 		}
 		CG_DrawBigString( x + 4, y, s, 1.0F);
 		if ( cgs.gametype >= GT_CTF ) {
@@ -1147,7 +1147,7 @@ static float CG_DrawScores( float y ) {
 				color[2] = 0.0f;
 				color[3] = 0.33f;
 				CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
-				CG_DrawPic( x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
+				CG_DrawPic(qfalse, x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
 			} else {
 				color[0] = 0.5f;
 				color[1] = 0.5f;
@@ -1169,7 +1169,7 @@ static float CG_DrawScores( float y ) {
 				color[2] = 1.0f;
 				color[3] = 0.33f;
 				CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
-				CG_DrawPic( x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
+				CG_DrawPic(qfalse, x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
 			} else {
 				color[0] = 0.5f;
 				color[1] = 0.5f;
@@ -1391,7 +1391,7 @@ static void CG_DrawDisconnect( void ) {
 	x = 640 - 48;
 	y = 480 - 48;
 
-	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
+	CG_DrawPic(qtrue, x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
 }
 
 /*
@@ -1598,7 +1598,7 @@ static void CG_DrawCrosshair(void) {
 		trap_R_SetColor( NULL );
 	}
 
-	CG_DrawPic( x - 0.5f * w, y - 0.5f * h, w, h, hShader );
+	CG_DrawPic(qfalse, x - 0.5f * w, y - 0.5f * h, w, h, hShader );
 
 	trap_R_SetColor( NULL );
 
@@ -1877,7 +1877,7 @@ static void CG_DrawSpectator(void) {
 
 		// crosshair
 		if (!cg.lfEditor.selectedLFEnt || cg.lfEditor.editMode != LFEEM_pos) {
-			CG_DrawPic(320 - 12, 240 - 12, 24, 24, cgs.media.crosshairShader[0]);
+			CG_DrawPic(qtrue,320 - 12, 240 - 12, 24, 24, cgs.media.crosshairShader[0]);
 		}
 
 		CG_FillRect(0, 480 - 12 * TINYCHAR_HEIGHT, 640, 12 * TINYCHAR_HEIGHT, backFillColor);
