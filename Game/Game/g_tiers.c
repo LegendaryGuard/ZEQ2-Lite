@@ -19,7 +19,9 @@ void syncTier(gclient_t *client){
 	ps->stats[stSpeed] = tier->speed * 450.0;
 	ps->stats[stZanzokenDistance] = tier->zanzokenDistance * 500.0;
 	ps->stats[stZanzokenSpeed] = tier->zanzokenSpeed * 4000.0;
-	ps->stats[stZanzokenCost] = tier->zanzokenCost * 1000;
+	ps->baseStats[stZanzokenCost] = tier->zanzokenCost;
+	ps->baseStats[stBoostCost] = tier->boostCost;
+	ps->baseStats[stFatigueRecovery] = tier->fatigueRecovery;
 	ps->stats[stAirBrakeCost] = tier->airBrakeCost;
 	ps->stats[stMeleeDefense] = tier->meleeDefense;
 	ps->stats[stMeleeAttack] = tier->meleeAttack;
@@ -154,6 +156,16 @@ void parseTier(char *path,tierConfig_g *tier){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->airBrakeCost = atof(token);
+			}
+			else if(!Q_stricmp(token,"tierFatigueRecovery")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->zanzokenCost = atof(token);
+			}
+			else if(!Q_stricmp(token,"tierBoostCost")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->zanzokenCost = atof(token);
 			}
 			else if(!Q_stricmp(token,"tierZanzokenCost")){
 				token = COM_Parse(&parse);

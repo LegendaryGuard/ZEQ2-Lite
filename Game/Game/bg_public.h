@@ -229,7 +229,6 @@ void Pmove (pmove_t *pmove);
 
 typedef enum {
 	stSpeed,
-	stZanzokenCost,
 	stZanzokenSpeed,
 	stZanzokenDistance,
 	stKnockbackPower,
@@ -245,6 +244,11 @@ typedef enum {
 	stAnimState,
 	stSkills
 }statIndex_t;
+
+typedef enum{
+	stZanzokenCost,
+	stBoostCost
+}baseStats_t;
 
 typedef enum{
 	plCurrent,

@@ -18,6 +18,8 @@ typedef struct{
 	int sustainHealth;
 	int sustainFatigue;
 	int speed;
+	float fatigueRecovery;
+	float boostCost;
 	float zanzokenCost;
 	float zanzokenSpeed;
 	float zanzokenDistance;

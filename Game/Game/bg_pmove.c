@@ -297,7 +297,7 @@ void PM_CheckZanzoken(void){
 		PM_StopDash();
 		pm->ps->bitFlags |= usingZanzoken;
 		pm->ps->timers[tmZanzoken] = (pm->ps->powerLevel[plFatigue] / 93.62) + pm->ps->stats[stZanzokenDistance];
-		cost = (pm->ps->powerLevel[plMaximum] * 0.12) * (pm->ps->stats[stZanzokenCost] * 0.001);
+		cost = (pm->ps->powerLevel[plMaximum] * 0.12) * pm->ps->baseStats[stZanzokenCost];
 		if(pm->ps->lockedTarget > 0){cost *= 0.8;}
 		if(pm->ps->bitFlags & usingJump){cost *= 0.4;}
 		pm->ps->powerLevel[plUseFatigue] += cost;
@@ -706,7 +706,7 @@ void PM_CheckBoost(void){
 		pm->ps->timers[tmBoost] += pml.msec;
 		if(pm->ps->timers[tmBoost] > limit){pm->ps->timers[tmBoost] = limit;}
 		if(pm->ps->powerups[PW_BOOST] > 150){
-			pm->ps->powerLevel[plUseFatigue] += pm->ps->powerLevel[plMaximum] * 0.003;
+			pm->ps->powerLevel[plUseFatigue] += (pm->ps->powerLevel[plMaximum] * 0.003) * pm->ps->baseStats[stBoostCost];
 			pm->ps->powerups[PW_BOOST] -= 150;
 		}
 	}
