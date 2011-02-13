@@ -244,17 +244,11 @@ typedef enum {
 	stAnimState,
 	stSkills
 }statIndex_t;
-
 typedef enum {
 	stZanzokenCost,
+	stFatigueRecovery,
 	stBoostCost
 }baseStats_t;
-
-typedef enum{
-	stZanzokenCost,
-	stBoostCost
-}baseStats_t;
-
 typedef enum{
 	plCurrent,
 	plFatigue,
