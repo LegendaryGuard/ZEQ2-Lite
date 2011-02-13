@@ -238,12 +238,17 @@ typedef enum {
 	stEnergyAttack,
 	stEnergyDefense,
 	stEnergyCost,
-	stChargePercentPrimary,	// % of primary attack charged
-	stChargePercentSecondary,	// % of secondary attack charged
+	stChargePercentPrimary,
+	stChargePercentSecondary,
 	stMeleeState,
 	stAnimState,
 	stSkills
 }statIndex_t;
+
+typedef enum {
+	stZanzokenCost,
+	stBoostCost
+}baseStats_t;
 
 typedef enum{
 	stZanzokenCost,
