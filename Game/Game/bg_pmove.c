@@ -557,6 +557,7 @@ void PM_CheckPowerLevel(void){
 		idleScale = (!pm->cmd.forwardmove && !pm->cmd.rightmove && !pm->cmd.upmove) ? 2 : 1;
 		recovery = (float)pm->ps->powerLevel[plMaximum] * 0.004 * idleScale;
 		recovery *= (1.0 - ((float)pm->ps->powerLevel[plCurrent] / (float)pm->ps->powerLevel[plMaximum]));
+		recovery *= (float)pm->ps->baseStats[stFatigueRecovery];
 		if(pm->ps->bitFlags & usingBoost || pm->ps->bitFlags & usingAlter || pm->ps->bitFlags & usingZanzoken || pm->ps->bitFlags & usingJump || pm->ps->bitFlags & isStruggling || pm->ps->powerLevel[plCurrent] > pm->ps->powerLevel[plFatigue] || pm->ps->bitFlags & usingSoar){recovery = 0;}
 		if(powerLevel[plCurrent] > powerLevel[plFatigue]){
 			newValue = powerLevel[plCurrent] - (pm->ps->powerLevel[plMaximum] * 0.005);
@@ -2610,7 +2611,7 @@ void PM_Weapon(void){
 	int	*weaponInfo;
 	int	*alt_weaponInfo;
 	int chargeRate;
-	int costPrimary,costSecondary;	
+	int costPrimary,costSecondary;
 	if(pm->ps->weaponstate != WEAPON_GUIDING){pm->ps->bitFlags &= ~isGuiding;}
 	if(pm->ps->persistant[PERS_TEAM] == TEAM_SPECTATOR){return;}
 	if(pm->ps->bitFlags & isStruggling || pm->ps->bitFlags & usingSoar
@@ -2670,7 +2671,7 @@ void PM_Weapon(void){
 				PM_StartTorsoAnim(ANIM_KI_ATTACK1_PREPARE + (pm->ps->weapon - 1) * 2 );
 				break;
 			}
-			pm->ps->powerLevel[plUseFatigue] += costPrimary;
+			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
 			if(weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
 				PM_AddEvent(EV_FIRE_WEAPON );
 				pm->ps->weaponstate = WEAPON_FIRING;
@@ -2688,7 +2689,7 @@ void PM_Weapon(void){
 				PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_PREPARE + (pm->ps->weapon - 1) * 2 );
 				break;
 			}
-			pm->ps->powerLevel[plUseFatigue] += costSecondary;
+			pm->ps->powerLevel[plUseFatigue] += (costSecondary * (pm->ps->baseStats[stFatigueRecovery]));
 			if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
 				pm->ps->weaponstate = WEAPON_ALTFIRING;
 				PM_AddEvent(EV_ALTFIRE_WEAPON );
@@ -2732,7 +2733,7 @@ void PM_Weapon(void){
 				if(pm->ps->stats[stChargePercentPrimary] > 100){
 					pm->ps->stats[stChargePercentPrimary] = 100;
 				}
-				pm->ps->powerLevel[plUseFatigue] += costPrimary;
+				pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
 				pm->ps->powerLevel[plUseHealth] += weaponInfo[WPSTAT_HEALTHCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 				pm->ps->powerLevel[plUseMaximum] += weaponInfo[WPSTAT_MAXIMUMCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 			}
@@ -2773,7 +2774,7 @@ void PM_Weapon(void){
 				if(pm->ps->stats[stChargePercentSecondary] > 100){
 					pm->ps->stats[stChargePercentSecondary] = 100;
 				}
-				pm->ps->powerLevel[plUseFatigue] += costPrimary;
+				pm->ps->powerLevel[plUseFatigue] += (costSecondary * (pm->ps->baseStats[stFatigueRecovery]));
 				pm->ps->powerLevel[plUseHealth] += weaponInfo[WPSTAT_ALT_HEALTHCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 				pm->ps->powerLevel[plUseMaximum] += weaponInfo[WPSTAT_ALT_MAXIMUMCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 			}
@@ -2807,7 +2808,7 @@ void PM_Weapon(void){
 		}
 		pm->ps->weaponTime += pml.msec;
 		while(pm->ps->weaponTime > 100){
-			pm->ps->powerLevel[plUseFatigue] += costPrimary;
+			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
 		}
 		break;
 	case WEAPON_ALTFIRING:
@@ -2819,7 +2820,7 @@ void PM_Weapon(void){
 		}
 		pm->ps->weaponTime += pml.msec;
 		while(pm->ps->weaponTime > 100){
-			pm->ps->powerLevel[plUseFatigue] += costSecondary;
+			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
 		}
 		break;
 	default:

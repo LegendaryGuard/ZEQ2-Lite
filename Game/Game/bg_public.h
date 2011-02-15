@@ -237,7 +237,6 @@ typedef enum {
 	stMeleeDefense,
 	stEnergyAttack,
 	stEnergyDefense,
-	stEnergyCost,
 	stChargePercentPrimary,
 	stChargePercentSecondary,
 	stMeleeState,
@@ -246,8 +245,9 @@ typedef enum {
 }statIndex_t;
 typedef enum {
 	stZanzokenCost,
+	stEnergyCost,
+	stBoostCost,
 	stFatigueRecovery,
-	stBoostCost
 }baseStats_t;
 typedef enum{
 	plCurrent,
