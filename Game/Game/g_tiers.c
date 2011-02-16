@@ -168,7 +168,7 @@ void parseTier(char *path,tierConfig_g *tier){
 			else if(!Q_stricmp(token,"boostCost")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
-				tier->zanzokenCost = atof(token);
+				tier->boostCost = atof(token);
 			}
 			else if(!Q_stricmp(token,"zanzokenCost")){
 				token = COM_Parse(&parse);

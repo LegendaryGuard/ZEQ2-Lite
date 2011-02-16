@@ -2770,7 +2770,7 @@ void PM_Weapon(void){
 			if(pm->ps->stats[stChargePercentSecondary] < 100){
 				if(pm->ps->stats[stChargePercentPrimary] == 0 && pm->ps->bitFlags & usingBoost){
 					pm->ps->stats[stChargePercentPrimary] = 25;
-					costPrimary *= 25;
+					costSecondary *= 25;
 				}
 				pm->ps->stats[stChargePercentSecondary] += chargeRate;
 				if(pm->ps->stats[stChargePercentSecondary] > 100){
@@ -2822,7 +2822,7 @@ void PM_Weapon(void){
 		}
 		pm->ps->weaponTime += pml.msec;
 		while(pm->ps->weaponTime > 100){
-			pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
+			pm->ps->powerLevel[plUseFatigue] += costSecondary * pm->ps->baseStats[stEnergyAttackCost];
 		}
 		break;
 	default:
