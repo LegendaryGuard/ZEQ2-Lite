@@ -30,21 +30,20 @@ CG_AdjustFrom640
 Adjusted for resolution and screen aspect ratio
 ================
 */
-void CG_AdjustFrom640( float *x, float *y, float *w, float *h,qboolean stretch) {
-	float ratio = ((float)cgs.screenXScale / (float)cgs.screenYScale);
-	if(0 && !stretch){
-		*x *= ratio;
-		*y *= ratio;
-		*w *= ratio;
-		*h *= ratio;
+void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
+#if 0
+	// adjust for wide screens
+	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
+		*x += 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * 640 / 480 ) );
 	}
-	else{
-		*x *= cgs.screenXScale;
-		*y *= cgs.screenYScale;
-		*w *= cgs.screenXScale;
-		*h *= cgs.screenYScale;
-	}
+#endif
+	// scale for screen sizes
+	*x *= cgs.screenXScale;
+	*y *= cgs.screenYScale;
+	*w *= cgs.screenXScale;
+	*h *= cgs.screenYScale;
 }
+
 /*
 ================
 CG_FillRect
@@ -55,7 +54,7 @@ Coordinates are 640*480 virtual values
 void CG_FillRect( float x, float y, float width, float height, const float *color ) {
 	trap_R_SetColor( color );
 
-	CG_AdjustFrom640( &x, &y, &width, &height,qtrue);
+	CG_AdjustFrom640( &x, &y, &width, &height );
 	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cgs.media.whiteShader );
 
 	trap_R_SetColor( NULL );
@@ -69,14 +68,14 @@ Coords are virtual 640x480
 ================
 */
 void CG_DrawSides(float x, float y, float w, float h, float size) {
-	CG_AdjustFrom640( &x, &y, &w, &h,qtrue);
+	CG_AdjustFrom640( &x, &y, &w, &h );
 	size *= cgs.screenXScale;
 	trap_R_DrawStretchPic( x, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
 	trap_R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
 }
 
 void CG_DrawTopBottom(float x, float y, float w, float h, float size) {
-	CG_AdjustFrom640( &x, &y, &w, &h,qtrue);
+	CG_AdjustFrom640( &x, &y, &w, &h );
 	size *= cgs.screenYScale;
 	trap_R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
 	trap_R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
@@ -106,8 +105,8 @@ CG_DrawPic
 Coordinates are 640*480 virtual values
 =================
 */
-void CG_DrawPic( qboolean stretch, float x, float y, float width, float height, qhandle_t hShader ) {
-	CG_AdjustFrom640( &x, &y, &width, &height,stretch);
+void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader ) {
+	CG_AdjustFrom640( &x, &y, &width, &height );
 	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
@@ -136,7 +135,7 @@ void CG_DrawChar( int x, int y, int width, int height, int ch ) {
 	ay = y;
 	aw = width;
 	ah = height;
-	CG_AdjustFrom640( &ax, &ay, &aw, &ah, qtrue);
+	CG_AdjustFrom640( &ax, &ay, &aw, &ah );
 
 	row = ch>>4;
 	col = ch&15;

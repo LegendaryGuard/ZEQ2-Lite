@@ -108,15 +108,15 @@ static void CG_DrawRadarBlips( float x, float y, float w, float h ) {
 
 		// Draw the blip and possible warnings and bursts
 		trap_R_SetColor( draw_color );
-		CG_DrawPic(qtrue, blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBlipShader );
+		CG_DrawPic( blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBlipShader );
 
 		trap_R_SetColor( drawfull_color );		
 		if ( cg_playerOrigins[i].properties & RADAR_BURST ) {
-			CG_DrawPic(qtrue, blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBurstShader );
+			CG_DrawPic( blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBurstShader );
 		}
 
 		if ( cg_playerOrigins[i].properties & RADAR_WARN ) {
-			CG_DrawPic(qtrue, blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarWarningShader );
+			CG_DrawPic( blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarWarningShader );
 			// Atleast one warning was on the radar this screen.
 			// NOTE: Used to check if a warning sound needs to be issued.
 			warning = qtrue;
@@ -125,14 +125,14 @@ static void CG_DrawRadarBlips( float x, float y, float w, float h ) {
 		// Draw the team blip
 		if ( cg_playerOrigins[i].team == cg.snap->ps.persistant[PERS_TEAM] && cg_playerOrigins[i].team != TEAM_FREE ) {
 			trap_R_SetColor( drawteam_color );
-			CG_DrawPic(qtrue, blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBlipTeamShader );
+			CG_DrawPic( blip_x - 0.5f * blip_w, blip_y - 0.5f * blip_h, blip_w, blip_h, cgs.media.RadarBlipTeamShader );
 		}
 
 		trap_R_SetColor( NULL );
 	}
 
 	// Draw the middle point last (on top of everything else, for clarity).
-	CG_DrawPic(qtrue, center_x - RADAR_MIDSIZE * 0.5f, center_y - RADAR_MIDSIZE * 0.5f, RADAR_MIDSIZE, RADAR_MIDSIZE, cgs.media.RadarMidpointShader );
+	CG_DrawPic( center_x - RADAR_MIDSIZE * 0.5f, center_y - RADAR_MIDSIZE * 0.5f, RADAR_MIDSIZE, RADAR_MIDSIZE, cgs.media.RadarMidpointShader );
 
 	// Handle the warning sound.
 	if ( warning && !cg_radarWarningAlready ) {
