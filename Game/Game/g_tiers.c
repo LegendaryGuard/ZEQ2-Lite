@@ -65,7 +65,9 @@ void checkTier(gclient_t *client){
 				if(tier + 1 > ps->powerLevel[plTierTotal]){
 					ps->powerLevel[plTierTotal] = ps->powerLevel[plTierCurrent];
 					ps->timers[tmTransform] = client->tiers[tier+1].transformTime;
+					ps->stats[stTransformState] = 2;
 				}
+				else{ps->stats[stTransformState] = 1;}
 				continue;
 			}
 		}
@@ -78,6 +80,7 @@ void checkTier(gclient_t *client){
 			   (ps->powerLevel[plMaximum] < baseTier->sustainMaximum)){
 				ps->timers[tmTransform] = -1;
 				--ps->powerLevel[plTierCurrent];
+				ps->stats[stTransformState] = -1;
 				break;
 			}
 		}

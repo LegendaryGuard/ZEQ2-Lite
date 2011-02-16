@@ -176,7 +176,7 @@ also called by CG_CheckPlayerstateEvents
 */
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){CG_Printf(x"\n");}
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
-	entityState_t	*es;
+	entityState_t	*es,*nextState;
 	int				event;
 	vec3_t			dir;
 	const char		*s;
@@ -187,6 +187,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	r = random() * 10;
 
 	es = &cent->currentState;
+	nextState = &cent->nextState;
 	event = es->event & ~EV_EVENT_BITS;
 
 	if ( cg_debugEvents.integer ) {
@@ -559,6 +560,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_TIERDOWN:
 		DEBUGNAME("EV_TIERDOWN");
 		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundTransformDown);
+		break;
+	case EV_SYNCTIER:
 		break;
 	case EV_POWERINGUP_START:
 		DEBUGNAME("EV_POWERINGUP_START");

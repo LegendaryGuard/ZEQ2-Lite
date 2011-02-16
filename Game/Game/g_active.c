@@ -395,6 +395,8 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 		case EV_TIERUP_FIRST:
 		case EV_TIERUP:
 		case EV_TIERDOWN:
+			break;
+		case EV_SYNCTIER:
 			syncTier(client);
 			break;
 		case EV_POWERINGUP_START:

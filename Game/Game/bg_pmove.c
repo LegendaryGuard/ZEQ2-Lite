@@ -493,14 +493,22 @@ void PM_CheckStatus(void){
 }
 qboolean PM_CheckTransform(void){
 	pm->ps->timers[tmUpdateTier] += pml.msec;
+	if(pm->ps->timers[tmUpdateTier] > 300){
+		pm->ps->timers[tmUpdateTier] = 0;
+		if(pm->ps->stats[stTransformState] == -1){PM_AddEvent(EV_TIERDOWN);}
+		else if(pm->ps->stats[stTransformState] == 1){PM_AddEvent(EV_TIERUP);}
+		else if(pm->ps->stats[stTransformState] == 2){PM_AddEvent(EV_TIERUP_FIRST);}
+		pm->ps->stats[stTransformState] = 0;
+		PM_AddEvent(EV_TIERCHECK);
+	}
 	if(pm->ps->timers[tmTransform] == 1){
 		pm->ps->timers[tmTransform] = -100;
-		PM_AddEvent(EV_TIERUP);
+		PM_AddEvent(EV_SYNCTIER);
 		return qtrue;
 	}
 	else if(pm->ps->timers[tmTransform] == -1){
 		pm->ps->timers[tmTransform] = -100;
-		PM_AddEvent(EV_TIERDOWN);
+		PM_AddEvent(EV_SYNCTIER);
 		return qtrue;
 	}
 	else if(pm->ps->timers[tmTransform] > 0){
@@ -514,7 +522,7 @@ qboolean PM_CheckTransform(void){
 		}
 		else{
 			pm->ps->bitFlags |= isTransforming;
-			PM_AddEvent(EV_TIERUP_FIRST);
+			PM_AddEvent(EV_SYNCTIER);
 			return qtrue;
 		}
 	}
@@ -523,12 +531,6 @@ qboolean PM_CheckTransform(void){
 		pm->ps->timers[tmTransform] += pml.msec;
 		if(pm->ps->timers[tmTransform] >= -1){
 			pm->ps->timers[tmTransform] = 0;
-		}
-	}
-	else{
-		if(pm->ps->timers[tmUpdateTier] > 300){
-			pm->ps->timers[tmUpdateTier] = 0;
-			PM_AddEvent(EV_TIERCHECK);
 		}
 	}
 	if(pm->ps->timers[tmTransform] == 0){

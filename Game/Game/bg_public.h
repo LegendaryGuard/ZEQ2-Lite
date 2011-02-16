@@ -239,6 +239,7 @@ typedef enum {
 	stEnergyDefense,
 	stChargePercentPrimary,
 	stChargePercentSecondary,
+	stTransformState,
 	stMeleeState,
 	stAnimState,
 	stSkills
@@ -466,6 +467,7 @@ typedef enum {
 	EV_TIERUP_FIRST,
 	EV_TIERUP,
 	EV_TIERDOWN,
+	EV_SYNCTIER,
 	EV_POWERINGUP_START,
 	EV_MELEE_SPEED,
 	EV_MELEE_MISS,
