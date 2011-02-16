@@ -2671,7 +2671,7 @@ void PM_Weapon(void){
 				PM_StartTorsoAnim(ANIM_KI_ATTACK1_PREPARE + (pm->ps->weapon - 1) * 2 );
 				break;
 			}
-			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
+			pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
 			if(weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
 				PM_AddEvent(EV_FIRE_WEAPON );
 				pm->ps->weaponstate = WEAPON_FIRING;
@@ -2689,7 +2689,7 @@ void PM_Weapon(void){
 				PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_PREPARE + (pm->ps->weapon - 1) * 2 );
 				break;
 			}
-			pm->ps->powerLevel[plUseFatigue] += (costSecondary * (pm->ps->baseStats[stFatigueRecovery]));
+			pm->ps->powerLevel[plUseFatigue] += costSecondary * pm->ps->baseStats[stEnergyAttackCost];
 			if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
 				pm->ps->weaponstate = WEAPON_ALTFIRING;
 				PM_AddEvent(EV_ALTFIRE_WEAPON );
@@ -2733,9 +2733,9 @@ void PM_Weapon(void){
 				if(pm->ps->stats[stChargePercentPrimary] > 100){
 					pm->ps->stats[stChargePercentPrimary] = 100;
 				}
-				pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
-				pm->ps->powerLevel[plUseHealth] += weaponInfo[WPSTAT_HEALTHCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
-				pm->ps->powerLevel[plUseMaximum] += weaponInfo[WPSTAT_MAXIMUMCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
+				pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
+				pm->ps->powerLevel[plUseHealth] += weaponInfo[WPSTAT_HEALTHCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001) * pm->ps->baseStats[stEnergyAttackCost];
+				pm->ps->powerLevel[plUseMaximum] += weaponInfo[WPSTAT_MAXIMUMCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001) * pm->ps->baseStats[stEnergyAttackCost];
 			}
 		}
 		if(!(pm->cmd.buttons & BUTTON_ATTACK)) {
@@ -2774,7 +2774,7 @@ void PM_Weapon(void){
 				if(pm->ps->stats[stChargePercentSecondary] > 100){
 					pm->ps->stats[stChargePercentSecondary] = 100;
 				}
-				pm->ps->powerLevel[plUseFatigue] += (costSecondary * (pm->ps->baseStats[stFatigueRecovery]));
+				pm->ps->powerLevel[plUseFatigue] += costSecondary * pm->ps->baseStats[stEnergyAttackCost];
 				pm->ps->powerLevel[plUseHealth] += weaponInfo[WPSTAT_ALT_HEALTHCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 				pm->ps->powerLevel[plUseMaximum] += weaponInfo[WPSTAT_ALT_MAXIMUMCOST] * ((float)pm->ps->powerLevel[plMaximum] * 0.0001);
 			}
@@ -2808,7 +2808,7 @@ void PM_Weapon(void){
 		}
 		pm->ps->weaponTime += pml.msec;
 		while(pm->ps->weaponTime > 100){
-			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
+			pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
 		}
 		break;
 	case WEAPON_ALTFIRING:
@@ -2820,7 +2820,7 @@ void PM_Weapon(void){
 		}
 		pm->ps->weaponTime += pml.msec;
 		while(pm->ps->weaponTime > 100){
-			pm->ps->powerLevel[plUseFatigue] += (costPrimary * (pm->ps->baseStats[stFatigueRecovery]));
+			pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
 		}
 		break;
 	default:

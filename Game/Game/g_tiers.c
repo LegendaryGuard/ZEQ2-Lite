@@ -27,7 +27,7 @@ void syncTier(gclient_t *client){
 	ps->stats[stMeleeAttack] = tier->meleeAttack;
 	ps->stats[stEnergyDefense] = tier->energyDefense;
 	ps->stats[stEnergyAttack] = tier->energyAttackDamage;
-	ps->stats[stEnergyCost] = tier->energyAttackCost;
+	ps->baseStats[stEnergyAttackCost] = tier->energyAttackCost;
 	ps->powerLevel[plDrainCurrent] = tier->effectCurrent;
 	ps->powerLevel[plDrainFatigue] = tier->effectFatigue;
 	ps->powerLevel[plDrainHealth] = tier->effectHealth;
@@ -117,7 +117,7 @@ void parseTier(char *path,tierConfig_g *tier){
 		while(1){
 			token = COM_Parse(&parse);
 			if(!token[0]){break;}
-			else if(!Q_stricmp(token,"tierSpeed")){
+			else if(!Q_stricmp(token,"speed")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->speed = atof(token);
@@ -147,37 +147,37 @@ void parseTier(char *path,tierConfig_g *tier){
 				if(!token[0]){break;}
 				tier->energyAttackCost = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierKnockBackPower")){
+			else if(!Q_stricmp(token,"knockBackPower")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->knockBackPower = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierAirBrakeCost")){
+			else if(!Q_stricmp(token,"airBrakeCost")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->airBrakeCost = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierFatigueRecovery")){
+			else if(!Q_stricmp(token,"fatigueRecovery")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->fatigueRecovery = atof(token);
+			}
+			else if(!Q_stricmp(token,"boostCost")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->zanzokenCost = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierBoostCost")){
+			else if(!Q_stricmp(token,"zanzokenCost")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->zanzokenCost = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierZanzokenCost")){
-				token = COM_Parse(&parse);
-				if(!token[0]){break;}
-				tier->zanzokenCost = atof(token);
-			}
-			else if(!Q_stricmp(token,"tierZanzokenSpeed")){
+			else if(!Q_stricmp(token,"zanzokenSpeed")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->zanzokenSpeed = atof(token);
 			}
-			else if(!Q_stricmp(token,"tierZanzokenDistance")){
+			else if(!Q_stricmp(token,"zanzokenDistance")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->zanzokenDistance = atof(token);

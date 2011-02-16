@@ -245,7 +245,7 @@ typedef enum {
 }statIndex_t;
 typedef enum {
 	stZanzokenCost,
-	stEnergyCost,
+	stEnergyAttackCost,
 	stBoostCost,
 	stFatigueRecovery,
 }baseStats_t;
