@@ -2170,7 +2170,6 @@ void PM_SyncMelee(void){
 	pm->ps->lockedPlayer->bitFlags |= usingFlight;
 	pm->ps->lockedPlayer->weaponstate = WEAPON_READY;
 	if(pm->ps->lockedPlayer->stats[stMeleeState] == 0){
-		Com_Printf("auto-syncing locked Player\n");
 		pm->ps->lockedPlayer->pm_flags |= PMF_ATTACK1_HELD;
 		pm->ps->lockedPlayer->pm_flags |= PMF_ATTACK2_HELD;
 		pm->ps->lockedPlayer->lockedTarget = pm->ps->clientNum + 1;
@@ -2845,9 +2844,6 @@ void PM_CheckLockon(void){
 	trace_t	trace;
 	vec3_t minSize,maxSize,forward,up,end;
 	if(pm->ps->lockedTarget > 0){pm->ps->lockedPlayer->bitFlags |= isTargeted;}
-	if(pm->ps->lockedTarget && (pm->ps->bitFlags & usingFlight) && !(pm->ps->lockedPlayer->bitFlags & usingFlight)){
-		PM_StopLockon();
-	}
 	if(pm->cmd.buttons & BUTTON_GESTURE && pm->ps->stats[stMeleeState] == 0){
 		if(pm->ps->pm_flags & PMF_LOCK_HELD){return;}
 		pm->ps->pm_flags |= PMF_LOCK_HELD;
