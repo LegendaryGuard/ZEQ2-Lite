@@ -992,6 +992,7 @@ void PM_CheckBlock(void){
 		&& !(pm->ps->bitFlags & usingZanzoken)
 		&& !(pm->ps->bitFlags & usingWeapon)
 		&& !(pm->ps->bitFlags & isStruggling)
+		&& !(pm->ps->bitFlags & isGuiding)
 		&& !(pm->ps->bitFlags & isPreparing)){
 		pm->ps->bitFlags |= usingBlock;
 	}
