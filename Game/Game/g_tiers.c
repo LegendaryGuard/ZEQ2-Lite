@@ -17,11 +17,23 @@ void syncTier(gclient_t *client){
 	if(tier->capableJump){ps->states |= canJump;}
 	if(tier->capableBallFlip){ps->states |= canBallFlip;}
 	ps->stats[stSpeed] = tier->speed * 450.0;
+	ps->stats[stTransformFirstDuration] = tier->transformFirstDuration;
+	ps->stats[stTransformFirstEffectMaximum] = tier->transformFirstEffectMaximum;
+	ps->stats[stTransformFirstHealth] = tier->transformFirstHealth;
+	ps->stats[stTransformFirstFatigue] = tier->transformFirstFatigue;
+	ps->stats[stTransformDuration] = tier->transformDuration;
+	ps->stats[stTransformFatigue] = tier->transformFatigue;
+	ps->stats[stTransformHealth] = tier->transformHealth;
+	ps->stats[stTransformEffectMaximum] = tier->transformEffectMaximum;
 	ps->stats[stZanzokenDistance] = tier->zanzokenDistance * 500.0;
 	ps->stats[stZanzokenSpeed] = tier->zanzokenSpeed * 4000.0;
 	ps->baseStats[stZanzokenCost] = tier->zanzokenCost;
 	ps->baseStats[stBoostCost] = tier->boostCost;
 	ps->baseStats[stFatigueRecovery] = tier->fatigueRecovery;
+	ps->baseStats[stTransformSubsequentDuration] = tier->transformSubsequentDuration;
+	ps->baseStats[stTransformSubsequentFatigueScale] = tier->transformSubsequentFatigueScale;
+	ps->baseStats[stTransformSubsequentHealthScale] = tier->transformSubsequentHealthScale;
+	ps->baseStats[stTransformSubsequentMaximumScale] = tier->transformSubsequentMaximumScale;
 	ps->stats[stAirBrakeCost] = tier->airBrakeCost;
 	ps->stats[stMeleeDefense] = tier->meleeDefense;
 	ps->stats[stMeleeAttack] = tier->meleeAttack;
@@ -249,6 +261,66 @@ void parseTier(char *path,tierConfig_g *tier){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->sustainMaximum = atoi(token);
+			}
+			else if(!Q_stricmp(token,"transformFirstDuration")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformFirstDuration = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformFirstHealth")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformFirstHealth = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformFatigue")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformFirstFatigue = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformFirstEffectMaximum")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformFirstEffectMaximum = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformDuration")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformDuration = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformHealth")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformHealth = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformFatigue")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformFatigue = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformEffectMaximum")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformEffectMaximum = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformSubsequentDuration")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformDuration = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformEffectSubsequentHealthScale")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformSubsequentHealthScale = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformEffectSubsequentFatigueScale")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformSubsequentFatigueScale = atof(token);
+			}
+			else if(!Q_stricmp(token,"transformEffectSubsequentMaximumScale")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				tier->transformSubsequentMaximumScale = atof(token);
 			}
 			else if(!Q_stricmp(token,"transformTime")){
 				token = COM_Parse(&parse);

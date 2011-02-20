@@ -242,13 +242,25 @@ typedef enum {
 	stTransformState,
 	stMeleeState,
 	stAnimState,
-	stSkills
+	stSkills,
+	stTransformFirstDuration,
+	stTransformFirstEffectMaximum,
+	stTransformFirstHealth,
+	stTransformFirstFatigue,
+	stTransformDuration,
+	stTransformFatigue,
+	stTransformHealth,
+	stTransformEffectMaximum,
 }statIndex_t;
 typedef enum {
 	stZanzokenCost,
 	stEnergyAttackCost,
 	stBoostCost,
 	stFatigueRecovery,
+	stTransformSubsequentDuration,
+	stTransformSubsequentFatigueScale,
+	stTransformSubsequentHealthScale,
+	stTransformSubsequentMaximumScale,
 }baseStats_t;
 typedef enum{
 	plCurrent,

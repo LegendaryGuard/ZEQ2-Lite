@@ -18,6 +18,18 @@ typedef struct{
 	int sustainHealth;
 	int sustainFatigue;
 	int speed;
+	int transformFirstDuration;
+	int transformFristFatigue;
+	int transformFirstHealth;
+	int transformFirstEffectMaximum;
+	int transformDuration;
+	int transformEffectFatigue;
+	int transformEffectHealth;
+	int transformEffectMaximum;
+	float transformSubsequentDuration;
+	float transformSubsequentFatigueScale;
+	float transformSubsequentHealthScale;
+	float transformSubsequentMaximumScale;
 	float fatigueRecovery;
 	float boostCost;
 	float zanzokenCost;
