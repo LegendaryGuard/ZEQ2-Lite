@@ -19,12 +19,12 @@ typedef struct{
 	int sustainFatigue;
 	int speed;
 	int transformFirstDuration;
-	int transformFristFatigue;
+	int transformFirstFatigue;
 	int transformFirstHealth;
 	int transformFirstEffectMaximum;
 	int transformDuration;
-	int transformEffectFatigue;
-	int transformEffectHealth;
+	int transformFatigue;
+	int transformHealth;
 	int transformEffectMaximum;
 	float transformSubsequentDuration;
 	float transformSubsequentFatigueScale;

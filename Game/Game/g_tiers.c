@@ -272,7 +272,7 @@ void parseTier(char *path,tierConfig_g *tier){
 				if(!token[0]){break;}
 				tier->transformFirstHealth = atof(token);
 			}
-			else if(!Q_stricmp(token,"transformFatigue")){
+			else if(!Q_stricmp(token,"transformFirstFatigue")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				tier->transformFirstFatigue = atof(token);
@@ -305,7 +305,7 @@ void parseTier(char *path,tierConfig_g *tier){
 			else if(!Q_stricmp(token,"transformSubsequentDuration")){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
-				tier->transformDuration = atof(token);
+				tier->transformSubsequentDuration = atof(token);
 			}
 			else if(!Q_stricmp(token,"transformEffectSubsequentHealthScale")){
 				token = COM_Parse(&parse);
