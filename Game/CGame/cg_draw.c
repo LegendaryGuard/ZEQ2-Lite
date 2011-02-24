@@ -42,6 +42,8 @@ char systemChat[256];
 char teamChat1[256];
 char teamChat2[256];
 
+playerState_t LockedTargetPS;
+
 #ifdef MISSIONPACK
 
 int CG_Text_Width(const char *text, float scale, int limit) {
@@ -601,7 +603,7 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	CG_DrawDiffGauge(x+60,y+41,200,16,plFatigueHealthColor,plFatigueHealthColor,ps->powerLevel[plFatigue],ps->powerLevel[plHealth],ps->powerLevel[plMaximum],1);
 	CG_DrawDiffGauge(x+60,y+41,200,16,beyondHealthColor,beyondHealthColor,ps->powerLevel[plCurrent],ps->powerLevel[plHealth],ps->powerLevel[plMaximum],1);
 	if((ps->powerLevel[plCurrent] > ps->powerLevel[plFatigue]) && (ps->powerLevel[plFatigue] > ps->powerLevel[plHealth])){
-		CG_DrawDiffGauge(x+60,449,200,16,healthFatigueColor,healthFatigueColor,ps->powerLevel[plCurrent],ps->powerLevel[plFatigue],ps->powerLevel[plMaximum],1);
+		CG_DrawDiffGauge(x+60,y+41,200,16,healthFatigueColor,healthFatigueColor,ps->powerLevel[plCurrent],ps->powerLevel[plFatigue],ps->powerLevel[plMaximum],1);
 	}
 	CG_DrawPic(x,y,288,72,cgs.media.hudShader);
 	CG_DrawHead(x+6,y+22,50,50,clientNum,angles);
@@ -624,21 +626,27 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	CG_DrawSmallStringHalfHeight(x+239-powerLevelOffset,y+44,powerLevelString,1.0F);
 }
 static void CG_DrawStatusBar( void ) {
-	centity_t	*cent;
+	centity_t		*cent;
 	playerState_t	*ps;
-	float 		tierLast,tierNext,tier;
-	int 		base;
-	clientInfo_t *ci;
+	float			tierLast,tierNext,tier;
+	int				base;
+	clientInfo_t	*ci;
 	cg_userWeapon_t	*weaponGraphics;
-	tierConfig_cg *activeTier;
+	tierConfig_cg	*activeTier;
+	int				i;
+
 	ci = &cgs.clientinfo[cg.snap->ps.clientNum];
 	if(cg_drawStatus.integer == 0){return;}
 	cent = &cg_entities[cg.snap->ps.clientNum];
 	ps = &cg.snap->ps;
 	tier = (float)ps->powerLevel[plTierCurrent];
 	if(ps->lockedTarget){
+		memset(&LockedTargetPS, 0, sizeof(LockedTargetPS));
+		LockedTargetPS.clientNum = ps->lockedTarget;
+		LockedTargetPS.powerLevel[plCurrent] = cg_playerOrigins[LockedTargetPS.clientNum-1].pl;
+		LockedTargetPS.powerLevel[plMaximum] = cg_playerOrigins[LockedTargetPS.clientNum-1].plMax;
 		CG_DrawHUD(ps,ps->clientNum,0,0,qfalse);
-		CG_DrawHUD(ps->lockedPlayer,ps->lockedPlayer->clientNum-1,320,0,qtrue);
+		CG_DrawHUD(&LockedTargetPS,LockedTargetPS.clientNum-1,320,0,qtrue);
 	}
 	else{
 		CG_DrawHUD(ps,ps->clientNum,0,408,qfalse);
