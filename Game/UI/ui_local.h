@@ -38,6 +38,7 @@ typedef void (*voidfunc_f)(void);
 extern vmCvar_t	ui_ffa_fraglimit;
 extern vmCvar_t	ui_ffa_timelimit;
 extern vmCvar_t	ui_ffa_powerlevel;
+extern vmCvar_t ui_ffa_powerlevelMaximum;
 extern vmCvar_t	ui_ffa_breakLimitRate;
 
 extern vmCvar_t	ui_tourney_fraglimit;

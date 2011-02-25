@@ -616,7 +616,7 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	if(powerLevelDisplay >= 1000000){	
 		powerLevelString = va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0);
 	}
-	multiplier = (&cgs.clientinfo[clientNum])->tierConfig[ps->powerLevel[plTierCurrent]].hudMultiplier;
+	multiplier = cgs.clientinfo[clientNum].tierConfig[ps->powerLevel[plTierCurrent]].hudMultiplier;
 	if(multiplier <= 0){
 		multiplier = 1.0;
 	}
@@ -633,7 +633,6 @@ static void CG_DrawStatusBar( void ) {
 	clientInfo_t	*ci;
 	cg_userWeapon_t	*weaponGraphics;
 	tierConfig_cg	*activeTier;
-	int				i;
 
 	ci = &cgs.clientinfo[cg.snap->ps.clientNum];
 	if(cg_drawStatus.integer == 0){return;}
@@ -641,12 +640,14 @@ static void CG_DrawStatusBar( void ) {
 	ps = &cg.snap->ps;
 	tier = (float)ps->powerLevel[plTierCurrent];
 	if(ps->lockedTarget){
-		memset(&LockedTargetPS, 0, sizeof(LockedTargetPS));
-		LockedTargetPS.clientNum = ps->lockedTarget;
-		LockedTargetPS.powerLevel[plCurrent] = cg_playerOrigins[LockedTargetPS.clientNum-1].pl;
-		LockedTargetPS.powerLevel[plMaximum] = cg_playerOrigins[LockedTargetPS.clientNum-1].plMax;
+		LockedTargetPS.clientNum = ps->lockedTarget-1;
+		LockedTargetPS.powerLevel[plCurrent] = cg_playerOrigins[LockedTargetPS.clientNum].pl;
+		LockedTargetPS.powerLevel[plMaximum] = cg_playerOrigins[LockedTargetPS.clientNum].plMax;
+		LockedTargetPS.powerLevel[plHealth] = cg_playerOrigins[LockedTargetPS.clientNum].health;
+		LockedTargetPS.powerLevel[plFatigue] = LockedTargetPS.powerLevel[plMaximum];
+		LockedTargetPS.powerLevel[plTierCurrent] = cgs.clientinfo[LockedTargetPS.clientNum].tierCurrent;
 		CG_DrawHUD(ps,ps->clientNum,0,0,qfalse);
-		CG_DrawHUD(&LockedTargetPS,LockedTargetPS.clientNum-1,320,0,qtrue);
+		CG_DrawHUD(&LockedTargetPS,LockedTargetPS.clientNum,320,0,qtrue);
 	}
 	else{
 		CG_DrawHUD(ps,ps->clientNum,0,408,qfalse);
