@@ -356,12 +356,21 @@ typedef enum {
 // States
 #define isHovering		0x00000001
 #define isDashing		0x00000002
-#define canBoost		0x00000004
-#define canFly			0x00000008
-#define canZanzoken		0x00000010
-#define canJump			0x00000020
-#define canBallFlip		0x00000040
-#define advancedFlight	0x00000080
+#define isTargetable	0x00000004
+#define canBoost		0x00000008
+#define canFly			0x00000010
+#define canZanzoken		0x00000020
+#define canJump			0x00000040
+#define canBallFlip		0x00000080
+#define canOverheal		0x00000100
+#define canBreakLimit	0x00000200
+#define canMelee		0x00000400
+#define canLockon		0x00000800
+#define canBlock		0x00001000
+#define canTransform	0x00002000
+#define canSoar			0x00004000
+#define advancedMelee	0x00008000
+#define advancedFlight	0x00010000
 
 // Options
 
@@ -482,6 +491,7 @@ typedef enum {
 	EV_TIERDOWN,
 	EV_SYNCTIER,
 	EV_POWERINGUP_START,
+	EV_BALLFLIP,
 	EV_MELEE_SPEED,
 	EV_MELEE_MISS,
 	EV_MELEE_KNOCKBACK,

@@ -636,9 +636,15 @@ static void CG_DrawStatusBar( void ) {
 	int				i;
 
 	ci = &cgs.clientinfo[cg.snap->ps.clientNum];
+	ps = &cg.snap->ps;
+	if((ci->lockStartTimer > cg.time) /*(&& cg.time > ci->lockStartTimer - 500)*/){
+		CG_DrawPic(0,0,640,480,cgs.media.speedLineSpinShader);
+	}
+	if(ps->bitFlags & usingBoost || ps->bitFlags & usingSoar){
+		CG_DrawPic(0,0,640,480,cgs.media.speedLineShader);
+	}
 	if(cg_drawStatus.integer == 0){return;}
 	cent = &cg_entities[cg.snap->ps.clientNum];
-	ps = &cg.snap->ps;
 	tier = (float)ps->powerLevel[plTierCurrent];
 	if(ps->lockedTarget){
 		for(i=0; i<MAX_CLIENTS; i++) {

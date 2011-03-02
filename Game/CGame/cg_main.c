@@ -355,6 +355,7 @@ void CG_RegisterCvars( void ) {
 	forceModelModificationCount = cg_forceModel.modificationCount;
 
 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+	trap_Cvar_Register(NULL, "legsmodel", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
 	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
 	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
 	trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO | CVAR_ARCHIVE );
@@ -533,6 +534,7 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.powerStunSound2 = trap_S_RegisterSound( "effects/melee/powerStun2.ogg", qfalse );
 	cgs.media.powerMeleeSound = trap_S_RegisterSound( "effects/melee/powerHit1.ogg", qfalse );
 	cgs.media.powerMissSound = trap_S_RegisterSound( "effects/melee/powerMiss1.ogg", qfalse );
+	cgs.media.lockonStart = trap_S_RegisterSound( "effects/powerSense.ogg", qfalse );
 	cgs.media.airBrake1 = trap_S_RegisterSound( "effects/airBrake1.ogg", qfalse );
 	cgs.media.airBrake2 = trap_S_RegisterSound( "effects/airBrake2.ogg", qfalse );
 	cgs.media.hover = trap_S_RegisterSound( "effects/hover.ogg", qfalse );
@@ -1354,6 +1356,8 @@ static void CG_RegisterGraphics( void ) {
 	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
 		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("crosshair%c", 'a'+i) );
 	}
+	cgs.media.speedLineShader = trap_R_RegisterShaderNoMip("speedLines");
+	cgs.media.speedLineSpinShader = trap_R_RegisterShaderNoMip("speedLinesSpin");
 	cgs.media.globalCelLighting = trap_R_RegisterShader("GlobalCelLighting");
 	cgs.media.waterSplashSkin = trap_R_RegisterSkin( "effects/water/waterSplash.skin" );
 	cgs.media.waterSplashModel = trap_R_RegisterModel( "effects/water/waterSplash.md3" );

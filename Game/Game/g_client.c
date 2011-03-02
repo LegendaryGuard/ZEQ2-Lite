@@ -612,6 +612,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	char	*s;
 	char	model[MAX_QPATH];
 	char	headModel[MAX_QPATH];
+	char	legsModel[MAX_QPATH];
 	char	oldname[MAX_STRING_CHARS];
 	gclient_t	*client;
 	char	c1[MAX_INFO_STRING];
@@ -657,16 +658,11 @@ void ClientUserinfoChanged( int clientNum ) {
 				client->pers.netname) );
 		}
 	}
-
+	if(client->ps.powerLevel[plHealth]>0){respawn(ent);}
 	// set model
-	if( g_gametype.integer >= GT_TEAM ) {
-		Q_strncpyz( model, Info_ValueForKey (userinfo, "team_model"), sizeof( model ) );
-		Q_strncpyz( headModel, Info_ValueForKey (userinfo, "team_headmodel"), sizeof( headModel ) );
-	} else {
-		Q_strncpyz( model, Info_ValueForKey (userinfo, "model"), sizeof( model ) );
-		Q_strncpyz( headModel, Info_ValueForKey (userinfo, "headmodel"), sizeof( headModel ) );
-	}
-
+	Q_strncpyz( model, Info_ValueForKey (userinfo, "model"), sizeof( model ) );
+	Q_strncpyz( headModel, Info_ValueForKey (userinfo, "headmodel"), sizeof( headModel ) );
+	Q_strncpyz( legsModel, Info_ValueForKey (userinfo, "legsmodel"), sizeof( legsModel ) );
 	// set max powerLevel
 	handicap = atoi( Info_ValueForKey( userinfo, "handicap" ) );
 	client->playerEntity = ent;
@@ -675,7 +671,6 @@ void ClientUserinfoChanged( int clientNum ) {
 	client->ps.bitFlags |= isSafe;
 	client->ps.rolling = g_rolling.value;
 	client->ps.running = g_running.value;
-
 	// ADDING FOR ZEQ2
 	// REFPOINT: Loading the serverside weaponscripts here.
 	{
@@ -734,16 +729,6 @@ void ClientUserinfoChanged( int clientNum ) {
 	else {
 		team = client->sess.sessionTeam;
 	}
-
-	/*
-	s = Info_ValueForKey( userinfo, "cg_pmove_fixed" );
-	if ( !*s || atoi( s ) == 0 ) {
-		client->pers.pmoveFixed = qfalse;
-	}
-	else {
-		client->pers.pmoveFixed = qtrue;
-	}
-	*/
 
 	// team task (0 = none, 1 = offence, 2 = defence)
 	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));

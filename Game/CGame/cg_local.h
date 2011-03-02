@@ -331,7 +331,7 @@ typedef struct {
 // client model and other color coded effects
 // this is regenerated each time a client's configstring changes,
 // usually as a result of a userinfo (name, model, etc) change
-#define	MAX_CUSTOM_SOUNDS	32
+#define	MAX_CUSTOM_SOUNDS	512
 
 typedef struct {
 	qboolean		infoValid;
@@ -358,6 +358,8 @@ typedef struct {
 	char			skinName[MAX_QPATH];
 	char			headModelName[MAX_QPATH];
 	char			headSkinName[MAX_QPATH];
+	char			legsModelName[MAX_QPATH];
+	char			legsSkinName[MAX_QPATH];
 	char			redTeam[MAX_TEAMNAME];
 	char			blueTeam[MAX_TEAMNAME];
 	qboolean		deferred;
@@ -376,10 +378,11 @@ typedef struct {
 	qhandle_t		headSkin[8];
 	qhandle_t		modelIcon;
 	animation_t		animations[MAX_TOTALANIMATIONS];
-	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
+	sfxHandle_t		sounds[9][MAX_CUSTOM_SOUNDS];
 	//ADDING FOR ZEQ2
 	qboolean		transformStart;
 	int				transformLength;
+	int				lockStartTimer;
 	int				tierCurrent;
 	int				tierMax;
 	int				cameraBackup[4];
@@ -818,6 +821,8 @@ typedef struct {
 	qhandle_t	RadarBurstShader;
 	qhandle_t	RadarWarningShader;
 	qhandle_t	RadarMidpointShader;
+	qhandle_t	speedLineShader;
+	qhandle_t	speedLineSpinShader;
 	qhandle_t	friendShader;
 	qhandle_t	chatBubble;
 	qhandle_t	connectionShader;
@@ -856,6 +861,7 @@ typedef struct {
 	qhandle_t	auraLightningSparks1;
 	qhandle_t	auraLightningSparks2;
 	qhandle_t	invulnerabilityPowerupModel;
+	sfxHandle_t	lockonStart;
 	sfxHandle_t	selectSound;
 	sfxHandle_t	useNothingSound;
 	sfxHandle_t	wearOffSound;

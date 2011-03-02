@@ -212,7 +212,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_NULL:
 		break;
 	case EV_CRASH:
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fall1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "fall" ) );
 		PSys_SpawnCachedSystem("AuraDebris",cent->lerpOrigin,NULL,cent,NULL,qtrue,qfalse);
 		break;
 	case EV_FOOTSTEP:
@@ -254,7 +254,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_FALL_SHORT:
 		DEBUGNAME("EV_FALL_SHORT");
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fallSoft.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "fallSoft" ) );
 		CG_PlayerDirtPush(cent,2,qtrue);
 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
 			cg.landChange = -8;
@@ -263,7 +263,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_FALL_MEDIUM:
 		DEBUGNAME("EV_FALL_MEDIUM");
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fallHard3.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "fallHard" ) );
 		CG_PlayerDirtPush(cent,4,qtrue);
 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
 			cg.landChange = -16;
@@ -272,7 +272,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_FALL_FAR:
 		DEBUGNAME("EV_FALL_FAR");
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fall1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "fall" ) );
 		CG_PlayerDirtPush(cent,8,qtrue);
 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
 			cg.landChange = -24;
@@ -321,18 +321,20 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_HIGHJUMP:
 		DEBUGNAME("EV_HIGHJUMP");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*highjump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "highjump" ) );
 		CG_PlayerDirtPush(cent,10,qtrue);
 		break;
 	case EV_JUMP:
 		DEBUGNAME("EV_JUMP");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "jump" ) );
 		CG_PlayerDirtPush(cent,5,qtrue);
 		break;
 	case EV_LOCKON_START:
 		DEBUGNAME("EV_LOCKON_START");
 		if(!cg.snap->ps.lockedTarget){
-			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*taunt.ogg" ));
+			ci->lockStartTimer = cg.time + 800;
+			trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.lockonStart);
+			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "taunt" ));
 		}
 		break;
 	case EV_LOCKON_END:
@@ -340,19 +342,19 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_STUNNED:
 		DEBUGNAME("EV_STUNNED");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "pain" ) );
 		break;
 	case EV_BLOCK:
 		DEBUGNAME("EV_BLOCK");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "pain" ) );
 		break;
 	case EV_PUSH:
 		DEBUGNAME("EV_PUSH");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "pain" ) );
 		break;
 	case EV_SWAT:
 		DEBUGNAME("EV_SWAT");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "pain" ) );
 		break;
 	case EV_WATER_TOUCH:
 		DEBUGNAME("EV_WATER_TOUCH");
@@ -368,7 +370,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_WATER_CLEAR:
 		DEBUGNAME("EV_WATER_CLEAR");
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*gasp.ogg" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "gasp" ) );
 		break;
 	case EV_WATER_SPLASH:
 		DEBUGNAME("EV_WATER_SPLASH");
@@ -479,31 +481,31 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_PAIN1:
 		DEBUGNAME("EV_PAIN1");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*pain1.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"pain"));
 		break;
 	case EV_PAIN2:
 		DEBUGNAME("EV_PAIN2");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*pain2.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"pain"));
 		break;
 	case EV_PAIN3:
 		DEBUGNAME("EV_PAIN3");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*pain3.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"pain"));
 		break;
 	case EV_PAIN4:
 		DEBUGNAME("EV_PAIN4");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*pain4.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"pain"));
 		break;
 	case EV_PAIN5:
 		DEBUGNAME("EV_PAIN5");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*pain5.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"pain"));
 		break;
 	case EV_DEATH:
 		DEBUGNAME("EV_DEATH");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*death1.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"death"));
 		break;
 	case EV_UNCONCIOUS:
 		DEBUGNAME("EV_UNCONCIOUS");
-		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"*death3.ogg"));
+		trap_S_StartSound( NULL, es->number,CHAN_VOICE,CG_CustomSound(es->number,"death"));
 		break;
 	case EV_OBITUARY:
 		DEBUGNAME("EV_OBITUARY");
@@ -517,6 +519,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_DEBUG_LINE:
 		DEBUGNAME("EV_DEBUG_LINE");
 		CG_Beam( cent );
+		break;
+	case EV_BALLFLIP:
+		DEBUGNAME("EV_BALLFLIP");
+		trap_S_AddRealLoopingSound(es->number,cent->lerpOrigin,vec3_origin,CG_CustomSound(es->number,"ballFlip"));
 		break;
 	case EV_MELEE_SPEED:
 		DEBUGNAME("EV_MELEE_SPEED");

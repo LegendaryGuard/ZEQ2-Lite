@@ -5,6 +5,14 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 	char filename[MAX_QPATH * 2];
 	char tierPath[MAX_QPATH];
 	char tempPath[MAX_QPATH];
+	char legsPath[MAX_QPATH];
+	char headPath[MAX_QPATH];
+	Com_sprintf(legsPath,sizeof(legsPath),"%s",modelName);
+	Com_sprintf(headPath,sizeof(headPath),"%s",modelName);
+	Com_sprintf(tempPath,sizeof(tempPath),"players/%s/animation.cfg",ci->legsModelName);
+	if(ci->legsModelName && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){Com_sprintf(legsPath,sizeof(legsPath),"%s",ci->legsModelName);}
+	Com_sprintf(tempPath,sizeof(tempPath),"players/%s/animation.cfg",ci->headModelName);
+	if(ci->headModelName && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){Com_sprintf(headPath,sizeof(headPath),"%s",ci->headModelName);}
 	//Com_Printf("RegisterClientModelnameWithTiers: before animation load ci->usingMD4 = %i\n", ci->usingMD4);
 	Com_sprintf(filename,sizeof(filename),"players/%s/animation.cfg",modelName);
 	if(!CG_ParseAnimationFile(filename,ci)){
@@ -65,7 +73,7 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 			//Com_Printf("No legsModel, ci->usingMD4 = %i\n",ci->usingMD4);
 			// Tenken - tiers can change again
 			//if(i == 0){
-				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower.md3", modelName, i+1);
+				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower.md3", legsPath, i+1);
 				ci->legsModel[i] = trap_R_RegisterModel(filename);
 				if(!ci->legsModel[i]){
 					if(i == 0){
@@ -85,7 +93,7 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 						ci->torsoModel[i] = ci->torsoModel[i - 1];
 					}
 				}
-				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head.md3", modelName, i+1);
+				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head.md3", headPath, i+1);
 				ci->headModel[i] = trap_R_RegisterModel(filename);
 				if(!ci->headModel[i]){
 					if(i == 0){
@@ -104,11 +112,11 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		// ===================================
 		// Skins
 		// ===================================
-		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower_%s.skin",modelName,i+1,skinName);
+		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower_%s.skin",legsPath,i+1,skinName);
 		ci->legsSkin[i] = trap_R_RegisterSkin(filename);
 		if(!ci->legsSkin[i]){
 			if(i == 0){
-				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower_default.skin", modelName, i+1);
+				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower_default.skin", legsPath, i+1);
 				ci->legsSkin[i] = trap_R_RegisterSkin (filename);
 				if(!ci->legsSkin[i]){
 					//Com_Printf("Failed to load skin file %s\n", filename);
@@ -132,11 +140,11 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 				ci->torsoSkin[i] = ci->torsoSkin[i - 1];
 			}
 		}
-		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_%s.skin", modelName, i+1, skinName);
+		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_%s.skin", headPath, i+1, skinName);
 		ci->headSkin[i] = trap_R_RegisterSkin(filename);
 		if(!ci->headSkin[i]){
 			if(i == 0){
-				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_default.skin", modelName, i+1);
+				Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_default.skin", headPath, i+1);
 				ci->headSkin[i] = trap_R_RegisterSkin (filename);
 				if(!ci->headSkin[i]){
 					//Com_Printf("Failed to load skin file %s\n", filename);

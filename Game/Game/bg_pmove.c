@@ -328,6 +328,10 @@ void PM_UsePowerLevel(){
 		newValue = newValue < -limit ? -limit : newValue;
 		if(useType == 1){
 			pm->ps->powerLevel[plFatigue] = newValue;
+			if(pm->ps->powerLevel[plFatigue] < 0){
+				pm->ps->powerLevel[plUseHealth] += (pm->ps->powerLevel[plFatigue]*-1)*0.75;
+				pm->ps->powerLevel[plFatigue] = 0;
+			}
 			pm->ps->powerLevel[plUseFatigue] = 0;
 		}
 		else if(useType == 2){
@@ -362,10 +366,10 @@ void PM_BurnPowerLevel(){
 			continue;
 		}
 		defense = burnType == 1 ? pm->ps->stats[stMeleeDefense] : pm->ps->stats[stEnergyDefense];
-		defense = pm->ps->bitFlags & usingBlock ? defense * 2.5 : defense;
+		defense = pm->ps->bitFlags & usingBlock ? defense * 2.0 : defense;
 		defense = pm->ps->bitFlags & usingBallFlip ? defense * 1.5 : defense;
-		defense = pm->ps->bitFlags & atopGround ? defense * 2.0 : defense;
-		defense = (pm->cmd.buttons & BUTTON_WALKING) && pm->ps->bitFlags & atopGround ? defense * 3.0 : defense;
+		defense = pm->ps->bitFlags & atopGround ? defense * 1.1 : defense;
+		defense = (pm->cmd.buttons & BUTTON_WALKING) && pm->ps->bitFlags & atopGround ? defense * 1.5 : defense;
 		percent = 1.0 - ((float)pm->ps->powerLevel[plCurrent] / (float)pm->ps->powerLevel[plMaximum]);
 		burn -= (int)(((float)pm->ps->powerLevel[plFatigue] * 0.01) * defense);
 		newValue = pm->ps->powerLevel[plHealth] - burn;
@@ -432,7 +436,7 @@ void PM_CheckStatus(void){
 			}
 		}
 	}
-	else if(pm->ps->powerLevel[plFatigue]<= 0){
+	/*else if(pm->ps->powerLevel[plFatigue] <= 0){
 		if(pm->ps->powerups[PW_STATE] != -1){
 			pm->ps->bitFlags |= isUnconcious;
 			pm->ps->bitFlags &= ~isStruggling;
@@ -465,7 +469,7 @@ void PM_CheckStatus(void){
 				PM_ContinueLegsAnim(ANIM_DEATH_AIR);
 			}
 		}
-	}
+	}*/
 	else{
 		if(pm->ps->powerups[PW_STATE] == -1){
 			if(pm->ps->timers[tmRecover] <= 0){pm->ps->timers[tmRecover] = 2000;}
@@ -542,6 +546,8 @@ void PM_CheckPowerLevel(void){
 	int plSpeed,amount,limit;
 	int *timers,*powerLevel;
 	float lower,raise,recovery;
+	float statScale;
+	float fatigueScale;
 	float check;
 	float pushLimit;
 	int newValue;
@@ -551,20 +557,25 @@ void PM_CheckPowerLevel(void){
 	timers[tmPowerAuto] += pml.msec;
 	pm->ps->bitFlags &= ~usingAlter;
 	limit = pm->ps->powerLevel[plLimit];
-	if(pm->ps->powerLevel[plFatigue] <= 0 && pm->ps->powerLevel[plCurrent] > 0){
+	/*if(pm->ps->powerLevel[plFatigue] <= 0 && pm->ps->powerLevel[plCurrent] > 0){
 		pm->ps->powerLevel[plCurrent] = 1;
-	}
+	}*/
 	while(timers[tmPowerAuto] >= 100){
 		timers[tmPowerAuto] -= 100;
-		idleScale = (!pm->cmd.forwardmove && !pm->cmd.rightmove && !pm->cmd.upmove) ? 2 : 1;
-		recovery = (float)pm->ps->powerLevel[plMaximum] * 0.004 * idleScale;
-		recovery *= (1.0 - ((float)pm->ps->powerLevel[plCurrent] / (float)pm->ps->powerLevel[plMaximum]));
+		idleScale = (!pm->cmd.forwardmove && !pm->cmd.rightmove && !pm->cmd.upmove) ? 2.8 : 1;
+		statScale = 1.0 - ((float)pm->ps->powerLevel[plCurrent] / (float)pm->ps->powerLevel[plMaximum]);
+		if(statScale > 0.75){statScale = 0.75;}
+		if(statScale < 0.25){statScale = 0.25;}
+		fatigueScale = (float)pm->ps->powerLevel[plFatigue] / (float)pm->ps->powerLevel[plMaximum];
+		recovery = (float)pm->ps->powerLevel[plMaximum] * 0.01 * idleScale;
+		recovery *=  statScale;
+		recovery *=  fatigueScale < 0.15 ? 0.15 : fatigueScale;
 		recovery *= pm->ps->baseStats[stFatigueRecovery];
-		if(pm->ps->bitFlags & usingBoost || pm->ps->bitFlags & usingAlter || pm->ps->bitFlags & usingZanzoken || pm->ps->bitFlags & usingJump || pm->ps->bitFlags & isStruggling || pm->ps->powerLevel[plCurrent] > pm->ps->powerLevel[plFatigue] || pm->ps->bitFlags & usingSoar){recovery = 0;}
-		if(powerLevel[plCurrent] > powerLevel[plFatigue]){
+		if(pm->ps->bitFlags & usingAlter || pm->ps->bitFlags & isStruggling || pm->ps->bitFlags & usingSoar && pm->ps->bitFlags & isBreakingLimit){recovery = 0;}
+		/*if(powerLevel[plCurrent] > powerLevel[plFatigue]){
 			newValue = powerLevel[plCurrent] - (pm->ps->powerLevel[plMaximum] * 0.005);
 			powerLevel[plCurrent] = (powerLevel[plCurrent] - newValue >= 0) ? newValue : 0;
-		}
+		}*/
 		newValue = powerLevel[plCurrent] + pm->ps->powerLevel[plDrainCurrent];
 		if(newValue < powerLevel[plMaximum] && newValue > 0){powerLevel[plCurrent] = newValue;}
 		newValue = powerLevel[plFatigue] + pm->ps->powerLevel[plDrainFatigue];
@@ -608,7 +619,7 @@ void PM_CheckPowerLevel(void){
 		}
 		else if(canAlter && pm->cmd.rightmove < 0){
 			pm->ps->eFlags &= ~EF_AURA;
-			lower = powerLevel[plFatigue] * 0.01;
+			lower = powerLevel[plMaximum] * 0.01;
 			powerLevel[plCurrent] = (powerLevel[plCurrent] - lower > 1) ? powerLevel[plCurrent] - lower : 1;
 		}
 		else if(canAlter && (pm->cmd.rightmove > 0)){
@@ -616,7 +627,7 @@ void PM_CheckPowerLevel(void){
 			timers[tmPowerRaise] += pml.msec;
 			while(timers[tmPowerRaise] >= 25){
 				timers[tmPowerRaise] -= 25;
-				raise = powerLevel[plFatigue] * 0.009;
+				raise = powerLevel[plMaximum] * 0.009;
 				if(raise < 1){raise = 1;}
 				if(powerLevel[plCurrent] > powerLevel[plFatigue]){raise *= 0.6;}
 				newValue = powerLevel[plCurrent] + raise;
@@ -907,6 +918,7 @@ void PM_StopJump(void){
 		VectorScale(pm->ps->velocity,0.01,pm->ps->velocity);
 	}
 	pm->ps->bitFlags &= ~usingBallFlip;
+	PM_AddEvent(EV_STOPLOOPINGSOUND);
 }
 void PM_CheckJump(void){
 	int jumpPower;
@@ -1204,6 +1216,7 @@ void PM_AirMove(void){
 			else if(pm->ps->bitFlags & usingJump && pm->ps->bitFlags & usingBallFlip && pm->cmd.upmove == 0){
 				pm->ps->gravity[2] = 6000;
 				pm->ps->bitFlags &= ~usingBallFlip;
+				PM_AddEvent(EV_STOPLOOPINGSOUND);
 			}
 			if(pm->ps->bitFlags & usingBallFlip){PM_StopDirections();}
 		}
@@ -2305,8 +2318,8 @@ void PM_Melee(void){
 		}
 		// Power Melee / Charge Breaker
 		else if(state == stMeleeChargingPower || state == stMeleeStartPower || pm->cmd.buttons & BUTTON_ALT_ATTACK){
-			if((state == stMeleeChargingPower || state == stMeleeStartPower) && (!(pm->cmd.buttons & BUTTON_ALT_ATTACK) || meleeCharge >= 750)){
-				if(meleeCharge >= 750){
+			if((state == stMeleeChargingPower || state == stMeleeStartPower) && (!(pm->cmd.buttons & BUTTON_ALT_ATTACK) || meleeCharge >= 550)){
+				if(meleeCharge >= 550){
 					damage = 0;
 					pm->ps->timers[tmFreeze] = 1000;
 					PM_EndDrift();
@@ -2343,7 +2356,7 @@ void PM_Melee(void){
 				}
 				else if(!pm->ps->timers[tmMeleeBreakerWait]){
 					pm->ps->timers[tmMeleeBreaker] = 1;
-					pm->ps->timers[tmMeleeBreakerWait] = 800;
+					pm->ps->timers[tmMeleeBreakerWait] = 500;
 					pm->ps->stats[stAnimState] = (Q_random(&realRandom.tm_sec) * 5)+1;
 					meleeCharge = 0;
 				}
@@ -2358,45 +2371,15 @@ void PM_Melee(void){
 				pm->ps->lockedPlayer->knockBackDirection = direction;
 				state = stMeleeChargingPower;
 				meleeCharge += pml.msec;
-				if(meleeCharge >= 750){meleeCharge = 750;}
+				if(meleeCharge >= 550){meleeCharge = 550;}
 			}
 		}
 		// Stun Melee / Speed Breaker
 		else if(state == stMeleeChargingStun || pm->cmd.buttons & BUTTON_ATTACK){
 			if(state == stMeleeChargingStun && (!(pm->cmd.buttons & BUTTON_ATTACK) ||  meleeCharge >= 1000)){
-				if(meleeCharge >= 1000){
-					damage = 0;
-					pm->ps->timers[tmFreeze] = 1500;
-					PM_EndDrift();
-					pm->ps->powerLevel[plUseFatigue] += pm->ps->powerLevel[plMaximum] * 0.05;
-					if(pm->ps->lockedPlayer->timers[tmMeleeCharge] > 50){
-						pm->ps->timers[tmMeleeIdle] = -480;
-						pm->ps->lockedPlayer->timers[tmMeleeIdle] = -480;
-						PM_AddEvent(EV_MELEE_KNOCKBACK);
-						//PM_AddEvent(EV_MELEE_CLASH);
-						PM_StopMelee();
-					}
-					else if(enemyState != stMeleeUsingEvade){
-						damage = (pm->ps->powerLevel[plCurrent] * 0.15) * pm->ps->stats[stMeleeAttack];
-						if(pm->ps->bitFlags & usingBoost){damage *= 1.5;}
-						if(enemyState == stMeleeUsingBlock){damage *= 0.3;}
-						PM_AddEvent(EV_MELEE_KNOCKBACK);
-					}
-					else{
-						pm->ps->powerLevel[plUseFatigue] = damage * 0.8;
-						pm->ps->lockedPlayer->powerLevel[plUseFatigue] = damage * 0.5;
-					}
-					if((enemyState != stMeleeUsingBlock) || (enemyState != stMeleeUsingEvade)){
-						pm->ps->lockedPlayer->timers[tmFreeze] = 4000;
-						enemyState = stMeleeIdle;
-					}
-					pm->ps->lockedPlayer->powerLevel[plDamageFromMelee] += damage;
-					state = stMeleeUsingStun;
-					meleeCharge = 0;
-				}
-				else if(!pm->ps->timers[tmMeleeBreakerWait]){
+				if(!pm->ps->timers[tmMeleeBreakerWait]){
 					pm->ps->timers[tmMeleeBreaker] = -1;
-					pm->ps->timers[tmMeleeBreakerWait] = 800;
+					pm->ps->timers[tmMeleeBreakerWait] = 500;
 					pm->ps->stats[stAnimState] = (Q_random(&realRandom.tm_sec) * 5)+1;
 					meleeCharge = 0;
 				}
@@ -2413,10 +2396,11 @@ void PM_Melee(void){
 			if(pm->cmd.forwardmove > 0){
 				meleeCharge = 0;
 				// Start Sequence
-				if(!(pm->ps->bitFlags & usingMelee) && !(pm->ps->lockedPlayer->bitFlags & usingMelee)){
+				if(!(pm->ps->bitFlags & usingMelee) && !(pm->ps->lockedPlayer->bitFlags & usingMelee) &&
+					!(pm->ps->bitFlags & isStruggling) && !(pm->ps->lockedPlayer->bitFlags & isStruggling)){
 					state = stMeleeStartAttack;
-					pm->ps->timers[tmFreeze] = 1500;
-					pm->ps->lockedPlayer->timers[tmFreeze] = 1500;
+					pm->ps->timers[tmFreeze] = 1000;
+					pm->ps->lockedPlayer->timers[tmFreeze] = 1000;
 					PM_SyncMelee();
 					if(enemyState == stMeleeAggressing){
 						pm->ps->powerups[PW_DRIFTING] = 0;
