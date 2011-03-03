@@ -571,7 +571,8 @@ void PM_CheckPowerLevel(void){
 		recovery *=  statScale;
 		recovery *=  fatigueScale < 0.15 ? 0.15 : fatigueScale;
 		recovery *= pm->ps->baseStats[stFatigueRecovery];
-		if(pm->ps->bitFlags & usingAlter || pm->ps->bitFlags & isStruggling || pm->ps->bitFlags & usingSoar && pm->ps->bitFlags & isBreakingLimit){recovery = 0;}
+		if(pm->ps->bitFlags & usingAlter || pm->ps->bitFlags & isStruggling || pm->ps->bitFlags & usingSoar
+		|| pm->ps->bitFlags & isBreakingLimit || pm->ps->weaponstate >= WEAPON_GUIDING){recovery = 0;}
 		/*if(powerLevel[plCurrent] > powerLevel[plFatigue]){
 			newValue = powerLevel[plCurrent] - (pm->ps->powerLevel[plMaximum] * 0.005);
 			powerLevel[plCurrent] = (powerLevel[plCurrent] - newValue >= 0) ? newValue : 0;
@@ -917,8 +918,10 @@ void PM_StopJump(void){
 		pm->ps->bitFlags &= ~usingJump;
 		VectorScale(pm->ps->velocity,0.01,pm->ps->velocity);
 	}
-	pm->ps->bitFlags &= ~usingBallFlip;
-	PM_AddEvent(EV_STOPLOOPINGSOUND);
+	if(pm->ps->bitFlags & usingBallFlip){
+		pm->ps->bitFlags &= ~usingBallFlip;
+		PM_AddEvent(EV_STOPLOOPINGSOUND);
+	}
 }
 void PM_CheckJump(void){
 	int jumpPower;
@@ -2649,43 +2652,46 @@ void PM_Weapon(void){
 			pm->ps->weaponTime = 0;
 			pm->ps->weaponstate = WEAPON_READY;
 		}
-		PM_BeginWeaponChange(pm->cmd.weapon );
-		// Starting a primary attack
-		if(pm->cmd.buttons & BUTTON_ATTACK) {
-			if(weaponInfo[WPSTAT_BITFLAGS] & WPF_NEEDSCHARGE){
-				pm->ps->weaponstate = WEAPON_CHARGING;
-				PM_StartTorsoAnim(ANIM_KI_ATTACK1_PREPARE + (pm->ps->weapon - 1) * 2 );
+		if(pm->ps->weapon == pm->cmd.weapon){
+			if(pm->cmd.buttons & BUTTON_ATTACK) {
+				if(weaponInfo[WPSTAT_BITFLAGS] & WPF_NEEDSCHARGE){
+					pm->ps->weaponstate = WEAPON_CHARGING;
+					PM_StartTorsoAnim(ANIM_KI_ATTACK1_PREPARE + (pm->ps->weapon - 1) * 2 );
+					break;
+				}
+				pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
+				if(weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
+					PM_AddEvent(EV_FIRE_WEAPON );
+					pm->ps->weaponstate = WEAPON_FIRING;
+				} else{
+					PM_AddEvent(EV_FIRE_WEAPON);
+					pm->ps->weaponstate = WEAPON_COOLING;
+					pm->ps->weaponTime += weaponInfo[WPSTAT_COOLTIME];
+				}
+				PM_StartTorsoAnim(ANIM_KI_ATTACK1_FIRE + (pm->ps->weapon - 1) * 2 );
 				break;
 			}
-			pm->ps->powerLevel[plUseFatigue] += costPrimary * pm->ps->baseStats[stEnergyAttackCost];
-			if(weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
-				PM_AddEvent(EV_FIRE_WEAPON );
-				pm->ps->weaponstate = WEAPON_FIRING;
-			} else{
-				PM_AddEvent(EV_FIRE_WEAPON);
-				pm->ps->weaponstate = WEAPON_COOLING;
-				pm->ps->weaponTime += weaponInfo[WPSTAT_COOLTIME];
+			if(pm->cmd.buttons & BUTTON_ALT_ATTACK){
+				if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_NEEDSCHARGE){
+					pm->ps->weaponstate = WEAPON_ALTCHARGING;
+					PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_PREPARE + (pm->ps->weapon - 1) * 2 );
+					break;
+				}
+				pm->ps->powerLevel[plUseFatigue] += costSecondary * pm->ps->baseStats[stEnergyAttackCost];
+				if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
+					pm->ps->weaponstate = WEAPON_ALTFIRING;
+					PM_AddEvent(EV_ALTFIRE_WEAPON );
+				} else{
+					pm->ps->weaponstate = WEAPON_COOLING;
+					pm->ps->weaponTime += alt_weaponInfo[WPSTAT_COOLTIME];
+					PM_AddEvent(EV_ALTFIRE_WEAPON );
+				}
+				PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_FIRE + (pm->ps->weapon - 1) * 2 );
+				break;
 			}
-			PM_StartTorsoAnim(ANIM_KI_ATTACK1_FIRE + (pm->ps->weapon - 1) * 2 );
-			break;
 		}
-		if(pm->cmd.buttons & BUTTON_ALT_ATTACK){
-			if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_NEEDSCHARGE){
-				pm->ps->weaponstate = WEAPON_ALTCHARGING;
-				PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_PREPARE + (pm->ps->weapon - 1) * 2 );
-				break;
-			}
-			pm->ps->powerLevel[plUseFatigue] += costSecondary * pm->ps->baseStats[stEnergyAttackCost];
-			if(alt_weaponInfo[WPSTAT_BITFLAGS] & WPF_CONTINUOUS){
-				pm->ps->weaponstate = WEAPON_ALTFIRING;
-				PM_AddEvent(EV_ALTFIRE_WEAPON );
-			} else{
-				pm->ps->weaponstate = WEAPON_COOLING;
-				pm->ps->weaponTime += alt_weaponInfo[WPSTAT_COOLTIME];
-				PM_AddEvent(EV_ALTFIRE_WEAPON );
-			}
-			PM_StartTorsoAnim(ANIM_KI_ATTACK1_ALT_FIRE + (pm->ps->weapon - 1) * 2 );
-			break;
+		else{
+			PM_BeginWeaponChange(pm->cmd.weapon);
 		}
 		break;
 	case WEAPON_GUIDING:

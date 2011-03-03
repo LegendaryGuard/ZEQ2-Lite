@@ -251,7 +251,7 @@ typedef enum {
 	stTransformDuration,
 	stTransformFatigue,
 	stTransformHealth,
-	stTransformEffectMaximum,
+	stTransformEffectMaximum
 }statIndex_t;
 typedef enum {
 	stZanzokenCost,
@@ -261,7 +261,7 @@ typedef enum {
 	stTransformSubsequentDuration,
 	stTransformSubsequentFatigueScale,
 	stTransformSubsequentHealthScale,
-	stTransformSubsequentMaximumScale,
+	stTransformSubsequentMaximumScale
 }baseStats_t;
 typedef enum{
 	plCurrent,

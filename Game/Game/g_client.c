@@ -608,7 +608,7 @@ if desired.
 */
 void ClientUserinfoChanged( int clientNum ) {
 	gentity_t *ent;
-	int		teamTask, teamLeader, team, handicap;
+	int		teamTask, teamLeader, team, handicap,shouldRespawn;
 	char	*s;
 	char	model[MAX_QPATH];
 	char	headModel[MAX_QPATH];
@@ -621,7 +621,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	char	blueTeam[MAX_INFO_STRING];
 	char	userinfo[MAX_INFO_STRING];
 	char    guid[MAX_INFO_STRING];
-
+	shouldRespawn = 0;
 	ent = g_entities + clientNum;
 	client = ent->client;
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
@@ -658,7 +658,8 @@ void ClientUserinfoChanged( int clientNum ) {
 				client->pers.netname) );
 		}
 	}
-	if(client->ps.powerLevel[plHealth]>0){respawn(ent);}
+	if(client->ps.powerLevel[plHealth]>0){shouldRespawn = 1;}
+	if(((float)client->ps.powerLevel[plHealth]/(float)client->ps.powerLevel[plMaximum])<0.75){shouldRespawn = 2;}
 	// set model
 	Q_strncpyz( model, Info_ValueForKey (userinfo, "model"), sizeof( model ) );
 	Q_strncpyz( headModel, Info_ValueForKey (userinfo, "headmodel"), sizeof( headModel ) );
@@ -760,7 +761,8 @@ void ClientUserinfoChanged( int clientNum ) {
 	}
 	client->ps.powerLevel[plTierCurrent] = 0;
 	trap_SetConfigstring( CS_PLAYERS+clientNum, s );
-
+	if(shouldRespawn==1){respawn(ent);}
+	if(shouldRespawn==2){client->ps.powerLevel[plUseHealth] = 32767;}
 	G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
 }
 

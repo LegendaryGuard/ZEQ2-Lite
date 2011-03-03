@@ -363,7 +363,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			break;
 		case EV_DETONATE_WEAPON:
 			missile = client->guidetarget;
-			G_RemoveUserWeapon(missile);
+			G_DetachUserWeapon(missile);
 			break;
 		case EV_BALLFLIP:
 			break;

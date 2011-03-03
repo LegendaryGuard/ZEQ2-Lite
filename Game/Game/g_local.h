@@ -687,9 +687,9 @@ void G_RunUserMissile( gentity_t *ent );
 void G_RunUserSkimmer( gentity_t *ent );
 void G_RunUserTorch( gentity_t *ent );
 void G_RunRiftWeaponClass( gentity_t *ent );
-
 void G_ExplodeUserWeapon (gentity_t *self);
 void G_RemoveUserWeapon (gentity_t *self);
+void G_DetachUserWeapon (gentity_t *self);
 void G_DieUserWeapon( gentity_t *self, gentity_t *inflictor,
 					  gentity_t *attacker, int damage, int mod );
 

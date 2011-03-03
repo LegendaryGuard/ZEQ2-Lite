@@ -1753,6 +1753,25 @@ void G_ImpactUserWeapon(gentity_t *self,trace_t *trace){
 
 // Wrapper function to safely remove a user weapon, incase
 // things like fading trails need to be handled.
+void G_DetachUserWeapon (gentity_t *self) {
+	gentity_t *other;
+	other = self->enemy;
+	other->client->ps.bitFlags &= ~isStruggling;
+	self->client->ps.bitFlags &= ~isStruggling;
+	if(other->client->ps.lockedTarget >= MAX_CLIENTS){
+		other->client->ps.lockedPosition = NULL;
+		other->client->ps.lockedTarget = 0;
+	}
+	if (self->guided) {
+		g_entities[ self->s.clientNum ].client->ps.weaponstate = WEAPON_READY;
+	}
+	if (self->s.eType == ET_BEAMHEAD && self->powerLevelCurrent > 0) {
+		self->s.eType = ET_MISSILE;
+		self->think = Think_NormalMissile;
+		return;
+	}
+	G_FreeEntity( self );
+}
 void G_RemoveUserWeapon (gentity_t *self) {
 	gentity_t *other;
 	other = self->enemy;
