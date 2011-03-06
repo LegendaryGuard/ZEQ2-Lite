@@ -735,7 +735,7 @@ static void CG_OffsetThirdPersonView( void ) {
 	VectorCopy( cg.refdef.vieworg, view );	
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 	// LOCKED ON
-	if(cg.snap->ps.lockedTarget > 0){
+	if(ps->lockedTarget){
 		if(!ci->transformStart){
 			ci->transformStart = qtrue;
 			ci->cameraBackup[0] = cg_thirdPersonAngle.value;

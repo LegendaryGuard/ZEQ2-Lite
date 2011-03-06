@@ -1593,8 +1593,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	// Make sure we have update values (scores)
 	CG_SetConfigValues();
 
-	CG_StartMusic();
-
 	CG_LoadingString( "" );
 	CG_ShaderStateChanged();
 

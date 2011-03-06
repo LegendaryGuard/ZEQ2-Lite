@@ -625,7 +625,6 @@ void ClientUserinfoChanged( int clientNum ) {
 	ent = g_entities + clientNum;
 	client = ent->client;
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
-	
 	// check for malformed or illegal info strings
 	if ( !Info_Validate(userinfo) ) {
 		strcpy (userinfo, "\\name\\badinfo");
@@ -658,18 +657,20 @@ void ClientUserinfoChanged( int clientNum ) {
 				client->pers.netname) );
 		}
 	}
-	if(client->ps.powerLevel[plHealth]>0){shouldRespawn = 1;}
-	if(((float)client->ps.powerLevel[plHealth]/(float)client->ps.powerLevel[plMaximum])<0.75){shouldRespawn = 2;}
 	// set model
 	Q_strncpyz( model, Info_ValueForKey (userinfo, "model"), sizeof( model ) );
 	Q_strncpyz( headModel, Info_ValueForKey (userinfo, "headmodel"), sizeof( headModel ) );
 	Q_strncpyz( legsModel, Info_ValueForKey (userinfo, "legsmodel"), sizeof( legsModel ) );
+	if(strcmp(model,ent->modelName)){
+		if(client->ps.powerLevel[plHealth]>0){shouldRespawn = 1;}
+		if(((float)client->ps.powerLevel[plHealth]/(float)client->ps.powerLevel[plMaximum])<0.75){shouldRespawn = 2;}
+	}
+	Q_strncpyz(ent->modelName,model,sizeof(ent->modelName));
 	// set max powerLevel
 	handicap = atoi( Info_ValueForKey( userinfo, "handicap" ) );
 	client->playerEntity = ent;
 
 	// setup tier information
-	client->ps.bitFlags |= isSafe;
 	client->ps.rolling = g_rolling.value;
 	client->ps.running = g_running.value;
 	// ADDING FOR ZEQ2
@@ -748,15 +749,15 @@ void ClientUserinfoChanged( int clientNum ) {
 	// print scoreboards, display models, and play custom sounds
 	if (ent->r.svFlags & SVF_BOT)
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
-			client->pers.netname, team, model, headModel, c1, c2, 
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\lmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
+			client->pers.netname, team, model, headModel,legsModel, c1, c2, 
 			client->pers.maxHealth, client->sess.wins, client->sess.losses,
 			Info_ValueForKey( userinfo, "skill" ), teamTask, teamLeader );
 	}
 	else
 	{
-		s = va("n\\%s\\guid\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\g_redteam\\%s\\g_blueteam\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
-			client->pers.netname, guid, client->sess.sessionTeam, model, headModel, redTeam, blueTeam, c1, c2, 
+		s = va("n\\%s\\guid\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\lmodel\\%s\\g_redteam\\%s\\g_blueteam\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
+			client->pers.netname, guid, client->sess.sessionTeam, model, headModel, legsModel,redTeam, blueTeam, c1, c2, 
 			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader);
 	}
 	client->ps.powerLevel[plTierCurrent] = 0;
@@ -902,7 +903,7 @@ void ClientBegin( int clientNum ) {
 	ClientUserinfoChanged(clientNum);
 	client->ps.powerLevel[plMaximum] = g_powerlevel.value;
 	client->ps.powerLevel[plLimit] = g_powerlevelMaximum.value;
-	client->ps.bitFlags |= isSafe;
+	client->ps.bitFlags |= isUnsafe;
 	// END ADDING
 
 	// locate ent at a spawn point

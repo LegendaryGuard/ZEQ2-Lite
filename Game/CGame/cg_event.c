@@ -568,10 +568,22 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundTransformDown);
 		break;
 	case EV_SYNCTIER:
+		DEBUGNAME("EV_SYNCTIER");
+		break;
+	case EV_ALTERUP_START:
+		DEBUGNAME("EV_ALTERUP_START");
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->auraConfig[ci->tierCurrent]->boostStartSound);
+		break;
+	case EV_ALTERDOWN_START:
+		DEBUGNAME("EV_ALTERDOWN_START");
 		break;
 	case EV_POWERINGUP_START:
 		DEBUGNAME("EV_POWERINGUP_START");
 		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundPoweringUp);
+		break;
+	case EV_BOOST_START:
+		DEBUGNAME("EV_BOOST_START");
+		trap_S_StartSound(cent->lerpOrigin, es->number,CHAN_BODY,ci->auraConfig[ci->tierCurrent]->boostStartSound);
 		break;
 	case EV_POWER_STRUGGLE_START:
 		DEBUGNAME("EV_POWER_STRUGGLE_START");

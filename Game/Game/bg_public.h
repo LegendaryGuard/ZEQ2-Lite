@@ -284,6 +284,11 @@ typedef enum{
 	plDamageGeneric
 }powerLevel_t;
 typedef enum{
+	lkPowerCurrent,
+	lkPowerHealth,
+	lkPowerMaximum
+}lockedStat_t;
+typedef enum{
 	tmUpdateTier,
 	tmUpdateMelee,
 	tmTransform,
@@ -343,7 +348,7 @@ typedef enum {
 #define isCharging		0x00100000
 #define isTargeted		0x00200000
 #define isPreparing		0x00400000
-#define isSafe			0x00800000
+#define isUnsafe		0x00800000
 #define atopGround		0x01000000
 #define nearGround		0x02000000
 #define underWater		0x04000000	
@@ -371,6 +376,7 @@ typedef enum {
 #define canSoar			0x00004000
 #define advancedMelee	0x00008000
 #define advancedFlight	0x00010000
+#define causedDamage	0x00020000
 
 // Options
 
@@ -490,7 +496,10 @@ typedef enum {
 	EV_TIERUP,
 	EV_TIERDOWN,
 	EV_SYNCTIER,
+	EV_ALTERUP_START,
+	EV_ALTERDOWN_START,
 	EV_POWERINGUP_START,
+	EV_BOOST_START,
 	EV_BALLFLIP,
 	EV_MELEE_SPEED,
 	EV_MELEE_MISS,

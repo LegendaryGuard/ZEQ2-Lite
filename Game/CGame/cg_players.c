@@ -62,9 +62,7 @@ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName ) {
 	clientInfo_t *ci;
 	int	i;
 	int nextIndex;
-	qtime_t realRandom;
-	trap_RealTime(&realRandom);
-	nextIndex = (Q_random(&realRandom.tm_sec) * 8)+1;
+	nextIndex = (fabs(crandom()) * 8)+1;
 	if(nextIndex > 9){nextIndex = 9;}
 	if(nextIndex < 1){nextIndex = 1;}
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {clientNum = 0;}
@@ -732,11 +730,8 @@ void CG_NewClientInfo( int clientNum ) {
 	clientInfo_t *ci;
 	clientInfo_t newInfo;
 	const char	*configstring;
-	const char	*v;
+	const char	*v,*model;
 	char *slash;
-	char modelStr[MAX_QPATH];
-	char headModelStr[MAX_QPATH];
-	char legsModelStr[MAX_QPATH];
 	char *skin;
 	ci = &cgs.clientinfo[clientNum];
 	configstring = CG_ConfigString( clientNum + CS_PLAYERS );
@@ -747,20 +742,20 @@ void CG_NewClientInfo( int clientNum ) {
 	memset( &newInfo, 0, sizeof( newInfo ) );
 	v = Info_ValueForKey(configstring, "n");
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
-	trap_Cvar_VariableStringBuffer( "model", modelStr, sizeof( modelStr ) );
-	if(( skin = strchr( modelStr,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
+	v = model = Info_ValueForKey(configstring, "model");
+	if(( skin = strchr( v,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
 	Q_strncpyz( newInfo.skinName, skin, sizeof( newInfo.skinName ) );
-	Q_strncpyz( newInfo.modelName, modelStr, sizeof( newInfo.modelName ) );
-	trap_Cvar_VariableStringBuffer( "headmodel", headModelStr, sizeof( headModelStr ) );
-	if(!legsModelStr){Com_sprintf(headModelStr,sizeof(headModelStr),"%s",modelStr);}
-	if(( skin = strchr( headModelStr,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
+	Q_strncpyz( newInfo.modelName, v, sizeof( newInfo.modelName ) );
+	v = Info_ValueForKey(configstring, "hmodel");
+	if(!v){v = model;}
+	if(( skin = strchr( v,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
 	Q_strncpyz( newInfo.headSkinName, skin, sizeof( newInfo.headSkinName ) );
-	Q_strncpyz( newInfo.headModelName, headModelStr, sizeof( newInfo.headModelName ) );
-	trap_Cvar_VariableStringBuffer( "legsmodel", legsModelStr, sizeof( legsModelStr ) );
-	if(!legsModelStr){Com_sprintf(legsModelStr,sizeof(legsModelStr),"%s",modelStr);}
-	if(( skin = strchr( legsModelStr,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
+	Q_strncpyz( newInfo.headModelName, v, sizeof( newInfo.headModelName ) );
+	v = Info_ValueForKey(configstring, "lmodel");
+	if(!v){v = model;}
+	if(( skin = strchr( v,'/'))== NULL){skin = "default";}else{*skin++ = 0;}
 	Q_strncpyz( newInfo.legsSkinName, skin, sizeof( newInfo.legsSkinName ) );
-	Q_strncpyz( newInfo.legsModelName, legsModelStr, sizeof( newInfo.legsModelName ) );
+	Q_strncpyz( newInfo.legsModelName, v, sizeof( newInfo.legsModelName ) );
 	newInfo.infoValid = qtrue;
 	*ci = newInfo;
 	CG_LoadClientInfo( ci );

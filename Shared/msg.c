@@ -1239,6 +1239,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				timerbits;
 	int				powerlevelbits;
 	int				basestatsbits;
+	int				lockedbits;
 	int				numFields;
 	int				c;
 	netField_t		*field;
@@ -1312,6 +1313,12 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			statsbits |= 1<<i;
 		}
 	}
+	lockedbits = 0;
+	for (i=0 ; i<MAX_LOCKED_STATS ; i++) {
+		if (to->lockedPlayerData[i] != from->lockedPlayerData[i]) {
+			lockedbits |= 1<<i;
+		}
+	}
 	persistantbits = 0;
 	for (i=0 ; i<MAX_PERSISTANT ; i++) {
 		if (to->persistant[i] != from->persistant[i]) {
@@ -1366,7 +1373,15 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
-
+	if ( lockedbits ) {
+		MSG_WriteBits( msg, 1, 1 );	// changed
+		MSG_WriteBits( msg, lockedbits, MAX_LOCKED_STATS );
+		for (i=0 ; i<MAX_LOCKED_STATS ; i++)
+			if (lockedbits & (1<<i) )
+				MSG_WriteShort (msg, to->lockedPlayerData[i]);
+	} else {
+		MSG_WriteBits( msg, 0, 1 );	// no change
+	}
 	if ( persistantbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
 		MSG_WriteBits( msg, persistantbits, MAX_PERSISTANT );
@@ -1521,6 +1536,16 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 			for (i=0 ; i<MAX_STATS ; i++) {
 				if (bits & (1<<i) ) {
 					to->stats[i] = MSG_ReadShort(msg);
+				}
+			}
+		}
+		// parse locked stats
+		if ( MSG_ReadBits( msg, 1 ) ) {
+			LOG("PS_LOCKED_STATS");
+			bits = MSG_ReadBits (msg, MAX_LOCKED_STATS);
+			for (i=0 ; i<MAX_LOCKED_STATS ; i++) {
+				if (bits & (1<<i) ) {
+					to->lockedPlayerData[i] = MSG_ReadShort(msg);
 				}
 			}
 		}

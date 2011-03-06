@@ -134,6 +134,7 @@ struct gentity_s {
 
 	float		speed;
 	// ADDING FOR ZEQ2
+	char		modelName[256];
 	float		accel;
 	float		gravity;
 	float		bounceFrac;

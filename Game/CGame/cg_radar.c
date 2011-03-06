@@ -146,9 +146,9 @@ static void CG_DrawRadarBlips( float x, float y, float w, float h ) {
 }
 
 void CG_DrawRadar () {
-
-	// FIXME: Add drawing of a background here
-
-	// Draw the blips
-	CG_DrawRadarBlips( 512, 0, 128, 128 );
+	playerState_t	*ps;
+	ps = &cg.predictedPlayerState;
+	if(!(ps->lockedTarget>0)){
+		CG_DrawRadarBlips( 512, 0, 128, 128 );
+	}
 }

@@ -42,7 +42,7 @@ char systemChat[256];
 char teamChat1[256];
 char teamChat2[256];
 
-playerState_t LockedTargetPS;
+playerState_t lockedTargetPS;
 
 #ifdef MISSIONPACK
 
@@ -613,15 +613,12 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	if(ps->powerLevel[plCurrent] == 9001){
 		powerLevelString = "Over ^3NINE-THOUSAND!!!";
 	}
-	if(powerLevelDisplay >= 1000000){	
-		powerLevelString = va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0);
-	}
-	multiplier = cgs.clientinfo[clientNum].tierConfig[ps->powerLevel[plTierCurrent]].hudMultiplier;
+	multiplier = cgs.clientinfo[clientNum].tierConfig[cgs.clientinfo[clientNum].tierCurrent].hudMultiplier;
 	if(multiplier <= 0){
 		multiplier = 1.0;
 	}
 	powerLevelDisplay = (float)ps->powerLevel[plCurrent] * multiplier;
-	powerLevelString = va("%i",powerLevelDisplay);
+	powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%i",powerLevelDisplay);
 	powerLevelOffset = (Q_PrintStrlen(powerLevelString)-2)*8;
 	CG_DrawSmallStringHalfHeight(x+239-powerLevelOffset,y+44,powerLevelString,1.0F);
 }
@@ -640,7 +637,7 @@ static void CG_DrawStatusBar( void ) {
 	if((ci->lockStartTimer > cg.time) /*(&& cg.time > ci->lockStartTimer - 500)*/){
 		CG_DrawPic(0,0,640,480,cgs.media.speedLineSpinShader);
 	}
-	if(ps->bitFlags & usingBoost || ps->bitFlags & usingSoar){
+	if(ps->bitFlags & usingBoost){
 		CG_DrawPic(0,0,640,480,cgs.media.speedLineShader);
 	}
 	if(cg_drawStatus.integer == 0){return;}
@@ -649,13 +646,13 @@ static void CG_DrawStatusBar( void ) {
 	if(ps->lockedTarget){
 		for(i=0; i<MAX_CLIENTS; i++) {
 			if(cg_playerOrigins[i].clientNum == ps->lockedTarget-1) {
-				LockedTargetPS.clientNum = cg_playerOrigins[i].clientNum;
-				LockedTargetPS.powerLevel[plCurrent] = cg_playerOrigins[i].pl;
-				LockedTargetPS.powerLevel[plMaximum] = cg_playerOrigins[i].plMax;
-				LockedTargetPS.powerLevel[plHealth] = cg_playerOrigins[i].health;
-				LockedTargetPS.powerLevel[plFatigue] = LockedTargetPS.powerLevel[plMaximum];
-				LockedTargetPS.powerLevel[plTierCurrent] = cgs.clientinfo[LockedTargetPS.clientNum].tierCurrent;
-				CG_DrawHUD(&LockedTargetPS,LockedTargetPS.clientNum,320,0,qtrue);
+				lockedTargetPS.clientNum = cg_playerOrigins[i].clientNum;
+				lockedTargetPS.powerLevel[plCurrent] = ps->lockedPlayerData[lkPowerCurrent];
+				lockedTargetPS.powerLevel[plHealth] = ps->lockedPlayerData[lkPowerHealth];
+				lockedTargetPS.powerLevel[plMaximum] = ps->lockedPlayerData[lkPowerMaximum];
+				lockedTargetPS.powerLevel[plFatigue] = lockedTargetPS.powerLevel[plMaximum];
+				lockedTargetPS.powerLevel[plTierCurrent] = cgs.clientinfo[lockedTargetPS.clientNum].tierCurrent;
+				CG_DrawHUD(&lockedTargetPS,lockedTargetPS.clientNum,320,0,qtrue);
 				break;
 			}
 		}

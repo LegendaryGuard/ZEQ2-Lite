@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define GAMENAME_FOR_MASTER		"ZEQ2Lite"
 
 #ifdef _MSC_VER
-  #define PRODUCT_VERSION "PB2"
+  #define PRODUCT_VERSION ""
 #endif
 
 #define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
@@ -1001,6 +1001,7 @@ typedef struct {
 #define	MAX_WEAPONS				32
 #define MAX_TIMERS				32
 #define MAX_POWERSTATS			32
+#define MAX_LOCKED_STATS		3
 
 #define	MAX_PS_EVENTS			2
 #define PS_PMOVEFRAMECOUNTBITS	6
@@ -1051,6 +1052,7 @@ typedef struct playerState_s {
 	int			rolling;
 	int			running;
 	int			lockedTarget;
+	int			lockedPlayerData[MAX_LOCKED_STATS];
 	playerState *lockedPlayer;
 	vec3_t		*lockedPosition;
 	vec3_t		soarLimit;

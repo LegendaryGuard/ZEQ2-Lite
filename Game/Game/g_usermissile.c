@@ -538,10 +538,10 @@ void Think_NormalMissileStruggle (gentity_t *self) {
 		self->s.pos.trType = TR_LINEAR;
 		self->s.pos.trTime = level.time;
 		if(self->enemy->s.eType == ET_BEAMHEAD){
-			self->enemy->client->ps.bitFlags &= ~isStruggling;
+			self->enemy->client->ps.bitFlags |= isStruggling;
 		}
 		if(self->s.eType == ET_BEAMHEAD){
-			missileOwner->client->ps.bitFlags &= ~isStruggling;
+			missileOwner->client->ps.bitFlags |= isStruggling;
 		}
 		self->enemy = NULL;
 		self->strugglingAttack = qfalse;
@@ -612,6 +612,7 @@ void G_UserWeaponDamage(gentity_t *target,gentity_t *inflictor,gentity_t *attack
 	}
 	if(damage){
 		if(tgClient){
+			attacker->client->ps.states |= causedDamage;
 			G_LocationImpact(inflictor->r.currentOrigin,target,inflictor);
 			if(target == attacker){damage *= 0.2f;}
 			tgClient->ps.powerLevel[plDamageFromEnergy] += damage;

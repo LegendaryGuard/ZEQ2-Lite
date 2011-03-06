@@ -408,7 +408,13 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 		case EV_SYNCTIER:
 			syncTier(client);
 			break;
+		case EV_ALTERUP_START:
+			break;
+		case EV_ALTERDOWN_START:
+			break;
 		case EV_POWERINGUP_START:
+			break;
+		case EV_BOOST_START:
 			break;
 		case EV_LOCKON_START:
 			break;
@@ -467,7 +473,7 @@ void SendPendingPredictableEvents( playerState_t *ps ) {
 }
 
 void G_CheckSafety(vec3_t origin,playerState_t *ps){
-	int radius,distance;
+	/*int radius,distance;
 	int	entityList[MAX_GENTITIES];
 	int areaEntities;
 	int i,e;
@@ -498,10 +504,7 @@ void G_CheckSafety(vec3_t origin,playerState_t *ps){
 			ps->timers[tmSafe] = level.time;
 			return;
 		}
-	}
-	if(level.time - ps->timers[tmSafe] > 5000){
-		ps->bitFlags |= isSafe;
-	}
+	}*/
 }
 /*
 ==============

@@ -358,6 +358,15 @@ void PM_BurnPowerLevel(){
 	int limit;
 	limit = pm->ps->powerLevel[plLimit];
 	burnType = 0;
+	if(pm->ps->powerLevel[plDamageFromMelee] || pm->ps->powerLevel[plDamageFromEnergy] || pm->ps->powerLevel[plDamageGeneric] || pm->ps->states & causedDamage){
+		pm->ps->bitFlags |= isUnsafe;
+		pm->ps->states &= ~causedDamage;
+		pm->ps->timers[tmSafe] = 0;
+	}
+	else if(pm->ps->timers[tmSafe] > 10000){
+		pm->ps->bitFlags &= ~isUnsafe;
+	}
+	pm->ps->timers[tmSafe] += pml.msec;
 	while(burnType < 3){
 		burn = burnType == 1 ? pm->ps->powerLevel[plDamageFromMelee] : pm->ps->powerLevel[plDamageFromEnergy];
 		burn = burnType == 2 ? pm->ps->powerLevel[plDamageGeneric] : burn;
@@ -555,7 +564,6 @@ void PM_CheckPowerLevel(void){
 	timers = pm->ps->timers;
 	powerLevel = pm->ps->powerLevel;
 	timers[tmPowerAuto] += pml.msec;
-	pm->ps->bitFlags &= ~usingAlter;
 	limit = pm->ps->powerLevel[plLimit];
 	/*if(pm->ps->powerLevel[plFatigue] <= 0 && pm->ps->powerLevel[plCurrent] > 0){
 		pm->ps->powerLevel[plCurrent] = 1;
@@ -596,7 +604,6 @@ void PM_CheckPowerLevel(void){
 		qboolean canAlter;
 		pm->ps->bitFlags &= ~keyTierDown;
 		pm->ps->bitFlags &= ~keyTierUp;
-		pm->ps->bitFlags |= usingAlter;
 		canAlter = qtrue;
 		if(pm->ps->bitFlags & usingJump){
 			pm->ps->bitFlags |= usingFlight;
@@ -622,6 +629,8 @@ void PM_CheckPowerLevel(void){
 			pm->ps->eFlags &= ~EF_AURA;
 			lower = powerLevel[plMaximum] * 0.01;
 			powerLevel[plCurrent] = (powerLevel[plCurrent] - lower > 1) ? powerLevel[plCurrent] - lower : 1;
+			if(!(pm->ps->bitFlags & usingAlter)){PM_AddEvent(EV_ALTERDOWN_START);}
+			pm->ps->bitFlags |= usingAlter;
 		}
 		else if(canAlter && (pm->cmd.rightmove > 0)){
 			pm->ps->eFlags |= EF_AURA;
@@ -654,6 +663,8 @@ void PM_CheckPowerLevel(void){
 					}
 				}
 			}
+			if(!(pm->ps->bitFlags & usingAlter)){PM_AddEvent(EV_ALTERUP_START);}
+			pm->ps->bitFlags |= usingAlter;
 		}
 		else{
 			pm->ps->bitFlags &= ~usingAlter;
@@ -661,6 +672,7 @@ void PM_CheckPowerLevel(void){
 		}
 	}
 	else{
+		pm->ps->bitFlags &= ~usingAlter;
 		pm->ps->bitFlags &= ~keyTierDown;
 		pm->ps->bitFlags &= ~keyTierUp;
 		pm->ps->bitFlags &= ~isBreakingLimit;
@@ -728,6 +740,7 @@ void PM_CheckBoost(void){
 	else{
 		pm->ps->timers[tmBoost] = 0;
 		pm->ps->powerups[PW_BOOST] = 1;
+		if(!(pm->ps->bitFlags & usingBoost)){PM_AddEvent(EV_BOOST_START);}
 		pm->ps->bitFlags |= usingBoost;
 	}
 }
@@ -828,11 +841,13 @@ void PM_Accelerate(vec3_t wishdir, float wishspeed, float accel){
 	// clamp the speed lower if wading or moving underwater.
 	if(pm->waterlevel){
 		float waterScale;
-
+		pm->ps->bitFlags |= underWater;
 		waterScale = 1.0f - (1.0f - pm_swimScale)* (float)pm->waterlevel / 3.0f;
 		wishspeed = wishspeed * waterScale;
 	}
-
+	else{
+		pm->ps->bitFlags &= ~underWater;
+	}
 	currentspeed = DotProduct (pm->ps->velocity, wishdir);
 	addspeed = wishspeed - currentspeed;
 	if(addspeed <= 0) {
@@ -2834,7 +2849,12 @@ void PM_CheckLockon(void){
 	int	lockBox;
 	trace_t	trace;
 	vec3_t minSize,maxSize,forward,up,end;
-	if(pm->ps->lockedTarget > 0){pm->ps->lockedPlayer->bitFlags |= isTargeted;}
+	if(pm->ps->lockedTarget > 0){
+		pm->ps->lockedPlayerData[lkPowerCurrent] = pm->ps->lockedPlayer->powerLevel[plCurrent];
+		pm->ps->lockedPlayerData[lkPowerHealth] = pm->ps->lockedPlayer->powerLevel[plHealth];
+		pm->ps->lockedPlayerData[lkPowerMaximum] = pm->ps->lockedPlayer->powerLevel[plMaximum];
+		pm->ps->lockedPlayer->bitFlags |= isTargeted;
+	}
 	if(pm->cmd.buttons & BUTTON_GESTURE && pm->ps->stats[stMeleeState] == 0){
 		if(pm->ps->pm_flags & PMF_LOCK_HELD){return;}
 		pm->ps->pm_flags |= PMF_LOCK_HELD;
