@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // repatched the file for a fix
 #define PRODUCT_NAME              "zeq2lite"
 #define BASEGAME			"ZEQ2"
-#define CLIENT_WINDOW_TITLE       "ZEQ2-Lite " PRODUCT_VERSION
+#define CLIENT_WINDOW_TITLE       "ZEQ2-Lite "
 #define CLIENT_WINDOW_MIN_TITLE   "ZEQ2-Lite"
 #define GAMENAME_FOR_MASTER		"ZEQ2Lite"
 
