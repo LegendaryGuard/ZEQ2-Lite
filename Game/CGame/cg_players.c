@@ -1843,6 +1843,12 @@ void CG_Player( centity_t *cent ) {
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ){CG_Error( "Bad clientNum on player entity" );}
 	ci = &cgs.clientinfo[clientNum];
 	if (!ci->infoValid){return;}
+	if(!ci->cameraBackup[0]){
+		ci->cameraBackup[0] = cg_thirdPersonAngle.value;
+		ci->cameraBackup[1] = cg_thirdPersonHeight.value;
+		ci->cameraBackup[2] = cg_thirdPersonRange.value;
+		ci->cameraBackup[3] = cg_thirdPersonSlide.value;
+	}
 	onBodyQue = (cent->currentState.number != cent->currentState.clientNum);
 	if(onBodyQue){tier = 0;}
 	else{

@@ -587,9 +587,6 @@ static void CG_OffsetThirdPersonView2( void )
 			tier = &ci->tierConfig[ci->tierCurrent+1];
 			ci->transformStart = qtrue;
 			ci->transformLength = cg.snap->ps.timers[tmTransform];
-			ci->cameraBackup[0] = cg_thirdPersonAngle.value;
-			ci->cameraBackup[1] = cg_thirdPersonHeight.value;
-			ci->cameraBackup[2] = cg_thirdPersonRange.value;
 		}
 		transformPercent = 1.0 - ((float)cg.snap->ps.timers[tmTransform] / (float)ci->transformLength);
 		orbit = (float)abs(tier->transformCameraOrbit[1] - tier->transformCameraOrbit[0]);
@@ -607,6 +604,7 @@ static void CG_OffsetThirdPersonView2( void )
 		cg_thirdPersonAngle.value = ci->cameraBackup[0];
 		cg_thirdPersonHeight.value = ci->cameraBackup[1];
 		cg_thirdPersonRange.value = ci->cameraBackup[2];
+		cg_thirdPersonSlide.value = ci->cameraBackup[3];
 	}
 
 	// The next thing to do is to see if we need to calculate a new camera target location.
@@ -736,13 +734,7 @@ static void CG_OffsetThirdPersonView( void ) {
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 	// LOCKED ON
 	if(ps->lockedTarget){
-		if(!ci->lockonStart){
-			ci->lockonStart = qtrue;
-			ci->cameraBackup[0] = cg_thirdPersonAngle.value;
-			ci->cameraBackup[1] = cg_thirdPersonHeight.value;
-			ci->cameraBackup[2] = cg_thirdPersonRange.value;
-			ci->cameraBackup[3] = cg_thirdPersonSlide.value;
-		}
+		if(!ci->lockonStart){ci->lockonStart = qtrue;}
 		cg_thirdPersonAngle.value = cg_lockedAngle.value;
 		cg_thirdPersonHeight.value = cg_lockedHeight.value;
 		cg_thirdPersonRange.value = cg_lockedRange.value;
@@ -762,10 +754,6 @@ static void CG_OffsetThirdPersonView( void ) {
 			tier = &ci->tierConfig[ci->tierCurrent+1];
 			ci->transformStart = qtrue;
 			ci->transformLength = ps->timers[tmTransform];
-			ci->cameraBackup[0] = cg_thirdPersonAngle.value;
-			ci->cameraBackup[1] = cg_thirdPersonHeight.value;
-			ci->cameraBackup[2] = cg_thirdPersonRange.value;
-			ci->cameraBackup[3] = cg_thirdPersonSlide.value;
 		}
 		transformPercent = 1.0 - ((float)ps->timers[tmTransform] / (float)ci->transformLength);
 		orbit = (float)abs(tier->transformCameraOrbit[1] - tier->transformCameraOrbit[0]);
