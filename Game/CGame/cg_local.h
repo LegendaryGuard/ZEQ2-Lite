@@ -382,6 +382,7 @@ typedef struct {
 	animation_t		animations[MAX_TOTALANIMATIONS];
 	sfxHandle_t		sounds[9][MAX_CUSTOM_SOUNDS];
 	//ADDING FOR ZEQ2
+	qboolean		lockonStart;
 	qboolean		transformStart;
 	int				transformLength;
 	int				lockStartTimer;

@@ -591,12 +591,14 @@ void strrep(char *str, char old, char new)  {
 void CG_CheckChat(void){
 	int index,offset;
 	vec3_t angles;
+	int yStart = cg.predictedPlayerState.lockedTarget ? 330 : 0;
+	int yOffset = cg.predictedPlayerState.lockedTarget ? -40 : 40;
 	if(cg.time < cgs.chatTimer){
 		for(index=0;index<3;++index){
 			if(cgs.messageClient[index] >= 0){
-				CG_DrawPic(qfalse,-15,-15+(40*index),369,75,cgs.media.chatBackgroundShader);
-				CG_DrawHead(7,7+(40*index),32,32,cgs.messageClient[index],angles);
-				CG_DrawSmallStringCustom(45,16+(40*index),8,8,cgs.messages[index],1.0,4);
+				CG_DrawPic(qfalse,-15,-15+yStart+(yOffset*index),369,75,cgs.media.chatBackgroundShader);
+				CG_DrawHead(7,7+yStart+(yOffset*index),32,32,cgs.messageClient[index],angles);
+				CG_DrawSmallStringCustom(45,16+yStart+(yOffset*index),8,8,cgs.messages[index],1.0,4);
 			}
 		}
 	}

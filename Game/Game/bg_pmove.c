@@ -1228,6 +1228,7 @@ void PM_AirMove(void){
 			if(pm->ps->bitFlags & usingJump && pm->cmd.upmove < 0){
 				pm->ps->gravity[2] = 3000;
 				pm->ps->bitFlags |= usingBallFlip;
+				PM_AddEvent(EV_BALLFLIP);
 				if(pm->ps->bitFlags & nearGround && pm->ps->velocity[2] < 0){PM_ContinueLegsAnim(ANIM_FLY_DOWN);}
 				else{PM_ContinueLegsAnim(ANIM_JUMP_FORWARD);}
 			}

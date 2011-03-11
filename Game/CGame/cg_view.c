@@ -736,8 +736,8 @@ static void CG_OffsetThirdPersonView( void ) {
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 	// LOCKED ON
 	if(ps->lockedTarget){
-		if(!ci->transformStart){
-			ci->transformStart = qtrue;
+		if(!ci->lockonStart){
+			ci->lockonStart = qtrue;
 			ci->cameraBackup[0] = cg_thirdPersonAngle.value;
 			ci->cameraBackup[1] = cg_thirdPersonHeight.value;
 			ci->cameraBackup[2] = cg_thirdPersonRange.value;
@@ -747,7 +747,14 @@ static void CG_OffsetThirdPersonView( void ) {
 		cg_thirdPersonHeight.value = cg_lockedHeight.value;
 		cg_thirdPersonRange.value = cg_lockedRange.value;
 		cg_thirdPersonSlide.value = cg_lockedSlide.value;
-	} else
+	}
+	else if(ci->lockonStart){
+		ci->lockonStart = qfalse;
+		cg_thirdPersonAngle.value = ci->cameraBackup[0];
+		cg_thirdPersonHeight.value = ci->cameraBackup[1];
+		cg_thirdPersonRange.value = ci->cameraBackup[2];
+		cg_thirdPersonSlide.value = ci->cameraBackup[3];
+	}
 	// TRANSFORMATIONS
 	if(ps->timers[tmTransform] > 1){
 		tier = &ci->tierConfig[ci->tierCurrent];
