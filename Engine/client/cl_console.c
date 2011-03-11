@@ -574,8 +574,8 @@ void Con_DrawNotify (void)
 	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
 	{
 		SCR_DrawPic(0,365,320,66,cls.chatInputShader);
-		SCR_DrawCustomString(8,20,390,"^3say:");
-		Field_CustomDraw(8,&chatField,50,390,SCREEN_WIDTH);
+		SCR_DrawCustomString(8,22,392,"^3say: ");
+		Field_CustomDraw(6,&chatField,57,392,SCREEN_WIDTH);
 	}
 
 }

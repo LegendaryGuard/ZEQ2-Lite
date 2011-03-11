@@ -201,7 +201,7 @@ void SCR_DrawCustomString(int spacing,int x, int y, const char *string) {
 	vec4_t		color,shadow;
 	const char	*s;
 	int			xx;
-	int size = 12;
+	int size = 10;
 	shadow[0] = shadow[1] = shadow[2] = 0;
 	shadow[3] = 0.7;
 	color[0] = color[1] = color[2] = color[3] = 1.0;

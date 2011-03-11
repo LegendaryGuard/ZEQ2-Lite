@@ -1834,7 +1834,7 @@ void CG_Player( centity_t *cent ) {
 	float			lerps[3];
 	vec3_t			angles[3];
 	qboolean		onBodyQue;
-	int				tier;
+	int				tier,health,damageState;
 	int				state,enemyState;
 	int				scale;
 	float			xyzspeed;
@@ -1874,6 +1874,17 @@ void CG_Player( centity_t *cent ) {
 	if ((cent->currentState.playerBitFlags & usingZanzoken) || ((cent->currentState.number == ps->clientNum) && (ps->bitFlags & usingZanzoken) && !(ps->bitFlags & isUnconcious) && !(ps->bitFlags & isDead) && !(ps->bitFlags & isCrashed))) {
 		return;
 	}
+	health = ((float)ps->powerLevel[plHealth] / (float)ps->powerLevel[plMaximum]) * 100;
+	if(health <= 100){damageState = 9;}
+	if(health <= 90){damageState = 8;}
+	if(health <= 80){damageState = 7;}
+	if(health <= 70){damageState = 6;}
+	if(health <= 60){damageState = 5;}
+	if(health <= 50){damageState = 4;}
+	if(health <= 40){damageState = 3;}
+	if(health <= 30){damageState = 2;}
+	if(health <= 20){damageState = 1;}
+	if(health <= 10){damageState = 0;}
 	CG_PlayerSprites(cent);
 	memset( &legs, 0, sizeof(legs) );
 	memset( &torso, 0, sizeof(torso) );
@@ -1887,8 +1898,8 @@ void CG_Player( centity_t *cent ) {
 		renderfx |= RF_SHADOW_PLANE;
 	}
 	renderfx |= RF_LIGHTING_ORIGIN;			// use the same origin for all
-	legs.hModel = ci->legsModel[tier];
-	legs.customSkin = ci->legsSkin[tier];
+	legs.hModel = ci->modelDamageState[tier][2][damageState];
+	legs.customSkin = ci->skinDamageState[tier][2][damageState];
 	VectorCopy(cent->lerpOrigin,legs.origin);
 	VectorCopy(cent->lerpOrigin,legs.lightingOrigin);
 	legs.shadowPlane = shadowPlane;
@@ -1926,16 +1937,16 @@ void CG_Player( centity_t *cent ) {
 		CG_PlayerPowerups(cent,&legs);
 	}
 	else{
-		torso.hModel = ci->torsoModel[tier];
-		torso.customSkin = ci->torsoSkin[tier];
+		torso.hModel = ci->modelDamageState[tier][1][damageState];
+		torso.customSkin = ci->skinDamageState[tier][1][damageState];
 		if(!torso.hModel){return;}
 		VectorCopy( cent->lerpOrigin, torso.lightingOrigin );
 		//CG_PositionRotatedEntityOnTag( &torso, &legs, ci->legsModel, "tag_torso");
 		CG_PositionRotatedEntityOnTag( &torso, &legs, legs.hModel, "tag_torso");
 		torso.shadowPlane = shadowPlane;
 		torso.renderfx = renderfx;
-		head.hModel = ci->headModel[tier];
-		head.customSkin = ci->headSkin[tier];
+		head.hModel = ci->modelDamageState[tier][0][damageState];
+		head.customSkin = ci->skinDamageState[tier][0][damageState];
 		if(!head.hModel){return;}
 		VectorCopy( cent->lerpOrigin, head.lightingOrigin );
 		CG_PositionRotatedEntityOnTag( &head, &torso, torso.hModel, "tag_head");
@@ -1953,25 +1964,24 @@ void CG_Player( centity_t *cent ) {
 		CG_AddPlayerWeapon(&torso,NULL,cent,ci->team);
 		CG_PlayerPowerups(cent,&torso);
 	}
-		if((cent->currentState.eFlags & EF_AURA) || ci->auraConfig[tier]->auraAlways){
-			CG_AuraStart(cent);
-			if(!xyzspeed){CG_PlayerDirtPush(cent,scale,qfalse);}
-			if(ps->powerLevel[plCurrent] == ps->powerLevel[plMaximum] && ps->bitFlags & usingAlter){
-				CG_AddEarthquake(cent->lerpOrigin, 400, 1, 1, 1, 25);
-			}
+	if((cent->currentState.eFlags & EF_AURA) || ci->auraConfig[tier]->auraAlways){
+		CG_AuraStart(cent);
+		if(!xyzspeed){CG_PlayerDirtPush(cent,scale,qfalse);}
+		if(ps->powerLevel[plCurrent] == ps->powerLevel[plMaximum] && ps->bitFlags & usingAlter){
+			CG_AddEarthquake(cent->lerpOrigin, 400, 1, 1, 1, 25);
 		}
-		else{CG_AuraEnd(cent);}
-		CG_AddAuraToScene(cent);
-		if(ps->timers[tmKnockback]){
-			if(ps->timers[tmKnockback] > 0){
-				trap_S_StartSound(cent->lerpOrigin,ENTITYNUM_NONE,CHAN_BODY,cgs.media.knockbackSound);
-				trap_S_AddLoopingSound(cent->currentState.number,cent->lerpOrigin,vec3_origin,cgs.media.knockbackLoopSound);
-			}
-			return;
+	}
+	else{CG_AuraEnd(cent);}
+	CG_AddAuraToScene(cent);
+	if(ps->timers[tmKnockback]){
+		if(ps->timers[tmKnockback] > 0){
+			trap_S_StartSound(cent->lerpOrigin,ENTITYNUM_NONE,CHAN_BODY,cgs.media.knockbackSound);
+			trap_S_AddLoopingSound(cent->currentState.number,cent->lerpOrigin,vec3_origin,cgs.media.knockbackLoopSound);
 		}
-		if(ci->auraConfig[tier]->showLightning){CG_LightningEffect(cent->lerpOrigin, ci, tier);}
-		if(ci->auraConfig[tier]->showLightning && ps->bitFlags & usingMelee){CG_BigLightningEffect(cent->lerpOrigin);}
-	
+		return;
+	}
+	if(ci->auraConfig[tier]->showLightning){CG_LightningEffect(cent->lerpOrigin, ci, tier);}
+	if(ci->auraConfig[tier]->showLightning && ps->bitFlags & usingMelee){CG_BigLightningEffect(cent->lerpOrigin);}
 }
 qboolean CG_GetTagOrientationFromPlayerEntityHeadModel( centity_t *cent, char *tagName, orientation_t *tagOrient ) {
 	int				i, clientNum;

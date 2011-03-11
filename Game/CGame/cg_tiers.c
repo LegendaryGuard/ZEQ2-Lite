@@ -1,7 +1,7 @@
 #include "cg_local.h"
 void parseTier(char *path,tierConfig_cg *tier);
 qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *modelName, const char *skinName){
-	int	i;
+	int	i,partIndex,damageIndex,lastSkinIndex,lastModelIndex;
 	char filename[MAX_QPATH * 2];
 	char tierPath[MAX_QPATH];
 	char tempPath[MAX_QPATH];
@@ -154,10 +154,58 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 				ci->headSkin[i] = ci->headSkin[i - 1];
 			}
 		}
-		
-			//Com_Printf("End Iteration %i, ci->usingMD4 = %i\n",i,ci->usingMD4);
+		// ===================================
+		// Damage States
+		// ===================================
+		for(partIndex=0;partIndex<3;++partIndex){
+			lastSkinIndex = -1;
+			lastModelIndex = -1;
+			for(damageIndex=9;damageIndex>=0;--damageIndex){
+				if(partIndex==0){
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_percent%i.md3",headPath,i+1,(damageIndex+1)*10);
+					ci->modelDamageState[i][partIndex][damageIndex] = trap_R_RegisterModel(filename);
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head_%s_percent%i.skin",headPath,i+1,skinName,(damageIndex+1)*10);
+					ci->skinDamageState[i][partIndex][damageIndex] = trap_R_RegisterSkin(filename);
+					if(!ci->skinDamageState[i][partIndex][damageIndex]){
+						ci->skinDamageState[i][partIndex][damageIndex] = lastSkinIndex != -1 ? ci->skinDamageState[i][partIndex][lastSkinIndex] : ci->headSkin[i];
+					}
+					else{lastSkinIndex = damageIndex;}
+					if(!ci->modelDamageState[i][partIndex][damageIndex]){
+						ci->modelDamageState[i][partIndex][damageIndex] = lastModelIndex != -1? ci->modelDamageState[i][partIndex][lastModelIndex] : ci->headModel[i];
+					}
+					else{lastModelIndex = damageIndex;}
+				}
+				else if(partIndex==1){
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/upper_percent%i.md3",modelName,i+1,(damageIndex+1)*10);
+					ci->modelDamageState[i][partIndex][damageIndex] = trap_R_RegisterModel(filename);
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/upper_%s_percent%i.skin",modelName,i+1,skinName,(damageIndex+1)*10);
+					ci->skinDamageState[i][partIndex][damageIndex] = trap_R_RegisterSkin(filename);
+					if(!ci->skinDamageState[i][partIndex][damageIndex]){
+						ci->skinDamageState[i][partIndex][damageIndex] = lastSkinIndex != -1 ? ci->skinDamageState[i][partIndex][lastSkinIndex] : ci->torsoSkin[i];
+					}
+					else{lastSkinIndex = damageIndex;}
+					if(!ci->modelDamageState[i][partIndex][damageIndex]){
+						ci->modelDamageState[i][partIndex][damageIndex] = lastModelIndex != -1 ? ci->modelDamageState[i][partIndex][lastModelIndex] : ci->torsoModel[i];
+					}
+					else{lastModelIndex = damageIndex;}
+				}
+				else if(partIndex==2){
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower_percent%i.md3",legsPath,i+1,(damageIndex+1)*10);
+					ci->modelDamageState[i][partIndex][damageIndex] = trap_R_RegisterModel(filename);
+					Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower_%s_percent%i.skin",legsPath,i+1,skinName,(damageIndex+1)*10);
+					ci->skinDamageState[i][partIndex][damageIndex] = trap_R_RegisterSkin(filename);
+					if(!ci->skinDamageState[i][partIndex][damageIndex]){
+						ci->skinDamageState[i][partIndex][damageIndex] = lastSkinIndex != -1? ci->skinDamageState[i][partIndex][lastSkinIndex] : ci->legsSkin[i];
+					}
+					else{lastSkinIndex = damageIndex;}
+					if(!ci->modelDamageState[i][partIndex][damageIndex]){
+						ci->modelDamageState[i][partIndex][damageIndex] = lastModelIndex != -1? ci->modelDamageState[i][partIndex][lastModelIndex] : ci->legsModel[i];
+					}
+					else{lastModelIndex = damageIndex;}
+				}
+			}
+		}
 	}
-
 	return qtrue;
 }
 void parseTier(char *path,tierConfig_cg *tier){

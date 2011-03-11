@@ -362,6 +362,8 @@ typedef struct {
 	char			legsSkinName[MAX_QPATH];
 	char			redTeam[MAX_TEAMNAME];
 	char			blueTeam[MAX_TEAMNAME];
+	qhandle_t		skinDamageState[8][3][10];
+	qhandle_t		modelDamageState[8][3][10];
 	qboolean		deferred;
 	qboolean		newAnims;		// true if using the new mission pack animations
 	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
