@@ -476,7 +476,7 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 
 	modelloaded = qtrue;
 	ci->usingMD4 = qfalse;
-	Com_Printf("LoadClientInfo pre CG_RegisterClientModelname\n");
+	//Com_Printf("LoadClientInfo pre CG_RegisterClientModelname\n");
 	if ( !CG_RegisterClientModelname( ci, ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname ) ) {
 		if ( cg_buildScript.integer ) {
 			CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci, ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname );

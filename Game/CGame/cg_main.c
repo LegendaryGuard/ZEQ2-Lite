@@ -1387,6 +1387,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.dirtPushModel = trap_R_RegisterModel( "effects/shockwave/dirtPush.md3" );
 
 	cgs.media.hudShader = trap_R_RegisterShaderNoMip( "interface/hud/main.png" );
+	cgs.media.chatBackgroundShader = trap_R_RegisterShaderNoMip("chatBox");
 	cgs.media.markerAscendShader = trap_R_RegisterShaderNoMip( "interface/hud/markerAscend.png" );
 	cgs.media.markerDescendShader = trap_R_RegisterShaderNoMip( "interface/hud/markerDescend.png" );
 	cgs.media.breakLimitShader = trap_R_RegisterShaderNoMip( "breakLimit" );

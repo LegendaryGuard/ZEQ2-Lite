@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 //
-#include "../../Shared/q_shared.h"
+#include "../../Shared/q_shared.h" 
 #include "../../Engine/renderer/tr_types.h"
 #include "../Game/bg_public.h"
 // ADDING FOR ZEQ2
@@ -785,7 +785,6 @@ typedef struct {
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 
-
 	// development tool
 	refEntity_t	testModelEntity;
 	char		testModelName[MAX_QPATH];
@@ -824,6 +823,7 @@ typedef struct {
 	qhandle_t	speedLineShader;
 	qhandle_t	speedLineSpinShader;
 	qhandle_t	friendShader;
+	qhandle_t	chatBackgroundShader;
 	qhandle_t	chatBubble;
 	qhandle_t	connectionShader;
 	qhandle_t	selectShader;
@@ -1034,6 +1034,10 @@ typedef struct {
 	const lensFlareEffect_t* lensFlareEffectExplosion4;
 	const lensFlareEffect_t* lensFlareEffectEnergyGlowDarkBackground;
 
+	char	messages[3][256];
+	int		messageTimer[3];
+	int		messageClient[3];
+	int		chatTimer;
 	// media
 	cgMedia_t	media;
 	musicSystem music;
@@ -1252,15 +1256,15 @@ void CG_AddLensFlare(lensFlareEntity_t* lfent, int quality);	// JUHOX
 //
 // cg_drawtools.c
 //
-void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
+void CG_AdjustFrom640( float *x, float *y, float *w, float *h,qboolean stretch);
 void CG_FillRect( float x, float y, float width, float height, const float *color );
-void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
+void CG_DrawPic(qboolean stretch, float x, float y, float width, float height, qhandle_t hShader );
 void CG_DrawString( float x, float y, const char *string, 
 				   float charWidth, float charHeight, const float *modulate );
 
 
-void CG_DrawStringExt( int x, int y, const char *string, const float *setColor, 
-		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars );
+void CG_DrawStringExt(int spacing, int x, int y, const char *string, const float *setColor, 
+		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars);
 void CG_DrawBigString( int x, int y, const char *s, float alpha );
 void CG_DrawBigStringColor( int x, int y, const char *s, vec4_t color );
 void CG_DrawSmallString( int x, int y, const char *s, float alpha );
