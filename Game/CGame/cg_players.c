@@ -1843,7 +1843,7 @@ void CG_Player( centity_t *cent ) {
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ){CG_Error( "Bad clientNum on player entity" );}
 	ci = &cgs.clientinfo[clientNum];
 	if (!ci->infoValid){return;}
-	if(!ci->cameraBackup[0]){
+	if(!ci->cameraBackup[2]){
 		ci->cameraBackup[0] = cg_thirdPersonAngle.value;
 		ci->cameraBackup[1] = cg_thirdPersonHeight.value;
 		ci->cameraBackup[2] = cg_thirdPersonRange.value;
@@ -1880,7 +1880,7 @@ void CG_Player( centity_t *cent ) {
 	if ((cent->currentState.playerBitFlags & usingZanzoken) || ((cent->currentState.number == ps->clientNum) && (ps->bitFlags & usingZanzoken) && !(ps->bitFlags & isUnconcious) && !(ps->bitFlags & isDead) && !(ps->bitFlags & isCrashed))) {
 		return;
 	}
-	health = ((float)ps->powerLevel[plHealth] / (float)ps->powerLevel[plMaximum]) * 100;
+	health = ((float)cent->currentState.attackPowerCurrent / (float)cent->currentState.attackPowerTotal) * 100;
 	if(health <= 100){damageState = 9;}
 	if(health <= 90){damageState = 8;}
 	if(health <= 80){damageState = 7;}

@@ -421,8 +421,9 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s,qboolean s
 	}
 	s->weapon = ps->weapon;
 	s->weaponstate = ps->weaponstate;
-	s->attackPowerCurrent = ps->attackPowerCurrent;
-	s->attackPowerTotal = ps->attackPowerTotal;
+	s->playerBitFlags = ps->bitFlags;
+	s->attackPowerCurrent = ps->powerLevel[plHealth];
+	s->attackPowerTotal = ps->powerLevel[plMaximum];
 	s->charge1.chBase = ps->stats[stChargePercentPrimary];
 	s->charge2.chBase = ps->stats[stChargePercentSecondary];
 	s->groundEntityNum = ps->groundEntityNum;

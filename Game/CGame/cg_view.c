@@ -733,15 +733,15 @@ static void CG_OffsetThirdPersonView( void ) {
 	VectorCopy( cg.refdef.vieworg, view );	
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 	// LOCKED ON
-	if(ps->lockedTarget){
-		if(!ci->lockonStart){ci->lockonStart = qtrue;}
+	if(ps->lockedTarget > 0){
+		if(!cg.lockonStart){cg.lockonStart = qtrue;}
 		cg_thirdPersonAngle.value = cg_lockedAngle.value;
 		cg_thirdPersonHeight.value = cg_lockedHeight.value;
 		cg_thirdPersonRange.value = cg_lockedRange.value;
 		cg_thirdPersonSlide.value = cg_lockedSlide.value;
 	}
-	else if(ci->lockonStart){
-		ci->lockonStart = qfalse;
+	else if(cg.lockonStart && ci->cameraBackup[2]){
+		cg.lockonStart = qfalse;
 		cg_thirdPersonAngle.value = ci->cameraBackup[0];
 		cg_thirdPersonHeight.value = ci->cameraBackup[1];
 		cg_thirdPersonRange.value = ci->cameraBackup[2];

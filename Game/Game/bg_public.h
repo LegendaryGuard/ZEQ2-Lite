@@ -302,8 +302,12 @@ typedef enum{
 	tmMeleeCharge,
 	tmMeleeSpeed,
 	tmMeleeIdle,
+	tmStruggleEnergy,
+	tmStruggleBlock,
 	tmPowerRaise,
 	tmPowerAuto,
+	tmBurning,
+	tmRiding,
 	tmImpede,
 	tmCrash,
 	tmFreeze,
@@ -377,6 +381,8 @@ typedef enum {
 #define advancedMelee	0x00008000
 #define advancedFlight	0x00010000
 #define causedDamage	0x00020000
+#define isRiding		0x00040000
+#define isBurning		0x00080000
 
 // Options
 

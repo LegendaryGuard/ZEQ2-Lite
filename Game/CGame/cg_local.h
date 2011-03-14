@@ -382,7 +382,6 @@ typedef struct {
 	animation_t		animations[MAX_TOTALANIMATIONS];
 	sfxHandle_t		sounds[9][MAX_CUSTOM_SOUNDS];
 	//ADDING FOR ZEQ2
-	qboolean		lockonStart;
 	qboolean		transformStart;
 	int				transformLength;
 	int				lockStartTimer;
@@ -605,6 +604,7 @@ typedef struct {
 	float		frameInterpolation;	// (float)( cg.time - cg.frame->serverTime ) / (cg.nextFrame->serverTime - cg.frame->serverTime)
 	qboolean	thisFrameTeleport;
 	qboolean	nextFrameTeleport;
+	qboolean	lockonStart;
 	int			frametime;		// cg.time - cg.oldTime
 	int			time;			// this is the time value that the client
 								// is rendering at.

@@ -704,7 +704,7 @@ static void CG_DrawStatusBar( void ) {
 	cent = &cg_entities[cg.snap->ps.clientNum];
 	tier = (float)ps->powerLevel[plTierCurrent];
 	CG_CheckChat();
-	if(ps->lockedTarget){
+	if(ps->lockedTarget > 0 && &cgs.clientinfo[ps->lockedTarget-1].infoValid){
 		for(i=0; i<MAX_CLIENTS; i++) {
 			if(cg_playerOrigins[i].clientNum == ps->lockedTarget-1) {
 				lockedTargetPS.clientNum = cg_playerOrigins[i].clientNum;

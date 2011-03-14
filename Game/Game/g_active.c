@@ -555,6 +555,8 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.pm_type = PM_NORMAL;
 	}
 	ent->s.playerBitFlags = client->ps.bitFlags;
+	ent->s.attackPowerCurrent = client->ps.powerLevel[plHealth];
+	ent->s.attackPowerTotal = client->ps.powerLevel[plMaximum];
 	G_LinkUserWeaponData( &(client->ps) );
 	G_CheckSkills(&(client->ps));
 	G_CheckSafety(ent->r.currentOrigin,&(client->ps));

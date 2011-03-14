@@ -406,12 +406,6 @@ void CG_UpdateCvars( void ) {
 			trap_Cvar_Set( "teamoverlay", "0" );
 		}
 	}
-
-	// if force model changed
-	if ( forceModelModificationCount != cg_forceModel.modificationCount ) {
-		forceModelModificationCount = cg_forceModel.modificationCount;
-		CG_ForceModelChange();
-	}
 }
 
 int CG_CrosshairPlayer( void ) {
