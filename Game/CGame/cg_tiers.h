@@ -1,6 +1,9 @@
 typedef struct{
 	char *name;
 	qhandle_t icon;
+	qboolean damageFeatures;
+	qboolean damageModelsRevertHealed;
+	qboolean damageTexturesRevertHealed;
 	float hudMultiplier;
 	int sustainCurrent;
 	int sustainFatigue;

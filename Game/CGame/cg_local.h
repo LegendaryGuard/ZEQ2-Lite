@@ -382,6 +382,8 @@ typedef struct {
 	animation_t		animations[MAX_TOTALANIMATIONS];
 	sfxHandle_t		sounds[9][MAX_CUSTOM_SOUNDS];
 	//ADDING FOR ZEQ2
+	int				damageModelState;
+	int				damageTextureState;
 	qboolean		transformStart;
 	int				transformLength;
 	int				lockStartTimer;
@@ -590,6 +592,7 @@ typedef struct {
 	int			clientFrame;		// incremented each frame
 
 	int			clientNum;
+	qboolean	resetValues;
 	qboolean	demoPlayback;
 	qboolean	levelShot;			// taking a level menu screenshot
 	int			deferredPlayerLoading;
