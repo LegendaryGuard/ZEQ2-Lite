@@ -389,19 +389,6 @@ extern void UI_ControlsMenu( void );
 extern void Controls_Cache( void );
 
 //
-// ui_demo2.c
-//
-extern void UI_DemosMenu( void );
-extern void Demos_Cache( void );
-
-//
-// ui_cinematics.c
-//
-extern void UI_CinematicsMenu( void );
-extern void UI_CinematicsMenu_f( void );
-extern void UI_CinematicsMenu_Cache( void );
-
-//
 // ui_playermodel.c
 //
 extern void UI_PlayerModelMenu( void );
@@ -455,11 +442,10 @@ extern void UI_ServerInfoMenu( void );
 extern void ServerInfo_Cache( void );
 
 //
-// ui_video.c
+// ui_system.c
 //
-extern void UI_GraphicsOptionsMenu( void );
-extern void GraphicsOptions_Cache( void );
-extern void DriverInfo_Cache( void );
+extern void UI_SystemSettingsMenu( void );
+extern void SystemSettings_Cache( void );
 
 //
 // ui_players.c
@@ -639,31 +625,6 @@ extern qboolean		m_entersound;
 extern uiStatic_t	uis;
 
 //
-// ui_spLevel.c
-//
-void UI_SPLevelMenu_Cache( void );
-void UI_SPLevelMenu( void );
-void UI_SPLevelMenu_f( void );
-void UI_SPLevelMenu_ReInit( void );
-
-//
-// ui_spArena.c
-//
-void UI_SPArena_Start( const char *arenaInfo );
-
-//
-// ui_spPostgame.c
-//
-void UI_SPPostgameMenu_Cache( void );
-void UI_SPPostgameMenu_f( void );
-
-//
-// ui_spSkill.c
-//
-void UI_SPSkillMenu( const char *arenaInfo );
-void UI_SPSkillMenu_Cache( void );
-
-//
 // ui_syscalls.c
 //
 
@@ -724,24 +685,6 @@ void			trap_LAN_ClearPing( int n );
 void			trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime );
 void			trap_LAN_GetPingInfo( int n, char *buf, int buflen );
 int				trap_MemoryRemaining( void );
-//void			trap_GetCDKey( char *buf, int buflen );
-//void			trap_SetCDKey( char *buf );
-
-//qboolean               trap_VerifyCDKey( const char *key, const char *chksum);
-
-//void			trap_SetPbClStatus( int status );
-
-//
-// ui_addbots.c
-//
-void UI_AddBots_Cache( void );
-void UI_AddBotsMenu( void );
-
-//
-// ui_removebots.c
-//
-void UI_RemoveBots_Cache( void );
-void UI_RemoveBotsMenu( void );
 
 //
 // ui_teamorders.c
@@ -761,24 +704,6 @@ void UI_LoadConfigMenu( void );
 //
 void UI_SaveConfigMenu_Cache( void );
 void UI_SaveConfigMenu( void );
-
-//
-// ui_display.c
-//
-void UI_DisplayOptionsMenu_Cache( void );
-void UI_DisplayOptionsMenu( void );
-
-//
-// ui_sound.c
-//
-void UI_SoundOptionsMenu_Cache( void );
-void UI_SoundOptionsMenu( void );
-
-//
-// ui_network.c
-//
-void UI_NetworkOptionsMenu_Cache( void );
-void UI_NetworkOptionsMenu( void );
 
 //
 // ui_gameinfo.c
@@ -817,35 +742,5 @@ void UI_SPUnlock_f( void );
 void UI_SPUnlockMedals_f( void );
 
 void UI_InitGameinfo( void );
-
-//GRank
-
-//
-// ui_rankings.c
-//
-void Rankings_DrawText( void* self );
-void Rankings_DrawName( void* self );
-void Rankings_DrawPassword( void* self );
-void Rankings_Cache( void );
-void UI_RankingsMenu( void );
-
-
-//
-// ui_login.c
-//
-void Login_Cache( void );
-void UI_LoginMenu( void );
-
-//
-// ui_signup.c
-//
-void Signup_Cache( void );
-void UI_SignupMenu( void );
-
-//
-// ui_rankstatus.c
-//
-void RankStatus_Cache( void );
-void UI_RankStatusMenu( void );
 
 #endif

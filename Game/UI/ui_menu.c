@@ -174,7 +174,7 @@ void Main_MenuEvent (void* ptr, int event) {
 		break;
 	case ID_SETUP:
 		MainMenu_Save();
-		UI_SetupMenu();
+		UI_SystemSettingsMenu();
 		break;
 	case ID_EXIT:
 		MainMenu_Save();
