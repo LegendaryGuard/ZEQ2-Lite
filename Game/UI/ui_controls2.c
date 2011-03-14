@@ -331,7 +331,6 @@ static menucommon_s *g_main_controls[] =
 	(menucommon_s *)&s_controls.movedown,      
 	(menucommon_s *)&s_controls.turnleft,      
 	(menucommon_s *)&s_controls.turnright,     
-	(menucommon_s *)&s_controls.sidestep,
 	(menucommon_s *)&s_controls.jump,
 	(menucommon_s *)&s_controls.zanzoken,
 	(menucommon_s *)&s_controls.rollleft,
@@ -341,33 +340,16 @@ static menucommon_s *g_main_controls[] =
 	(menucommon_s *)&s_controls.attack2,
 	(menucommon_s *)&s_controls.nextweapon,
 	(menucommon_s *)&s_controls.prevweapon,
-	(menucommon_s *)&s_controls.autoswitch,
 	(menucommon_s *)&s_controls.chainsaw,
 	(menucommon_s *)&s_controls.machinegun,
 	(menucommon_s *)&s_controls.shotgun,
 	(menucommon_s *)&s_controls.grenadelauncher,
 	(menucommon_s *)&s_controls.rocketlauncher,
 	(menucommon_s *)&s_controls.lightning,
-	(menucommon_s *)&s_controls.sensitivity,
-	(menucommon_s *)&s_controls.gesture,
-	(menucommon_s *)&s_controls.smoothmouse,
-	(menucommon_s *)&s_controls.invertmouse,
-	(menucommon_s *)&s_controls.lookup,
-	(menucommon_s *)&s_controls.lookdown,
-	(menucommon_s *)&s_controls.mouselook,
-	(menucommon_s *)&s_controls.freelook,
-	(menucommon_s *)&s_controls.centerview,
-	(menucommon_s *)&s_controls.zoomview,
-	(menucommon_s *)&s_controls.joyenable,
-	(menucommon_s *)&s_controls.joythreshold,
-	(menucommon_s *)&s_controls.showscores, 
 	(menucommon_s *)&s_controls.chargepl,
 	(menucommon_s *)&s_controls.block,
 	(menucommon_s *)&s_controls.useitem,
 	(menucommon_s *)&s_controls.chat,
-	(menucommon_s *)&s_controls.chat2,
-	(menucommon_s *)&s_controls.chat3,
-	(menucommon_s *)&s_controls.chat4,	
 	NULL,
 };
 
@@ -782,13 +764,13 @@ static void Controls_DrawKeyBinding( void *self )
 		if (s_controls.waitingforkey)
 		{
 			UI_DrawChar( x, y, '=', UI_CENTER|UI_BLINK|UI_TINYFONT|UI_DROPSHADOW, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50, SCREEN_HEIGHT * 0.80, "Waiting for new key ... ESCAPE to cancel", UI_TINYFONT|UI_CENTER|UI_PULSE|UI_DROPSHADOW, colorWhite );
+			UI_DrawString(SCREEN_WIDTH * 0.80, SCREEN_HEIGHT * 0.82, "Waiting for new key ... ESCAPE to cancel", UI_TINYFONT|UI_CENTER|UI_PULSE|UI_DROPSHADOW, colorWhite );
 		}
 		else
 		{
 			UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_TINYFONT|UI_DROPSHADOW, text_color_highlight);
-			UI_DrawString(SCREEN_WIDTH * 0.50, SCREEN_HEIGHT * 0.78, "Press ENTER or CLICK to change", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
-			UI_DrawString(SCREEN_WIDTH * 0.50, SCREEN_HEIGHT * 0.82, "Press BACKSPACE to clear", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
+			UI_DrawString(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.82, "Press ENTER or CLICK to change", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
+			UI_DrawString(SCREEN_WIDTH * 0.86, SCREEN_HEIGHT * 0.86, "Press BACKSPACE to clear", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
 		}
 	}
 	else
@@ -813,7 +795,8 @@ Controls_StatusBar
 */
 static void Controls_StatusBar( void *self )
 {
-	UI_DrawString(SCREEN_WIDTH * 0.50, SCREEN_HEIGHT * 0.80, "Use Arrow Keys or CLICK to change", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
+	UI_DrawString(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.82, "Use Arrow Keys or CLICK", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
+	UI_DrawString(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.86, "to change it", UI_TINYFONT|UI_CENTER|UI_DROPSHADOW, colorWhite );
 }
 
 
@@ -1666,13 +1649,13 @@ static void Controls_MenuInit( void )
 
 	Menu_AddItem( &s_controls.menu, &s_controls.player );
 
-	Menu_AddItem( &s_controls.menu, &s_controls.system );
-	Menu_AddItem( &s_controls.menu, &s_controls.controls );
-	Menu_AddItem( &s_controls.menu, &s_controls.general );	
+	//Menu_AddItem( &s_controls.menu, &s_controls.system );
+	//Menu_AddItem( &s_controls.menu, &s_controls.controls );
+	//Menu_AddItem( &s_controls.menu, &s_controls.general );	
 
+//	Menu_AddItem( &s_controls.menu, &s_controls.main );
 
-	Menu_AddItem( &s_controls.menu, &s_controls.sensitivity );
-	Menu_AddItem( &s_controls.menu, &s_controls.smoothmouse );
+/*	Menu_AddItem( &s_controls.menu, &s_controls.smoothmouse );
 	Menu_AddItem( &s_controls.menu, &s_controls.invertmouse );
 	Menu_AddItem( &s_controls.menu, &s_controls.lookup );
 	Menu_AddItem( &s_controls.menu, &s_controls.lookdown );
@@ -1682,9 +1665,10 @@ static void Controls_MenuInit( void )
 	Menu_AddItem( &s_controls.menu, &s_controls.zoomview );
 	Menu_AddItem( &s_controls.menu, &s_controls.joyenable );
 	Menu_AddItem( &s_controls.menu, &s_controls.joythreshold );
+*/
 
-	Menu_AddItem( &s_controls.menu, &s_controls.alwaysrun );
-	Menu_AddItem( &s_controls.menu, &s_controls.run );
+//	Menu_AddItem( &s_controls.menu, &s_controls.alwaysrun );
+//	Menu_AddItem( &s_controls.menu, &s_controls.run );
 	Menu_AddItem( &s_controls.menu, &s_controls.boost );
 	Menu_AddItem( &s_controls.menu, &s_controls.zanzoken );
 	Menu_AddItem( &s_controls.menu, &s_controls.walkforward );
@@ -1698,13 +1682,13 @@ static void Controls_MenuInit( void )
 	Menu_AddItem( &s_controls.menu, &s_controls.turnright );
 	Menu_AddItem( &s_controls.menu, &s_controls.rollleft );
 	Menu_AddItem( &s_controls.menu, &s_controls.rollright );
-	Menu_AddItem( &s_controls.menu, &s_controls.sidestep );
+//	Menu_AddItem( &s_controls.menu, &s_controls.sidestep );
 
 	Menu_AddItem( &s_controls.menu, &s_controls.attack );
 	Menu_AddItem( &s_controls.menu, &s_controls.attack2 );
 	Menu_AddItem( &s_controls.menu, &s_controls.nextweapon );
 	Menu_AddItem( &s_controls.menu, &s_controls.prevweapon );
-	Menu_AddItem( &s_controls.menu, &s_controls.autoswitch );
+//	Menu_AddItem( &s_controls.menu, &s_controls.autoswitch );
 	Menu_AddItem( &s_controls.menu, &s_controls.chainsaw );
 	Menu_AddItem( &s_controls.menu, &s_controls.machinegun );
 	Menu_AddItem( &s_controls.menu, &s_controls.shotgun );
@@ -1714,16 +1698,17 @@ static void Controls_MenuInit( void )
 	Menu_AddItem( &s_controls.menu, &s_controls.railgun );
 	Menu_AddItem( &s_controls.menu, &s_controls.plasma );
 	Menu_AddItem( &s_controls.menu, &s_controls.bfg );
-
-	Menu_AddItem( &s_controls.menu, &s_controls.showscores );
-	Menu_AddItem( &s_controls.menu, &s_controls.useitem );
 	Menu_AddItem( &s_controls.menu, &s_controls.chargepl );
 	Menu_AddItem( &s_controls.menu, &s_controls.block );
 	Menu_AddItem( &s_controls.menu, &s_controls.gesture );
-	Menu_AddItem( &s_controls.menu, &s_controls.chat );
-	Menu_AddItem( &s_controls.menu, &s_controls.chat2 );
-	Menu_AddItem( &s_controls.menu, &s_controls.chat3 );
-	Menu_AddItem( &s_controls.menu, &s_controls.chat4 );
+	Menu_AddItem( &s_controls.menu, &s_controls.sensitivity );
+	Menu_AddItem( &s_controls.menu, &s_controls.chat );	
+
+//	Menu_AddItem( &s_controls.menu, &s_controls.showscores );
+//	Menu_AddItem( &s_controls.menu, &s_controls.useitem );
+//	Menu_AddItem( &s_controls.menu, &s_controls.chat2 );
+//	Menu_AddItem( &s_controls.menu, &s_controls.chat3 );
+//	Menu_AddItem( &s_controls.menu, &s_controls.chat4 );
 
 	Menu_AddItem( &s_controls.menu, &s_controls.back );
 
@@ -1771,7 +1756,6 @@ UI_ControlsMenu
 void UI_ControlsMenu( void ) {
 	uis.menuamount = 3;
 	uis.hideEarth = qtrue;
-	uis.showFrame = qtrue;
 	Controls_MenuInit();
 	UI_PushMenu( &s_controls.menu );
 	Menu_SetCursorToItem(&s_controls.menu,&s_controls.controls);	
