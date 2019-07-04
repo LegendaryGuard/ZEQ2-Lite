@@ -683,6 +683,17 @@ static void CG_Aura_AddDebris( centity_t *player, auraState_t *state, auraConfig
 	CG_FrameHist_SetAura( player->currentState.number);
 }
 
+/*===================
+CG_Aura_AddParticleSystem
+===================*/
+static void CG_Aura_AddParticleSystem(centity_t *player,auraState_t *state,auraConfig_t *config){
+	if(!state->isActive || !config->particleSystem[0]){return;}
+	// If the entity wasn't previously in the PVS, we need to start a new system
+	// Spawn the particle system if the player has just entered PVS
+	if(!CG_FrameHist_HadAura(player->currentState.number)){
+		PSys_SpawnCachedSystem(config->particleSystem,player->lerpOrigin,NULL,player,NULL,qtrue,qfalse);
+	}
+}
 
 /*===================
 CG_Aura_AddSounds
@@ -789,7 +800,7 @@ void CG_AddAuraToScene( centity_t *player){
 	CG_Aura_AddTrail( player, state, config);
 	CG_Aura_AddDebris( player, state, config);
 	CG_Aura_AddDLight( player, state, config);
-
+	CG_Aura_AddParticleSystem(player,state,config);
 	// Render the aura
 	CG_Aura_ConvexHullRender( player, state, config);
 }
@@ -934,6 +945,11 @@ void parseAura(char *path,auraConfig_t *aura){
 				token = COM_Parse(&parse);
 				if(!token[0]){break;}
 				aura->generatesDebris = strlen(token) == 4 ? qtrue : qfalse;
+			}
+			else if(!Q_stricmp(token,"particleSystem")){
+				token = COM_Parse(&parse);
+				if(!token[0]){break;}
+				else{Q_strncpyz(aura->particleSystem,token,sizeof(aura->particleSystem));}
 			}
 			else if(!Q_stricmp( token, "auraTagCount")){
 				for(i = 0;i < 3;i++){
