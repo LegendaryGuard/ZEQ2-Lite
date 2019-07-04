@@ -44,6 +44,7 @@ typedef struct auraConfig_s {
 	qboolean	showLightning;
 	vec3_t		lightningColor;
 	qhandle_t	lightningShader;
+	char		particleSystem[MAX_QPATH];
 	int			numTags[3]; // 0 = head, 1 = torso, 2 = legs
 	qboolean	generatesDebris;
 }auraConfig_t;
