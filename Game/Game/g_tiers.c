@@ -15,6 +15,7 @@ void syncTier(gclient_t *client){
 	ps->stats[stTransformFatigue] = tier->transformFatigue;
 	ps->stats[stTransformHealth] = tier->transformHealth;
 	ps->stats[stTransformEffectMaximum] = tier->transformEffectMaximum;
+	ps->baseStats[stKnockbackPower] = tier->knockbackPower;
 	ps->baseStats[stSpeed] = tier->speed;
 	ps->baseStats[stZanzokenDistance] = tier->zanzokenDistance;
 	ps->baseStats[stZanzokenQuickDistance] = g_quickZanzokenDistance.value != -1.0 ? g_quickZanzokenDistance.value : tier->zanzokenQuickDistance;
