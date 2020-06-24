@@ -434,7 +434,7 @@ void PM_BurnPowerLevel(){
 			burnType += 1;
 			continue;
 		}
-		defense = burnType == 1 ? pm->ps->stats[stDefenseMelee] : pm->ps->stats[stDefenseEnergy];
+		defense = burnType == 1 ? pm->ps->baseStats[stDefenseMelee] : pm->ps->baseStats[stDefenseEnergy];
 		defense = pm->ps->bitFlags & usingBlock ? defense * 2.0 : defense;
 		defense = pm->ps->bitFlags & usingBallFlip ? defense * 1.5 : defense;
 		defense = pm->ps->bitFlags & atopGround ? defense * 1.1 : defense;
@@ -2486,7 +2486,7 @@ void PM_Melee(void){
 			if(pm->ps->timers[tmMeleeBreakerWait] < 0){pm->ps->timers[tmMeleeBreakerWait] = 0;}
 		}
 		if(pm->ps->timers[tmMeleeBreaker]){
-			damage = (pm->ps->powerLevel[plCurrent] * 0.05) * pm->ps->stats[stMeleeAttack];
+			damage = (pm->ps->powerLevel[plCurrent] * 0.05) * pm->ps->baseStats[stMeleeAttack];
 			if(pm->ps->timers[tmMeleeBreaker] > 0){
 				state = stMeleeUsingChargeBreaker;
 				if(enemyState == stMeleeUsingSpeed){
@@ -2560,7 +2560,7 @@ void PM_Melee(void){
 						PM_StopMelee();
 					}
 					else if(enemyState != stMeleeUsingEvade){
-						damage = (pm->ps->powerLevel[plCurrent] * 0.15) * pm->ps->stats[stMeleeAttack];
+						damage = (pm->ps->powerLevel[plCurrent] * 0.15) * pm->ps->baseStats[stMeleeAttack];
 						if(enemyState == stMeleeUsingBlock){damage *= 0.3;}
 						if(state != stMeleeStartPower){PM_AddEvent(EV_MELEE_KNOCKBACK);}
 					}
@@ -2569,7 +2569,7 @@ void PM_Melee(void){
 						pm->ps->lockedPlayer->powerLevel[plUseFatigue] = damage * 0.4;
 					}
 					if(enemyState != stMeleeUsingBlock && enemyState != stMeleeUsingEvade){
-						pm->ps->lockedPlayer->powerups[PW_KNOCKBACK_SPEED] = (pm->ps->powerLevel[plCurrent] / 21.84) + pm->ps->stats[stKnockbackPower];
+						pm->ps->lockedPlayer->powerups[PW_KNOCKBACK_SPEED] = (pm->ps->powerLevel[plCurrent] / 21.84) + pm->ps->baseStats[stKnockbackPower];
 						if(pm->ps->lockedPlayer->timers[tmKnockback]){pm->ps->lockedPlayer->powerups[PW_KNOCKBACK_SPEED] *= 2;}
 						if(pm->ps->bitFlags & usingBoost){
 							damage *= 1.5;
@@ -2682,7 +2682,7 @@ void PM_Melee(void){
 				}
 				// Speed Melee
 				else{
-					damage = (pm->ps->powerLevel[plFatigue] * 0.013) * pm->ps->stats[stMeleeAttack];
+					damage = (pm->ps->powerLevel[plFatigue] * 0.013) * pm->ps->baseStats[stMeleeAttack];
 					if(pm->ps->powerups[PW_DRIFTING]==1){damage *= 1.2;}
 					if(pm->ps->bitFlags & usingBoost){damage *= 1.5;}
 					pm->ps->timers[tmMeleeSpeed] += pml.msec;
