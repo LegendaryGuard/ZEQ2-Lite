@@ -572,11 +572,9 @@ void CG_DrawChat(char *text){
 	char cleaned[256];
 	char name[14];
 	char *safe;
-	char find = ':';
 	char find2[] = "^7";
 	char replace = ' ';
 	safe = text;
-	strrep(safe, find, replace);
 	strcpy(cleaned, text);
 	strrep(safe, *find2, replace);
 	cgs.chatTimer = cg.time + cg_chatTime.integer;
