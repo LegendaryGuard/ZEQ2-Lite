@@ -1788,6 +1788,8 @@ CGOBJ_ = \
   $(B)/Base/CGame/bg_pmove.o \
   $(B)/Base/CGame/bg_slidemove.o \
   $(B)/Base/CGame/bg_lib.o \
+  $(B)/Base/CGame/cg_animations.o \
+  $(B)/Base/CGame/cg_animationConfig.o \
   $(B)/Base/CGame/cg_consolecmds.o \
   $(B)/Base/CGame/cg_draw.o \
   $(B)/Base/CGame/cg_drawtools.o \

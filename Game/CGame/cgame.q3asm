@@ -1,6 +1,8 @@
 -o "..\..\..\..\Build\ZEQ2\vm\cgame.qvm"
 cg_main
 ..\cg_syscalls
+cg_animations
+cg_animationConfig
 cg_consolecmds
 cg_draw
 cg_drawtools
