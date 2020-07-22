@@ -1302,18 +1302,29 @@ const char *CG_GameTypeString( void );
 qboolean CG_YourTeamHasFlag( void );
 qboolean CG_OtherTeamHasFlag( void );
 qhandle_t CG_StatusHandle(int task);
-
-
-
+//
+// cg_animations.c
+//
+void CG_SetLerpFrameAnimation(clientInfo_t* ci,lerpFrame_t* lf,int newAnimation,qboolean isCamera);
+void CG_RunLerpFrame(clientInfo_t* ci,lerpFrame_t* lf,int newAnimation,float speedScale,qboolean isCamera);
+void CG_ClearLerpFrame(clientInfo_t* ci,lerpFrame_t* lf,int animationNumber,qboolean isCamera);
+void CG_PlayerAnimation(centity_t* cent,
+								int* legsOld,int* legs,float* legsBackLerp,
+								int* torsoOld,int* torso,float* torsoBackLerp,
+								int* headOld,int* head,float* headBackLerp,
+								int* cameraOld,int* camera,float* cameraBackLerp);
+//
+// cg_animationConfig.c
+//
+qboolean CG_ParseAnimationFile(const char* filename,clientInfo_t* ci,qboolean isCamera);
 //
 // cg_player.c
 //
-void CG_Player( centity_t *cent );
+void CG_Player( centity_t *cent);
 void CG_ResetPlayerEntity( centity_t *cent );
 void CG_AddRefEntityWithPowerups( refEntity_t *ent, entityState_t *state, int team, qboolean auraAlways );
 void CG_NewClientInfo( int clientNum );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
-qboolean CG_ParseAnimationFile( const char *filename, clientInfo_t *ci, qboolean isCamera );
 qboolean CG_GetTagOrientationFromPlayerEntity( centity_t *cent, char *tagName, orientation_t *tagOrient );
 qboolean CG_GetTagOrientationFromPlayerEntityCameraModel( centity_t *cent, char *tagName, orientation_t *tagOrient );
 qboolean CG_GetTagOrientationFromPlayerEntityHeadModel( centity_t *cent, char *tagName, orientation_t *tagOrient );

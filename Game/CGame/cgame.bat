@@ -18,6 +18,10 @@ if "%1"=="TA" goto TA
 @if errorlevel 1 goto quit
 %cc% ../../../Shared/q_shared.c
 @if errorlevel 1 goto quit
+%cc% ../cg_animations.c
+@if errorlevel 1 goto quit
+%cc% ../cg_animationConfig.c
+@if errorlevel 1 goto quit
 %cc% ../cg_consolecmds.c
 @if errorlevel 1 goto quit
 %cc% ../cg_draw.c
