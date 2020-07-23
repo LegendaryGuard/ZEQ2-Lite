@@ -51,22 +51,25 @@ static playerEntity_t	playerInfoDuplicate[MAX_GENTITIES];
 /*================
 CG_CustomSound
 ================*/
-sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName ) {
-	clientInfo_t *ci;
-	int	i;
-	int nextIndex;
-	nextIndex = (fabs(crandom()) * 8)+1;
-	if(nextIndex > 9){nextIndex = 9;}
-	if(nextIndex < 1){nextIndex = 1;}
-	if(clientNum < 0 || clientNum >= MAX_CLIENTS){clientNum = 0;}
-	ci = &cgs.clientinfo[clientNum];
-	if(!ci->infoValid){return cgs.media.nullSound;}
-	for(i = 0 ; i < MAX_CUSTOM_SOUNDS; i++){
-		if(!strcmp(soundName,cg_customSoundNames[i]) && ci->sounds[ci->tierCurrent][(i*9)+nextIndex]){
-			return ci->sounds[ci->tierCurrent][(i*9)+nextIndex];
-		}
+sfxHandle_t	CG_CustomSound(int clientNum, const char *soundName){
+	clientInfo_t* ci;
+	int i;
+	int nextIndex = (fabs(crandom())*8)+1;
+	nextIndex = Com_Clamp(1,9,nextIndex);
+	if(clientNum < 0 || clientNum >= MAX_CLIENTS){
+		Com_Printf("^3CG_CustomSound(): invalid client number %d.\n",clientNum);
+		return cgs.media.nullSound;
 	}
-	CG_Printf("Client %i [%s] could not find sound : %s%i\n",clientNum,ci->name,soundName,nextIndex);
+	ci = &cgs.clientinfo[clientNum];
+	if(!ci->infoValid){
+		Com_Printf("^3CG_CustomSound(): invalid info from client number %d.)",clientNum);
+		return cgs.media.nullSound;
+	}
+	for(i=0;i<MAX_CUSTOM_SOUNDS && cg_customSoundNames[i];i++){
+		qboolean foundType = !strcmp(soundName,cg_customSoundNames[i]);
+		if(foundType){return ci->sounds[ci->tierCurrent][(i*9)+nextIndex];}
+	}
+	Com_Printf("^3CG_CustomSound(): unknown sound type '%s' from '%d/%s'. Using default.\n",soundName,clientNum,ci->name);
 	return cgs.media.nullSound;
 }
 /*=============================================================================
