@@ -52,6 +52,7 @@ SYSTEM SETTINGS MENU
 #define ID_QUALITY			109
 #define ID_BACK2			110
 #define ID_VSYNC			111
+#define ID_FRAMERATE		112
 
 typedef struct {
 	menuframework_s	menu;
@@ -78,6 +79,7 @@ typedef struct {
 	menulist_s		anisotropy;
 	menutext_s		driverinfo;
 	menulist_s		vsync;
+	menufield_s		framerate;
 
 	menuslider_s	mastervolume;
 	menuslider_s	musicvolume;
@@ -99,6 +101,7 @@ typedef struct
 	int anisotropy;
 	int driver;
 	int vsync;
+	int framerate;
 	qboolean extensions;
 } InitialVideoOptions_s;
 
@@ -108,22 +111,22 @@ static systemsettings_t		s_systemsettings;
 static InitialVideoOptions_s s_ivo_templates[] =
 {
 	{
-		6, qtrue, 3, 0, 2, 2, 2, 1, 0, 0, qtrue
+		6, qtrue, 3, 0, 2, 2, 2, 1, 0, 0, 144, qtrue
 	},
 	{
-		4, qtrue, 2, 0, 2, 2, 1, 1, 0, 0, qtrue	// JDC: this was tq 3
+		4, qtrue, 2, 0, 2, 2, 1, 1, 0, 0, 144, qtrue	// JDC: this was tq 3
 	},
 	{
-		3, qtrue, 2, 0, 0, 0, 1, 0, 0, 0, qtrue
+		3, qtrue, 2, 0, 0, 0, 1, 0, 0, 0, 144, qtrue
 	},
 	{
-		2, qtrue, 1, 0, 1, 0, 0, 0, 0, 0, qtrue
+		2, qtrue, 1, 0, 1, 0, 0, 0, 0, 0, 144, qtrue
 	},
 	{
-		2, qtrue, 1, 1, 1, 0, 0, 0, 0, 0, qtrue
+		2, qtrue, 1, 1, 1, 0, 0, 0, 0, 0, 144, qtrue
 	},
 	{
-		3, qtrue, 1, 0, 0, 0, 1, 0, 0, 0, qtrue
+		3, qtrue, 1, 0, 0, 0, 1, 0, 0, 0, 144, qtrue
 	}
 };
 
@@ -297,6 +300,7 @@ static void SystemSettings_GetInitialVideo( void )
 	s_ivo.multisample  = s_systemsettings.multisample.curvalue;
 	s_ivo.anisotropy  = s_systemsettings.anisotropy.curvalue;
 	s_ivo.vsync		  = s_systemsettings.vsync.curvalue;
+	s_ivo.framerate	  = atoi(s_systemsettings.framerate.field.buffer);
 }
 
 /*
@@ -358,6 +362,8 @@ static void SystemSettings_CheckConfig( void )
 		if ( s_ivo_templates[i].anisotropy != s_systemsettings.anisotropy.curvalue )
 			continue;
 		if ( s_ivo_templates[i].vsync != s_systemsettings.vsync.curvalue )
+			continue;
+		if ( s_ivo_templates[i].framerate != atoi(s_systemsettings.framerate.field.buffer) )
 			continue;
 //		if ( s_ivo_templates[i].texturebits != s_systemsettings.texturebits.curvalue )
 //			continue;
@@ -441,6 +447,10 @@ static void SystemSettings_UpdateMenuItems( void )
 		s_systemsettings.back.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}
 	if ( s_ivo.vsync != s_systemsettings.vsync.curvalue )
+	{
+		s_systemsettings.back.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
+	}
+	if ( s_ivo.framerate != atoi(s_systemsettings.framerate.field.buffer) )
 	{
 		s_systemsettings.back.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}
@@ -581,6 +591,10 @@ static void SystemSettings_backChanges( void *unused, int notification )
 	{
 		trap_Cvar_Set( "r_swapInterval", "0");
 	}
+	if( atoi(s_systemsettings.framerate.field.buffer) > 0 )
+	{
+		trap_Cvar_Set( "com_maxfps", s_systemsettings.framerate.field.buffer);
+	}
 	trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 }
 
@@ -618,18 +632,18 @@ static void SystemSettings_Event( void* ptr, int event ) {
 	case ID_LIST:
 		ivo = &s_ivo_templates[s_systemsettings.list.curvalue];
 
-		s_systemsettings.mode.curvalue        = SystemSettings_FindDetectedResolution(ivo->mode);
-		s_systemsettings.ratio.curvalue =
-			resToRatio[ s_systemsettings.mode.curvalue ];
-		s_systemsettings.tq.curvalue          = ivo->tq;
-		s_systemsettings.lighting.curvalue    = ivo->lighting;
-		s_systemsettings.texturebits.curvalue = ivo->texturebits;
-		s_systemsettings.geometry.curvalue    = ivo->geometry;
-		s_systemsettings.filter.curvalue      = ivo->filter;
-		s_systemsettings.multisample.curvalue  = ivo->multisample;
-		s_systemsettings.anisotropy.curvalue  = ivo->anisotropy;
-		s_systemsettings.fs.curvalue          = ivo->fullscreen;
-		s_systemsettings.vsync.curvalue		  = ivo->vsync;
+		s_systemsettings.mode.curvalue        	= SystemSettings_FindDetectedResolution(ivo->mode);
+		s_systemsettings.ratio.curvalue 		= resToRatio[ s_systemsettings.mode.curvalue ];
+		s_systemsettings.tq.curvalue          	= ivo->tq;
+		s_systemsettings.lighting.curvalue    	= ivo->lighting;
+		s_systemsettings.texturebits.curvalue 	= ivo->texturebits;
+		s_systemsettings.geometry.curvalue    	= ivo->geometry;
+		s_systemsettings.filter.curvalue      	= ivo->filter;
+		s_systemsettings.multisample.curvalue 	= ivo->multisample;
+		s_systemsettings.anisotropy.curvalue  	= ivo->anisotropy;
+		s_systemsettings.fs.curvalue          	= ivo->fullscreen;
+		s_systemsettings.vsync.curvalue		  	= ivo->vsync;
+		Com_sprintf(s_systemsettings.framerate.field.buffer,sizeof(s_systemsettings.framerate.field.buffer),"%d",ivo->vsync);
 		break;
 
 	case ID_MASTERVOLUME:
@@ -837,6 +851,13 @@ static void SystemSettings_SetMenuItems( void )
 	else
 	{
 		s_systemsettings.vsync.curvalue = 0;
+	}
+	{
+		int framerate = trap_Cvar_VariableValue( "com_maxfps" );
+		if ( framerate > 0 )
+		{
+			Com_sprintf(s_systemsettings.framerate.field.buffer,sizeof(s_systemsettings.framerate.field.buffer),"%d",framerate);
+		}
 	}
 }
 
@@ -1087,6 +1108,21 @@ void SystemSettings_MenuInit( void )
 	s_systemsettings.vsync.generic.x	     = SYSTEM_X_POS;
 	s_systemsettings.vsync.generic.y	     = y;
 	s_systemsettings.vsync.itemnames	     = enabled_names;
+	y += BIGCHAR_HEIGHT+ 2;
+
+	s_systemsettings.framerate.generic.type			= MTYPE_FIELD;
+	s_systemsettings.framerate.generic.name		 	= "Framerate:";
+	s_systemsettings.framerate.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	s_systemsettings.framerate.field.widthInChars	= 4;
+	s_systemsettings.framerate.field.maxchars		= 4;
+	s_systemsettings.framerate.generic.id		 	= ID_VSYNC;
+	s_systemsettings.framerate.generic.x			= SYSTEM_X_POS;
+	s_systemsettings.framerate.generic.y			= y;
+	s_systemsettings.framerate.generic.left			= SYSTEM_X_POS;
+	s_systemsettings.framerate.generic.top			= y - BIGCHAR_HEIGHT / 2;
+	s_systemsettings.framerate.generic.right		= SYSTEM_X_POS + 3 * BIGCHAR_WIDTH;
+	s_systemsettings.framerate.generic.bottom		= y + BIGCHAR_HEIGHT / 2;
+
 	y += BIGCHAR_HEIGHT+ 15;
 
 	s_systemsettings.mastervolume.generic.type		= MTYPE_SLIDER;
@@ -1137,6 +1173,7 @@ void SystemSettings_MenuInit( void )
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.multisample );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.anisotropy );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.vsync );
+	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.framerate );
 
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.mastervolume );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.musicvolume );

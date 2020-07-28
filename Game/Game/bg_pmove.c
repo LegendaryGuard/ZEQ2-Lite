@@ -583,7 +583,7 @@ void PM_CheckStatus(void){
 void PM_CheckSpecificSequences(signed char buttonValue, int index){
 	int oppositeButtonIndex = index+1;
 	int time = pm->cmd.serverTime / 10;
-	int tapTime = 500;
+	int tapTime = 150;
 	int current = 0;
 	int oppositeButtonCurrent = 0;
 	int sequenceStatus = 0;
@@ -1413,6 +1413,7 @@ void PM_AirMove(void){
 			pm->ps->bitFlags |= usingBallFlip;
 			PM_AddEvent(EV_BALLFLIP);
 			PM_ContinueLegsAnim(ANIM_JUMP_FORWARD);
+			PM_ForceTorsoAnim(ANIM_JUMP_FORWARD);
 		}
 		else if(pm->ps->bitFlags & usingBallFlip){
 			pm->ps->bitFlags &= ~usingBallFlip;
@@ -3543,4 +3544,3 @@ void Pmove(pmove_t *pmove){
 		PmoveSingle(pmove);
 	}
 }
-
