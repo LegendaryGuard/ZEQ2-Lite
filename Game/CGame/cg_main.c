@@ -1598,7 +1598,6 @@ CG_EventHandling
       2 - hud editor
 
 */
-#ifndef MISSIONPACK
 void CG_EventHandling(int type) {
 }
 
@@ -1609,5 +1608,3 @@ void CG_KeyEvent(int key, qboolean down) {
 
 void CG_MouseEvent(int x, int y) {
 }
-#endif
-

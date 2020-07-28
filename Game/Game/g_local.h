@@ -501,10 +501,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t aimdir);
 gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir);
 gentity_t *fire_bfg (gentity_t *self, vec3_t start, vec3_t dir);
 gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir);
-#ifdef MISSIONPACK
-gentity_t *fire_nail( gentity_t *self, vec3_t start, vec3_t forward, vec3_t right, vec3_t up );
-gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t aimdir );
-#endif
 // ADDING FOR ZEQ2
 void G_ExplodeMissile( gentity_t *ent );
 // END ADDING
@@ -525,11 +521,6 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 // g_misc.c
 //
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles );
-#ifdef MISSIONPACK
-void DropPortalSource( gentity_t *ent );
-void DropPortalDestination( gentity_t *ent );
-#endif
-
 
 //
 // g_weapon.c
@@ -570,9 +561,6 @@ qboolean G_FilterPacket (char *from);
 // g_weapon.c
 //
 void FireWeapon( gentity_t *ent, qboolean altfire );
-#ifdef MISSIONPACK
-void G_StartKamikaze( gentity_t *ent );
-#endif
 // ADDING FOR ZEQ2
 void G_GetMuzzleSettings(vec3_t muzzle_g, vec3_t forward_g, vec3_t right_g, vec3_t up_g);
 // END ADDING
