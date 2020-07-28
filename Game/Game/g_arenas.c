@@ -42,10 +42,6 @@ void UpdateTournamentInfo( void ) {
 	gentity_t	*player;
 	int			playerClientNum;
 	int			n, accuracy, perfect,	msglen;
-#ifdef MISSIONPACK
-  int score1, score2;
-	qboolean won;
-#endif
 	char		buf[32];
 	char		msg[MAX_STRING_CHARS];
 
