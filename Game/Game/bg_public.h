@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	GAME_VERSION		"ZEQ2"
 
 #define EARTHQUAKE_SYSTEM	1	// JUHOX
-#define MAPLENSFLARES		1	// JUHOX
 
 #define	DEFAULT_GRAVITY		3000
 #define	GIB_HEALTH			-40
@@ -124,15 +123,6 @@ typedef enum {
 	GT_HARVESTER,
 	GT_MAX_GAME_TYPE
 } gametype_t;
-
-// JUHOX: global definitions for map lens flares
-#if MAPLENSFLARES
-typedef enum {
-	EM_none,
-	EM_mlf		// map lens flares
-} editMode_t;
-#endif
-
 /*
 ===================================================================================
 

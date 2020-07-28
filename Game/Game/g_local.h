@@ -421,10 +421,6 @@ typedef struct {
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
 	int			lastRadarUpdateTime;	// when did the radar last update
-
-	#if MAPLENSFLARES	// JUHOX: level locals for the lens flare editor
-	qboolean	lfeFMM;	// FMM = fine move mode
-#endif
 } level_locals_t;
 
 
@@ -753,10 +749,6 @@ extern	vmCvar_t	g_quickTransformCostPerTier ;
 extern	vmCvar_t	g_quickZanzokenCost ;
 extern	vmCvar_t	g_quickZanzokenDistance ;
 // END ADDING
-#if MAPLENSFLARES	// JUHOX: cvars for map lens flares
-extern	vmCvar_t	g_editmode;
-#endif
-
 void	trap_Printf( const char *fmt );
 void	trap_Error(const char *fmt) __attribute__((noreturn));
 int		trap_Milliseconds( void );

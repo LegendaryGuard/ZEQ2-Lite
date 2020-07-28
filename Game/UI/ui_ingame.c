@@ -113,10 +113,6 @@ void InGame_Event( void *ptr, int notification ) {
 		break;		
 
 	case ID_LEAVEARENA:
-		// JUHOX: reset edit mode
-#if MAPLENSFLARES
-		trap_Cvar_Set("g_editmode", "0");
-#endif
 		trap_Cmd_ExecuteText( EXEC_APPEND, "disconnect\n" );
 		break;
 

@@ -354,32 +354,6 @@ static void CG_Speaker( centity_t *cent ) {
 }
 
 /*
-===============
-JUHOX: CG_AddMissileLensFlare
-===============
-*/
-static void CG_AddMissileLensFlare(centity_t* cent) {
-	lensFlareEntity_t lfent;
-
-	if (!cg_lensFlare.integer) return;
-
-	memset(&lfent, 0, sizeof(lfent));
-	lfent.lfeff = cgs.lensFlareEffectEnergyGlowDarkBackground; //cgs.lensFlareEffectSolarFlare;
-	lfent.angle = -1;
-	//VectorNegate(cent->currentState.pos.trDelta, lfent.dir);
-	VectorCopy(cent->currentState.pos.trDelta, lfent.dir);
-	VectorNormalize(lfent.dir);
-
-	if (!lfent.lfeff) return;
-
-	VectorCopy(cent->lerpOrigin, lfent.origin);
-
-	CG_ComputeMaxVisAngle(&lfent);
-
-	CG_AddLensFlare(&lfent, 1);
-}
-
-/*
 ===========================
 CG_TrailFunc_StraightBeam
 ===========================
@@ -823,9 +797,6 @@ static void CG_Missile( centity_t *cent ) {
 	memset (&ent, 0, sizeof(ent));
 	VectorCopy( cent->lerpOrigin, ent.origin);
 	VectorCopy( cent->lerpOrigin, ent.oldorigin);
-
-	// JUHOX: draw BeamHead missile lens flare effects
-	CG_AddMissileLensFlare(cent);
 
 	if ( ! (weaponGraphics->missileModel && weaponGraphics->missileSkin) ) {
 		ent.reType = RT_SPRITE;

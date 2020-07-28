@@ -154,10 +154,6 @@ void	G_TouchTriggers( gentity_t *ent ) {
 	if ( !ent->client ) {
 		return;
 	}
-
-#if MAPLENSFLARES	// JUHOX: never touch triggers in lens flare editor
-	if (g_editmode.integer == EM_mlf) return;
-#endif
 	VectorSubtract( ent->client->ps.origin, range, mins );
 	VectorAdd( ent->client->ps.origin, range, maxs );
 

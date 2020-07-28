@@ -180,11 +180,6 @@ static void StartServer_Start( void ) {
 	trap_Cvar_SetValue( "ui_ffa_powerlevel", powerlevel );
 	trap_Cvar_SetValue( "ui_ffa_powerlevelMaximum", powerlevelMaximum );
 	trap_Cvar_SetValue( "ui_ffa_breakLimitRate", breakLimitRate );
-	
-	
-#if MAPLENSFLARES	// JUHOX: reset edit mode
-	trap_Cvar_SetValue("g_editmode", 0);
-#endif
 	trap_Cvar_SetValue( "sv_maxclients", 64);
 	trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 2, dedicated ) );
 	trap_Cvar_SetValue ("g_powerlevel", Com_Clamp( 1, 32767, powerlevel ) );
