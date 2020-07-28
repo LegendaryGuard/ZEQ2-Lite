@@ -104,14 +104,6 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 	const char		*value;
 
 	sess = &client->sess;
-
-#if MAPLENSFLARES	// JUHOX: in lf edit mode always join as a spectator
-	if (g_editmode.integer == EM_mlf) {
-		sess->sessionTeam = TEAM_SPECTATOR;
-	}
-	else
-#endif
-
 	// initial team determination
 	if ( g_gametype.integer >= GT_TEAM ) {
 		if ( g_teamAutoJoin.integer ) {

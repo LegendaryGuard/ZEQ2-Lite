@@ -281,11 +281,6 @@ static void CG_TouchTriggerPrediction( void ) {
 		return;
 	}
 
-	// JUHOX: don't touch triggers in lens flare editor
-#if MAPLENSFLARES
-	if (cgs.editMode == EM_mlf) return;
-#endif
-
 	spectator = ( cg.predictedPlayerState.pm_type == PM_SPECTATOR );
 
 	if ( cg.predictedPlayerState.pm_type != PM_NORMAL && !spectator ) {

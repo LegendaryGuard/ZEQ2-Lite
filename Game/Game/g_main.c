@@ -37,10 +37,6 @@ typedef struct {
 
 gentity_t		g_entities[MAX_GENTITIES];
 gclient_t		g_clients[MAX_CLIENTS];
-
-#if MAPLENSFLARES	// JUHOX: cvars for map lens flares
-vmCvar_t	g_editmode;
-#endif
 vmCvar_t	g_gametype;
 vmCvar_t	g_dmflags;
 vmCvar_t	g_fraglimit;

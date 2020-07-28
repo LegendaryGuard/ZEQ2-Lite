@@ -443,115 +443,6 @@ typedef struct {
 
 #define MAX_REWARDSTACK		10
 #define MAX_SOUNDBUFFER		20
-
-// JUHOX: definitions used for map lens flares
-#if MAPLENSFLARES
-#define MAX_LENSFLARE_EFFECTS 200
-#define MAX_MISSILE_LENSFLARE_EFFECTS 16
-#define MAX_LENSFLARES_PER_EFFECT 32
-typedef enum {
-	LFM_reflexion,
-	LFM_glare,
-	LFM_star
-} lensFlareMode_t;
-typedef struct {
-	qhandle_t shader;
-	lensFlareMode_t mode;
-	float pos;	// position at light axis
-	float size;
-	float rgba[4];
-	float rotationOffset;
-	float rotationYawFactor;
-	float rotationPitchFactor;
-	float rotationRollFactor;
-	float fadeAngleFactor;		// for spotlights
-	float entityAngleFactor;	// for spotlights
-	float intensityThreshold;
-} lensFlare_t;
-typedef struct {
-	char name[64];
-	float range;
-	float rangeSqr;
-	float fadeAngle;	// for spotlights
-	int numLensFlares;
-	lensFlare_t lensFlares[MAX_LENSFLARES_PER_EFFECT];
-} lensFlareEffect_t;
-
-#define MAX_LIGHTS_PER_MAP 1024
-#define LIGHT_INTEGRATION_BUFFER_SIZE 8	// must be a power of 2
-typedef struct {
-	float light;
-	vec3_t origin;
-} lightSample_t;
-typedef struct {
-	vec3_t origin;
-	centity_t* lock;
-	float radius;
-	float lightRadius;
-	vec3_t dir;		// for spotlights
-	float angle;	// for spotlights
-	float maxVisAngle;
-	const lensFlareEffect_t* lfeff;
-	int libPos;
-	int libNumEntries;
-	lightSample_t lib[LIGHT_INTEGRATION_BUFFER_SIZE];	// lib = light integration buffer
-} lensFlareEntity_t;
-
-typedef enum {
-	LFEEM_none,
-	LFEEM_pos,
-	LFEEM_target,
-	LFEEM_radius
-} lfeEditMode_t;
-typedef enum {
-	LFEDM_normal,
-	LFEDM_marks,
-	LFEDM_none
-} lfeDrawMode_t;
-typedef enum {
-	LFEMM_coarse,
-	LFEMM_fine
-} lfeMoveMode_t;
-typedef enum {
-	LFECS_small,
-	LFECS_lightRadius,
-	LFECS_visRadius
-} lfeCursorSize_t;
-typedef enum {
-	LFECM_main,
-	LFECM_copyOptions
-} lfeCommandMode_t;
-
-#define LFECO_EFFECT		1
-#define LFECO_VISRADIUS		2
-#define LFECO_LIGHTRADIUS	4
-#define LFECO_SPOT_DIR		8
-#define LFECO_SPOT_ANGLE	16
-
-typedef struct {
-	lensFlareEntity_t* selectedLFEnt;	// NULL = none
-	lfeDrawMode_t drawMode;
-	lfeEditMode_t editMode;
-	lfeMoveMode_t moveMode;
-	lfeCursorSize_t cursorSize;
-	float fmm_distance;	// fmm = fine move mode
-	vec3_t fmm_offset;	// fmm = fine move mode
-	qboolean delAck;
-	int selectedEffect;
-	int markedLFEnt;	// -1 = none
-	lensFlareEntity_t originalLFEnt;	// backup for undo
-	int oldButtons;
-	int lastClick;
-	qboolean editTarget;
-	vec3_t targetPosition;
-	lfeCommandMode_t cmdMode;
-	int copyOptions;
-	lensFlareEntity_t copiedLFEnt;	// for copy / paste
-	qboolean moversStopped;
-	centity_t* selectedMover;
-} lfEditor_t;
-#endif
-
 //======================================================================
 
 // all cg.stepTime, cg.duckTime, cg.landTime, etc are set to cg.time when the action
@@ -646,16 +537,6 @@ typedef struct {
 	// view rendering
 	refdef_t	refdef;
 	vec3_t		refdefViewAngles;		// will be converted to refdef.viewaxis
-
-#if MAPLENSFLARES	// JUHOX: variables for map lens flares
-	vec3_t		lastViewOrigin;
-	float		viewMovement;
-	int			numFramesWithoutViewMovement;
-#endif
-
-#if MAPLENSFLARES	// JUHOX: lens flare editor variables
-	lfEditor_t lfEditor;
-#endif
 
 #if EARTHQUAKE_SYSTEM	// JUHOX: earthquake variables
 	int earthquakeStartedTime;
@@ -942,14 +823,6 @@ typedef struct {
 	char			redTeam[MAX_QPATH];
 	char			blueTeam[MAX_QPATH];
 
-#if MAPLENSFLARES	// JUHOX: serverinfo cvars for map lens flares
-	editMode_t		editMode;
-	char			sunFlareEffect[128];
-	float			sunFlareYaw;
-	float			sunFlarePitch;
-	float			sunFlareDistance;
-#endif
-
 	int				voteTime;
 	int				voteYes;
 	int				voteNo;
@@ -1005,26 +878,6 @@ typedef struct {
 	int acceptTask;
 	int acceptLeader;
 	char acceptVoice[MAX_NAME_LENGTH];
-
-#if MAPLENSFLARES	// JUHOX: variables for map lens flares
-	int numLensFlareEffects;
-	lensFlareEffect_t lensFlareEffects[MAX_LENSFLARE_EFFECTS];
-
-	int numLensFlareEntities;
-	lensFlareEntity_t sunFlare;
-	lensFlareEntity_t lensFlareEntities[MAX_LIGHTS_PER_MAP];
-#endif
-	// JUHOX: variables for missile lens flares
-	int numMissileLensFlareEffects;
-	lensFlareEffect_t missileLensFlareEffects[MAX_MISSILE_LENSFLARE_EFFECTS];
-	const lensFlareEffect_t* lensFlareEffectBeamHead;
-	const lensFlareEffect_t* lensFlareEffectSolarFlare;
-	const lensFlareEffect_t* lensFlareEffectExplosion1;
-	const lensFlareEffect_t* lensFlareEffectExplosion2;
-	const lensFlareEffect_t* lensFlareEffectExplosion3;
-	const lensFlareEffect_t* lensFlareEffectExplosion4;
-	const lensFlareEffect_t* lensFlareEffectEnergyGlowDarkBackground;
-
 	char	messages[3][256];
 	int		messageTimer[3];
 	int		messageClient[3];
@@ -1154,13 +1007,6 @@ extern	vmCvar_t		cg_particlesStop;
 extern  vmCvar_t		cg_particlesMaximum;
 extern	vmCvar_t		cg_drawBBox;
 // END ADDING
-#if MAPLENSFLARES
-extern	vmCvar_t		cg_lensFlare;		// JUHOX
-extern	vmCvar_t		cg_mapFlare;		// JUHOX
-extern	vmCvar_t		cg_sunFlare;		// JUHOX
-extern	vmCvar_t		cg_missileFlare;	// JUHOX
-#endif
-
 extern	radar_t			cg_playerOrigins[MAX_CLIENTS];
 
 //
@@ -1184,17 +1030,6 @@ void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
 score_t *CG_GetSelectedScore( void );
 void CG_BuildSpectatorString( void );
-
-#if MAPLENSFLARES	// JUHOX: prototypes
-void CG_LFEntOrigin(const lensFlareEntity_t* lfent, vec3_t origin);
-void CG_SetLFEntOrigin(lensFlareEntity_t* lfent, const vec3_t origin);
-void CG_SetLFEdMoveMode(lfeMoveMode_t mode);
-void CG_SelectLFEnt(int lfentnum);
-void CG_LoadLensFlares(void);
-void CG_ComputeMaxVisAngle(lensFlareEntity_t* lfent);
-void CG_LoadLensFlareEntities(void);
-#endif
-
 //
 // cg_view.c
 //
@@ -1215,12 +1050,6 @@ void CG_AddEarthquake(
 );
 void CG_AdjustEarthquakes(const vec3_t delta);
 #endif
-
-#if MAPLENSFLARES	// JUHOX: prototypes
-void CG_AddLFEditorCursor(void);
-void CG_AddLensFlare(lensFlareEntity_t* lfent, int quality);	// JUHOX
-#endif
-
 //
 // cg_drawtools.c
 //
@@ -1364,11 +1193,6 @@ void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *pare
 							qhandle_t parentModel, char *tagName );
 void CG_GetTagPosition( refEntity_t *parent, char *tagName, vec3_t outpos);
 void CG_GetTagOrientation( refEntity_t *parent, char *tagName, vec3_t dir);
-
-#if MAPLENSFLARES	// JUHOX: prototypes
-void CG_Mover(centity_t *cent);
-#endif
-
 //
 // cg_tiers.c
 //

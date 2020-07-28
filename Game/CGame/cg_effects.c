@@ -1062,27 +1062,6 @@ Generated a bunch of gibs launching out from the bodies location
 ===================
 */
 void CG_BigExplode( vec3_t playerOrigin ) {}
-
-static void CG_AddExplosionLensFlare( vec3_t origin, vec3_t dir ) {
-	lensFlareEntity_t lfent;
-
-	if (!cg_lensFlare.integer) return;
-
-	memset(&lfent, 0, sizeof(lfent));
-	lfent.lfeff = cgs.lensFlareEffectBeamHead;
-	lfent.angle = 180;
-	VectorCopy(dir, lfent.dir);
-	VectorNormalize(lfent.dir);
-
-	if (!lfent.lfeff) return;
-
-	VectorCopy(origin, lfent.origin);
-
-	CG_ComputeMaxVisAngle(&lfent);
-
-	CG_AddLensFlare(&lfent, 1);
-}
-
 /*
 ======================
 CG_MakeUserExplosion
@@ -1268,9 +1247,6 @@ void CG_MakeUserExplosion( vec3_t origin, vec3_t dir, cg_userWeapon_t *weaponGra
 		expShell->light = weaponGraphics->explosionDlightRadius * 100;
 
 	}
-
-	// JUHOX: draw BeamHead missile lens flare effects
-	//CG_AddExplosionLensFlare( newOrigin, dir );
 
 	if ( weaponGraphics->shockwaveModel && weaponGraphics->shockwaveSkin ) {
 		// allocate the entity as a ZEQ explosion
