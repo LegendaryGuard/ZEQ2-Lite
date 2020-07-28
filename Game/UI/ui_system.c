@@ -51,6 +51,7 @@ SYSTEM SETTINGS MENU
 #define ID_MUSICVOLUME		108
 #define ID_QUALITY			109
 #define ID_BACK2			110
+#define ID_VSYNC			111
 
 typedef struct {
 	menuframework_s	menu;
@@ -76,6 +77,7 @@ typedef struct {
 	menulist_s		multisample;
 	menulist_s		anisotropy;
 	menutext_s		driverinfo;
+	menulist_s		vsync;
 
 	menuslider_s	mastervolume;
 	menuslider_s	musicvolume;
@@ -96,6 +98,7 @@ typedef struct
 	int multisample;
 	int anisotropy;
 	int driver;
+	int vsync;
 	qboolean extensions;
 } InitialVideoOptions_s;
 
@@ -105,22 +108,22 @@ static systemsettings_t		s_systemsettings;
 static InitialVideoOptions_s s_ivo_templates[] =
 {
 	{
-		6, qtrue, 3, 0, 2, 2, 2, 1, 0, qtrue
+		6, qtrue, 3, 0, 2, 2, 2, 1, 0, 0, qtrue
 	},
 	{
-		4, qtrue, 2, 0, 2, 2, 1, 1, 0, qtrue	// JDC: this was tq 3
+		4, qtrue, 2, 0, 2, 2, 1, 1, 0, 0, qtrue	// JDC: this was tq 3
 	},
 	{
-		3, qtrue, 2, 0, 0, 0, 1, 0, 0, qtrue
+		3, qtrue, 2, 0, 0, 0, 1, 0, 0, 0, qtrue
 	},
 	{
-		2, qtrue, 1, 0, 1, 0, 0, 0, 0, qtrue
+		2, qtrue, 1, 0, 1, 0, 0, 0, 0, 0, qtrue
 	},
 	{
-		2, qtrue, 1, 1, 1, 0, 0, 0, 0, qtrue
+		2, qtrue, 1, 1, 1, 0, 0, 0, 0, 0, qtrue
 	},
 	{
-		3, qtrue, 1, 0, 0, 0, 1, 0, 0, qtrue
+		3, qtrue, 1, 0, 0, 0, 1, 0, 0, 0, qtrue
 	}
 };
 
@@ -293,6 +296,7 @@ static void SystemSettings_GetInitialVideo( void )
 	s_ivo.texturebits = s_systemsettings.texturebits.curvalue;
 	s_ivo.multisample  = s_systemsettings.multisample.curvalue;
 	s_ivo.anisotropy  = s_systemsettings.anisotropy.curvalue;
+	s_ivo.vsync		  = s_systemsettings.vsync.curvalue;
 }
 
 /*
@@ -352,6 +356,8 @@ static void SystemSettings_CheckConfig( void )
 		if ( s_ivo_templates[i].multisample != s_systemsettings.multisample.curvalue )
 			continue;
 		if ( s_ivo_templates[i].anisotropy != s_systemsettings.anisotropy.curvalue )
+			continue;
+		if ( s_ivo_templates[i].vsync != s_systemsettings.vsync.curvalue )
 			continue;
 //		if ( s_ivo_templates[i].texturebits != s_systemsettings.texturebits.curvalue )
 //			continue;
@@ -434,7 +440,10 @@ static void SystemSettings_UpdateMenuItems( void )
 	{
 		s_systemsettings.back.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
 	}
-
+	if ( s_ivo.vsync != s_systemsettings.vsync.curvalue )
+	{
+		s_systemsettings.back.generic.flags &= ~(QMF_HIDDEN|QMF_INACTIVE);
+	}
 	SystemSettings_CheckConfig();
 }
 
@@ -564,7 +573,14 @@ static void SystemSettings_backChanges( void *unused, int notification )
 	{
 		trap_Cvar_Set( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST" );
 	}
-
+	if ( s_systemsettings.vsync.curvalue )
+	{
+		trap_Cvar_Set( "r_swapInterval", "1");
+	}
+	else
+	{
+		trap_Cvar_Set( "r_swapInterval", "0");
+	}
 	trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 }
 
@@ -613,6 +629,7 @@ static void SystemSettings_Event( void* ptr, int event ) {
 		s_systemsettings.multisample.curvalue  = ivo->multisample;
 		s_systemsettings.anisotropy.curvalue  = ivo->anisotropy;
 		s_systemsettings.fs.curvalue          = ivo->fullscreen;
+		s_systemsettings.vsync.curvalue		  = ivo->vsync;
 		break;
 
 	case ID_MASTERVOLUME:
@@ -813,7 +830,14 @@ static void SystemSettings_SetMenuItems( void )
 	{
 		s_systemsettings.geometry.curvalue = 2;
 	}
-
+	if ( trap_Cvar_VariableValue( "r_swapInterval" ))
+	{
+		s_systemsettings.vsync.curvalue = 1;
+	}
+	else
+	{
+		s_systemsettings.vsync.curvalue = 0;
+	}
 }
 
 /*
@@ -1053,8 +1077,17 @@ void SystemSettings_MenuInit( void )
 	s_systemsettings.anisotropy.generic.x	    = SYSTEM_X_POS;
 	s_systemsettings.anisotropy.generic.y	    = y;
 	s_systemsettings.anisotropy.itemnames      = anisotropic_names;
-	y += BIGCHAR_HEIGHT+15;
+	y += BIGCHAR_HEIGHT+ 2;
 
+	// references/modifies "r_swapInterval"
+	s_systemsettings.vsync.generic.type      = MTYPE_SPINCONTROL;
+	s_systemsettings.vsync.generic.name		 = "Vsync:";
+	s_systemsettings.vsync.generic.flags	 = QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	s_systemsettings.vsync.generic.id		 = ID_VSYNC;
+	s_systemsettings.vsync.generic.x	     = SYSTEM_X_POS;
+	s_systemsettings.vsync.generic.y	     = y;
+	s_systemsettings.vsync.itemnames	     = enabled_names;
+	y += BIGCHAR_HEIGHT+ 15;
 
 	s_systemsettings.mastervolume.generic.type		= MTYPE_SLIDER;
 	s_systemsettings.mastervolume.generic.name		= "Master Volume:";
@@ -1103,7 +1136,8 @@ void SystemSettings_MenuInit( void )
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.filter );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.multisample );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.anisotropy );
-	
+	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.vsync );
+
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.mastervolume );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.musicvolume );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.quality );
