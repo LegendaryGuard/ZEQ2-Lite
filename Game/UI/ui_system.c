@@ -47,7 +47,7 @@ SYSTEM SETTINGS MENU
 #define ID_LIST				104
 #define ID_MODE				105
 #define ID_RATIO			106
-#define ID_EFFECTSVOLUME	107
+#define ID_MASTERVOLUME		107
 #define ID_MUSICVOLUME		108
 #define ID_QUALITY			109
 #define ID_BACK2			110
@@ -77,7 +77,7 @@ typedef struct {
 	menulist_s		anisotropy;
 	menutext_s		driverinfo;
 
-	menuslider_s	sfxvolume;
+	menuslider_s	mastervolume;
 	menuslider_s	musicvolume;
 	menulist_s		quality;	
 	
@@ -615,8 +615,8 @@ static void SystemSettings_Event( void* ptr, int event ) {
 		s_systemsettings.fs.curvalue          = ivo->fullscreen;
 		break;
 
-	case ID_EFFECTSVOLUME:
-		trap_Cvar_SetValue( "s_volume", s_systemsettings.sfxvolume.curvalue / 10 );
+	case ID_MASTERVOLUME:
+		trap_Cvar_SetValue( "s_volume", s_systemsettings.mastervolume.curvalue / 10 );
 		break;
 
 	case ID_MUSICVOLUME:
@@ -1056,15 +1056,15 @@ void SystemSettings_MenuInit( void )
 	y += BIGCHAR_HEIGHT+15;
 
 
-	s_systemsettings.sfxvolume.generic.type		= MTYPE_SLIDER;
-	s_systemsettings.sfxvolume.generic.name		= "Effects Volume:";
-	s_systemsettings.sfxvolume.generic.flags	= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
-	s_systemsettings.sfxvolume.generic.callback	= SystemSettings_Event;
-	s_systemsettings.sfxvolume.generic.id		= ID_EFFECTSVOLUME;
-	s_systemsettings.sfxvolume.generic.x		= SYSTEM_X_POS - 8;
-	s_systemsettings.sfxvolume.generic.y		= y;
-	s_systemsettings.sfxvolume.minvalue			= 0;
-	s_systemsettings.sfxvolume.maxvalue			= 10;
+	s_systemsettings.mastervolume.generic.type		= MTYPE_SLIDER;
+	s_systemsettings.mastervolume.generic.name		= "Master Volume:";
+	s_systemsettings.mastervolume.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	s_systemsettings.mastervolume.generic.callback	= SystemSettings_Event;
+	s_systemsettings.mastervolume.generic.id		= ID_MASTERVOLUME;
+	s_systemsettings.mastervolume.generic.x			= SYSTEM_X_POS - 8;
+	s_systemsettings.mastervolume.generic.y			= y;
+	s_systemsettings.mastervolume.minvalue			= 0;
+	s_systemsettings.mastervolume.maxvalue			= 10;
 	y += BIGCHAR_HEIGHT+5;
 
 	s_systemsettings.musicvolume.generic.type		= MTYPE_SLIDER;
@@ -1104,11 +1104,11 @@ void SystemSettings_MenuInit( void )
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.multisample );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.anisotropy );
 	
-	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.sfxvolume );
+	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.mastervolume );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.musicvolume );
 	Menu_AddItem( &s_systemsettings.menu, ( void * ) &s_systemsettings.quality );
 	
-	s_systemsettings.sfxvolume.curvalue = trap_Cvar_VariableValue( "s_volume" ) * 10;
+	s_systemsettings.mastervolume.curvalue = trap_Cvar_VariableValue( "s_volume" ) * 10;
 	s_systemsettings.musicvolume.curvalue = trap_Cvar_VariableValue( "s_musicvolume" ) * 10;
 	s_systemsettings.quality.curvalue = !trap_Cvar_VariableValue( "s_compression" );
 
