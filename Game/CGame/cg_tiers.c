@@ -76,23 +76,32 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		// ===================================
 		// Models
 		// ===================================
-		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/lower.md3", legsPath, i+1);
+		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower.iqm",legsPath,i+1);
+		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower.md3",legsPath,i+1);
+		}
 		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->legsModel[i] = trap_R_RegisterModel(filename);}
 		else{
 			if(i == 0){return qfalse;}
-			else{ci->legsModel[i] = ci->legsModel[i - 1];}
+			else{ci->legsModel[i] = ci->legsModel[i-1];}
 		}
-		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/upper.md3", modelName, i+1);
+		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/upper.iqm",modelName,i+1);
+		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/upper.md3",modelName,i+1);
+		}
 		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->torsoModel[i] = trap_R_RegisterModel(filename);}
 		else{
 			if(i == 0){return qfalse;}
-			else{ci->torsoModel[i] = ci->torsoModel[i - 1];}
+			else{ci->torsoModel[i] = ci->torsoModel[i-1];}
 		}
-		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/head.md3", headPath, i+1);
+		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/head.iqm",headPath,i+1);
+		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/head.md3",headPath,i+1);
+		}
 		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->headModel[i] = trap_R_RegisterModel(filename);}
 		else{
 			if(i == 0){return qfalse;}
-			else{ci->headModel[i] = ci->headModel[i - 1];}
+			else{ci->headModel[i] = ci->headModel[i-1];}
 		}
 		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/camera.md3", modelName, i+1);
 		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->cameraModel[i] = trap_R_RegisterModel(filename);}
