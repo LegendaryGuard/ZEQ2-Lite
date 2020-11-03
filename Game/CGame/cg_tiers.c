@@ -37,36 +37,15 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		// Config
 		// ===================================
 		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/icon.png",modelName,i+1);
-		if(trap_FS_FOpenFile(tierPath,0,FS_READ)<=0){continue;}
+		if(trap_FS_FOpenFile(tierPath,0,FS_READ) <= 0){continue;}
 		memset(&ci->tierConfig[i],0,sizeof(tierConfig_cg));
-		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-		tempShader = trap_R_RegisterShaderNoMip(strcat(tierPath,"icon.png"));
+		tempShader = trap_R_RegisterShaderNoMip(tierPath);
 		for(index=0;index<10;++index){
 			ci->tierConfig[i].icon2D[index] = tempShader; 
 			ci->tierConfig[i].screenEffect[index] = cgs.media.clearShader;
 		}
-		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-		if(trap_FS_FOpenFile(strcat(tierPath,"transformFirst.ogg"),0,FS_READ)>0){
-			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-			ci->tierConfig[i].soundTransformFirst = trap_S_RegisterSound(strcat(tierPath,"transformFirst.ogg"),qfalse);
-		}
-		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-		if(trap_FS_FOpenFile(strcat(tierPath,"transformUp.ogg"),0,FS_READ)>0){
-			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-			ci->tierConfig[i].soundTransformUp = trap_S_RegisterSound(strcat(tierPath,"transformUp.ogg"),qfalse);
-		}
-		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-		if(trap_FS_FOpenFile(strcat(tierPath,"transformDown.ogg"),0,FS_READ)>0){
-			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-			ci->tierConfig[i].soundTransformDown = trap_S_RegisterSound(strcat(tierPath,"transformDown.ogg"),qfalse);
-		}
-		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-		if(trap_FS_FOpenFile(strcat(tierPath,"poweringUp.ogg"),0,FS_READ)>0){
-			Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/",modelName,i+1);
-			ci->tierConfig[i].soundPoweringUp = trap_S_RegisterSound(strcat(tierPath,"poweringUp.ogg"),qfalse);
-		}
 		Com_sprintf(tierPath,sizeof(tierPath),"players/%s/tier%i/transformScript.cfg",modelName,i+1);
-		if(trap_FS_FOpenFile(tierPath,0,FS_READ)>0){
+		if(trap_FS_FOpenFile(tierPath,0,FS_READ) > 0){
 			ci->tierConfig[i].transformScriptExists = qtrue;
 		}
 		Com_sprintf(filename,sizeof(filename),"players/tierDefault.cfg",modelName,i+1);
@@ -77,36 +56,45 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		// Models
 		// ===================================
 		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower.iqm",legsPath,i+1);
-		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+		if(trap_FS_FOpenFile(filename,0,FS_READ) < 1){
 			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/lower.md3",legsPath,i+1);
 		}
-		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->legsModel[i] = trap_R_RegisterModel(filename);}
+		if(trap_FS_FOpenFile(filename,0,FS_READ) > 0){
+			ci->legsModel[i] = trap_R_RegisterModel(filename);
+		}
 		else{
 			if(i == 0){return qfalse;}
 			else{ci->legsModel[i] = ci->legsModel[i-1];}
 		}
 		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/upper.iqm",modelName,i+1);
-		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+		if(trap_FS_FOpenFile(filename,0,FS_READ) < 1){
 			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/upper.md3",modelName,i+1);
 		}
-		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->torsoModel[i] = trap_R_RegisterModel(filename);}
+		if(trap_FS_FOpenFile(filename,0,FS_READ) > 0){
+			ci->torsoModel[i] = trap_R_RegisterModel(filename);
+		}
 		else{
 			if(i == 0){return qfalse;}
 			else{ci->torsoModel[i] = ci->torsoModel[i-1];}
 		}
 		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/head.iqm",headPath,i+1);
-		if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
+		if(trap_FS_FOpenFile(filename,0,FS_READ) < 1){
 			Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/head.md3",headPath,i+1);
 		}
-		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->headModel[i] = trap_R_RegisterModel(filename);}
+		if(trap_FS_FOpenFile(filename,0,FS_READ) > 0){
+			ci->headModel[i] = trap_R_RegisterModel(filename);
+		}
 		else{
 			if(i == 0){return qfalse;}
 			else{ci->headModel[i] = ci->headModel[i-1];}
 		}
-		Com_sprintf(filename, sizeof(filename), "players/%s/tier%i/camera.md3", modelName, i+1);
-		if(trap_FS_FOpenFile(filename,0,FS_READ)>0){ci->cameraModel[i] = trap_R_RegisterModel(filename);}
-		else if(trap_FS_FOpenFile(filename,0,FS_READ)<1){
-			ci->cameraModel[i] = trap_R_RegisterModel("players/cameraDefault.md3");}
+		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/camera.md3",modelName,i+1);
+		if(trap_FS_FOpenFile(filename,0,FS_READ) > 0){
+			ci->cameraModel[i] = trap_R_RegisterModel(filename);
+		}
+		else if(trap_FS_FOpenFile(filename,0,FS_READ) < 1){
+			ci->cameraModel[i] = trap_R_RegisterModel("players/cameraDefault.md3");
+		}
 		else{ 
 			if(i == 0){return qfalse;}
 			else{ci->cameraModel[i] = ci->cameraModel[i - 1];}
