@@ -1,3 +1,4 @@
+#define MAX_TIERS 10 // Must be the same as cg_tiers.h
 typedef struct{
 	qboolean exists;
 	qboolean permanent;

@@ -900,9 +900,9 @@ void CG_RegisterClientAura(int clientNum,clientInfo_t *ci){
 	for(i = 0;i < 8;i++){ 
 		ci->auraConfig[i] = &(auraStates[clientNum].configurations[i]);
 		memset(ci->auraConfig[i],0,sizeof(auraConfig_t));
-		Com_sprintf(filename,sizeof(filename),"players/tierDefault.cfg",ci->modelName,i+1);
+		Com_sprintf(filename,sizeof(filename),"players/TierDefault.config",ci->modelName,i+1);
 		parseAura(filename,ci->auraConfig[i]);
-		Com_sprintf(filename,sizeof(filename),"players/%s/tier%i/tier.cfg",ci->modelName,i+1);
+		Com_sprintf(filename,sizeof(filename),"players/%s/Tier%i/%s/Tier.config",ci->modelName,i+1,ci->skinName);
 		parseAura(filename,ci->auraConfig[i]);
 	}
 }

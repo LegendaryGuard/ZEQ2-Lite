@@ -219,15 +219,18 @@ void setupTiers(gclient_t *client){
 	int	i;
 	tierConfig_g *tier;
 	char *modelName;
+	char *skinName;
 	char *tierPath;
 	char tempPath[MAX_QPATH];
 	modelName = client->modelName;
+	skinName = strchr(modelName,'/');
+	if(!skinName){skinName = "default";}
 	for(i=0;i<8;i++){
 		tier = &client->tiers[i];
 		memset(tier,0,sizeof(tierConfig_g));
-		tierPath = va("players/%s/tier%i/",modelName,i+1);
-		parseTier("players/tierDefault.cfg",tier);
-		parseTier(strcat(tierPath,"tier.cfg"),tier);
+		tierPath = va("players/%s/Tier%i/%s/",modelName,i+1,skinName);
+		parseTier("players/TierDefault.config",tier);
+		parseTier(strcat(tierPath,"Tier.config"),tier);
 	}
 	syncTier(client);
 }

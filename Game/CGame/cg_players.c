@@ -260,18 +260,18 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 	// sounds
 	dir = ci->modelName;
 	fallback = DEFAULT_MODEL;
-	for (tier = 0 ; tier < 9 ; tier++ ){
-		for(i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++){
+	for (tier = 0 ; tier < MAX_TIERS ; tier++ ){
+		for(i = 0 ; i < MAX_CUSTOM_SOUNDS/2 ; i++){
 			ci->sounds[tier][i] = cgs.media.nullSound;
 		}
 	}
-	for (tier = 0 ; tier < 9 ; tier++ ){
-		for(i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++){
+	for (tier = 0 ; tier < MAX_TIERS ; tier++ ){
+		for(i = 0 ; i < MAX_CUSTOM_SOUNDS/2 ; i++){
 			if(!cg_customSoundNames[i]){continue;}
 			loopIndex = 0;
 			currentIndex = 1;
-			for(count = 1;count <= 9;count++){
-				soundIndex = (i*9)+(count-1);
+			for(count = 1;count <= MAX_TIERS;count++){
+				soundIndex = (i*MAX_TIERS)+(count-1);
 				if(tier == 0){
 					Com_sprintf(singlePath,sizeof(singlePath),"players/%s/%s.ogg",dir,cg_customSoundNames[i]);
 					Com_sprintf(soundPath,sizeof(soundPath),"players/%s/%s%i.ogg",dir,cg_customSoundNames[i],count);
@@ -339,13 +339,13 @@ static void CG_CopyClientInfoModel( clientInfo_t *from, clientInfo_t *to ) {
 	VectorCopy( from->headOffset, to->headOffset );
 	to->footsteps = from->footsteps;
 
-	for ( i = 0; i < 8; i++ ) {
-		to->legsModel[i] = from->legsModel[i];
-		to->legsSkin[i] = from->legsSkin[i];
-		to->torsoModel[i] = from->torsoModel[i];
-		to->torsoSkin[i] = from->torsoSkin[i];
-		to->headModel[i] = from->headModel[i];
-		to->headSkin[i] = from->headSkin[i];
+	for ( i = 0; i < MAX_TIERS; i++ ) {
+		to->tierConfig[i].legsModel = from->tierConfig[i].legsModel;
+		to->tierConfig[i].legsSkin = from->tierConfig[i].legsSkin;
+		to->tierConfig[i].torsoModel = from->tierConfig[i].torsoModel;
+		to->tierConfig[i].torsoSkin = from->tierConfig[i].torsoSkin;
+		to->tierConfig[i].headModel = from->tierConfig[i].headModel;
+		to->tierConfig[i].headSkin = from->tierConfig[i].headSkin;
 	}
 	to->modelIcon = from->modelIcon;
 
@@ -1378,14 +1378,16 @@ void CG_Player( centity_t *cent ) {
 	xyzspeed = sqrt( cent->currentState.pos.trDelta[0] * cent->currentState.pos.trDelta[0] +
 	cent->currentState.pos.trDelta[1] * cent->currentState.pos.trDelta[1] + 
 	cent->currentState.pos.trDelta[2] * cent->currentState.pos.trDelta[2]);
-	if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 1000){scale = 5;
-	}else if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 5462){scale = 6;
-	}else if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 10924){scale = 7;
-	}else if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 16386){scale = 8;
-	}else if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 21848){scale = 9;
-	}else if((cent->currentState.number == ps->clientNum) && ps->powerLevel[plCurrent] <= 27310){scale = 10;
-	}else{scale = 11;
+	if(cent->currentState.number == ps->clientNum){
+		if(ps->powerLevel[plCurrent] <= 1000){scale = 5;}
+		else if(ps->powerLevel[plCurrent] <= 5462){scale = 6;}
+		else if(ps->powerLevel[plCurrent] <= 10924){scale = 7;}
+		else if(ps->powerLevel[plCurrent] <= 16386){scale = 8;}
+		else if(ps->powerLevel[plCurrent] <= 21848){scale = 9;}
+		else if(ps->powerLevel[plCurrent] <= 27310){scale = 10;}
+		else{scale = 11;}
 	}
+	else{scale = 11;}
 	CG_PlayerSplash(cent,10*scale);
 	//if(!cg.renderingThirdPerson){renderfx |= RF_THIRD_PERSON;}
 	//else if(cg_cameraMode.integer){return;}
@@ -1394,16 +1396,8 @@ void CG_Player( centity_t *cent ) {
 		return;
 	}
 	health = ((float)cent->currentState.attackPowerCurrent / (float)cent->currentState.attackPowerTotal) * 100;
-	if(health <= 100){damageState = 9;}
-	if(health <= 90){damageState = 8;}
-	if(health <= 80){damageState = 7;}
-	if(health <= 70){damageState = 6;}
-	if(health <= 60){damageState = 5;}
-	if(health <= 50){damageState = 4;}
-	if(health <= 40){damageState = 3;}
-	if(health <= 30){damageState = 2;}
-	if(health <= 20){damageState = 1;}
-	if(health <= 10){damageState = 0;}
+	damageState = health / 10 - 1;
+	if(damageState < 0){damageState = 0;}
 	damageModelState = damageTextureState = damageState;
 	if(ci->damageModelState && damageModelState > (ci->damageModelState-1) && !ci->tierConfig[tier].damageModelsRevertHealed){
 		damageModelState = ci->damageModelState - 1;
@@ -1414,10 +1408,10 @@ void CG_Player( centity_t *cent ) {
 	ci->damageTextureState = damageTextureState + 1;
 	ci->damageModelState = damageModelState + 1;
 	CG_PlayerSprites(cent);
-	memset( &legs, 0, sizeof(legs) );
-	memset( &torso, 0, sizeof(torso) );
-	memset( &head, 0, sizeof(head) );
-	memset( &camera, 0, sizeof(camera) );
+	memset(&legs,0,sizeof(legs));
+	memset(&torso,0,sizeof(torso));
+	memset(&head,0,sizeof(head));
+	memset(&camera,0,sizeof(camera));
 	CG_PlayerAngles( cent, legs.axis, torso.axis, head.axis, camera.axis );
 	CG_PlayerAnimation( cent, &legs.oldframe, &legs.frame, &legs.backlerp,
 							  &torso.oldframe, &torso.frame, &torso.backlerp,
@@ -1428,8 +1422,8 @@ void CG_Player( centity_t *cent ) {
 		renderfx |= RF_SHADOW_PLANE;
 	}
 	renderfx |= RF_LIGHTING_ORIGIN;			// use the same origin for all
-	legs.hModel = ci->modelDamageState[tier][2][damageModelState];
-	legs.customSkin = ci->skinDamageState[tier][2][damageTextureState];
+	legs.hModel = ci->tierConfig[tier].legsModelDamaged[damageModelState];
+	legs.customSkin = ci->tierConfig[tier].legsSkinDamaged[damageModelState];
 	VectorCopy(cent->lerpOrigin,legs.origin);
 	VectorCopy(cent->lerpOrigin,legs.lightingOrigin);
 	legs.shadowPlane = shadowPlane;
@@ -1437,8 +1431,8 @@ void CG_Player( centity_t *cent ) {
 	VectorCopy (legs.origin, legs.oldorigin);	// don't positionally lerp at all
 	if (!legs.hModel){return;}
 	meshScale = ci->tierConfig[tier].meshScale;
-	torso.hModel = ci->modelDamageState[tier][1][damageModelState];
-	torso.customSkin = ci->skinDamageState[tier][1][damageTextureState];
+	torso.hModel = ci->tierConfig[tier].torsoModelDamaged[damageModelState];
+	torso.customSkin = ci->tierConfig[tier].torsoSkinDamaged[damageModelState];
 	if(!torso.hModel){return;}
 	VectorCopy(cent->lerpOrigin,torso.lightingOrigin);
 	legs.origin[2] += ci->tierConfig[tier].meshOffset;
@@ -1455,8 +1449,8 @@ void CG_Player( centity_t *cent ) {
 	//VectorScale(cent->mins,2.0,cent->mins);
 	torso.shadowPlane = shadowPlane;
 	torso.renderfx = renderfx;
-	head.hModel = ci->modelDamageState[tier][0][damageModelState];
-	head.customSkin = ci->skinDamageState[tier][0][damageTextureState];
+	head.hModel = ci->tierConfig[tier].headModelDamaged[damageModelState];
+	head.customSkin = ci->tierConfig[tier].headSkinDamaged[damageTextureState];
 	if(!head.hModel){return;}
 	VectorCopy( cent->lerpOrigin, head.lightingOrigin );
 	CG_PositionRotatedEntityOnTag( &head, &torso, torso.hModel, "tag_head");
@@ -1464,7 +1458,7 @@ void CG_Player( centity_t *cent ) {
 	head.renderfx = renderfx;
 	VectorCopy(cent->lerpOrigin,camera.origin);
 	VectorCopy(cent->lerpOrigin,camera.lightingOrigin);
-	camera.hModel = ci->cameraModel[tier];
+	camera.hModel = ci->tierConfig[tier].cameraModel;
 	if(!camera.hModel){return;}
 	camera.shadowPlane = shadowPlane;
 	camera.renderfx = renderfx;

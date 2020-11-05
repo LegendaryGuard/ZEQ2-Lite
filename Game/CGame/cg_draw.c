@@ -262,7 +262,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		CG_DrawPic(qfalse, x, y, w, h,icon);
 	}
 	else{
-		cm = ci->headModel[ci->tierCurrent];
+		cm = tier->headModel;
 		if(!cm){return;}
 		trap_R_ModelBounds(cm,mins,maxs,0);
 		len = 0.7 * ( maxs[2] - mins[2] );		
@@ -272,7 +272,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		headAngles[0] = tier->icon3DRotation[0];
 		headAngles[1] = tier->icon3DRotation[1];
 		headAngles[2] = tier->icon3DRotation[2];
-		CG_Draw3DModel(x+tier->icon3DOffset[0],y+tier->icon3DOffset[1],w+tier->icon3DSize[0],h+tier->icon3DSize[1],ci->headModel[ci->tierCurrent],ci->headSkin[ci->tierCurrent],origin,headAngles);
+		CG_Draw3DModel(x+tier->icon3DOffset[0],y+tier->icon3DOffset[1],w+tier->icon3DSize[0],h+tier->icon3DSize[1],tier->headModel,tier->headSkin,origin,headAngles);
 	}
 }
 
