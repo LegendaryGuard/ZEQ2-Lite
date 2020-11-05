@@ -316,7 +316,7 @@ typedef struct {
 // client model and other color coded effects
 // this is regenerated each time a client's configstring changes,
 // usually as a result of a userinfo (name, model, etc) change
-#define	MAX_CUSTOM_SOUNDS	512
+#define	MAX_CUSTOM_SOUNDS	256
 
 typedef struct {
 	qboolean		infoValid;
@@ -361,7 +361,7 @@ typedef struct {
 	qhandle_t		modelIcon;
 	animation_t		animations[MAX_TOTALANIMATIONS];
 	animation_t		camAnimations[MAX_TOTALANIMATIONS];
-	sfxHandle_t		sounds[MAX_TIERS][MAX_CUSTOM_SOUNDS/2];
+	sfxHandle_t		sounds[MAX_TIERS][MAX_CUSTOM_SOUNDS];
 	//ADDING FOR ZEQ2
 	int				damageModelState;
 	int				damageTextureState;
