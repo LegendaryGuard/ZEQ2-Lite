@@ -331,7 +331,7 @@ extern struct gclient_s {
 	gentity_t	*guidetarget;		// guided weapon when firing one
 	gentity_t	*playerEntity;
 	char		*modelName;
-	tierConfig_g tiers[8];
+	tierConfig_g tiers[MAX_TIERS];
 	
 	// END ADDING
 

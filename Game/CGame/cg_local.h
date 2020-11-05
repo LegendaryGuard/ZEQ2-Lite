@@ -351,8 +351,6 @@ typedef struct {
 	char			legsSkinName[MAX_QPATH];
 	char			redTeam[MAX_TEAMNAME];
 	char			blueTeam[MAX_TEAMNAME];
-	qhandle_t		skinDamageState[8][3][10];
-	qhandle_t		modelDamageState[8][3][10];
 	qboolean		deferred;
 	qboolean		newAnims;		// true if using the new mission pack animations
 	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
@@ -360,17 +358,10 @@ typedef struct {
 	vec3_t			headOffset;		// move head in icon views
 	qboolean		overrideHead;
 	footstep_t		footsteps;
-	qhandle_t		legsModel[8];
-	qhandle_t		legsSkin[8];
-	qhandle_t		torsoModel[8];
-	qhandle_t		torsoSkin[8];
-	qhandle_t		headModel[8];
-	qhandle_t		headSkin[8];
-	qhandle_t		cameraModel[8];
 	qhandle_t		modelIcon;
 	animation_t		animations[MAX_TOTALANIMATIONS];
 	animation_t		camAnimations[MAX_TOTALANIMATIONS];
-	sfxHandle_t		sounds[9][MAX_CUSTOM_SOUNDS];
+	sfxHandle_t		sounds[MAX_TIERS][MAX_CUSTOM_SOUNDS/2];
 	//ADDING FOR ZEQ2
 	int				damageModelState;
 	int				damageTextureState;
@@ -380,8 +371,8 @@ typedef struct {
 	int				tierCurrent;
 	int				tierMax;
 	int				cameraBackup[4];
-	tierConfig_cg	tierConfig[8];
-	auraConfig_t	*auraConfig[8];
+	tierConfig_cg	tierConfig[MAX_TIERS];
+	auraConfig_t	*auraConfig[MAX_TIERS];
 } clientInfo_t;
 
 

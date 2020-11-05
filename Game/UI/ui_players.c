@@ -1056,19 +1056,9 @@ static qboolean UI_RegisterClientSkin( playerInfo_t *pi, const char *modelName, 
 	strcpy(headPrefix,"head_");
 	strcpy(lowerPrefix,"lower_");
 	strcpy(upperPrefix,"upper_");
-	Com_sprintf(filename,sizeof(filename),"players//%s/tier1/%s.skin",modelName,skinName);
-	if(trap_FS_FOpenFile(filename,0,FS_READ)>0){
-		strcpy(headPrefix,"");
-		strcpy(lowerPrefix,"");
-		strcpy(upperPrefix,"");
-	}
-	Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/%s%s.skin", modelName, lowerPrefix,skinName );
+	Com_sprintf(filename,sizeof(filename),"players//%s/Tier1/%s/Main.skin",modelName,skinName);
 	pi->legsSkin = trap_R_RegisterSkin( filename );
-
-	Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/%s%s.skin", modelName, upperPrefix,skinName );
 	pi->torsoSkin = trap_R_RegisterSkin( filename );
-
-	Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/%s%s.skin", modelName, headPrefix,skinName );
 	pi->headSkin = trap_R_RegisterSkin( filename );
 
 	if ( !pi->legsSkin || !pi->torsoSkin || !pi->headSkin ) {
@@ -1263,21 +1253,21 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 	// load cmodels before models so filecache works
 	
 	if ( !pi->legsModel ) {
-		Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/lower.md3", modelName );
+		Com_sprintf( filename, sizeof( filename ), "players//%s/Tier1/%s/Legs.md3", modelName , skinName );
 		pi->legsModel = trap_R_RegisterModel( filename );
 		if ( !pi->legsModel ) {
 			//Com_Printf( "Failed to load model file %s\n", filename );
 			return qfalse;
 		}
 
-		Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/upper.md3", modelName );
+		Com_sprintf( filename, sizeof( filename ), "players//%s/Tier1/%s/Torso.md3", modelName , skinName );
 		pi->torsoModel = trap_R_RegisterModel( filename );
 		if ( !pi->torsoModel ) {
 			//Com_Printf( "Failed to load model file %s\n", filename );
 			return qfalse;
 		}
 
-		Com_sprintf( filename, sizeof( filename ), "players//%s/tier1/head.md3", modelName );
+		Com_sprintf( filename, sizeof( filename ), "players//%s/Tier1/%s/Head.md3", modelName , skinName );
 		pi->headModel = trap_R_RegisterModel( filename );
 		if ( !pi->headModel ) {
 			//Com_Printf( "Failed to load model file %s\n", filename );
