@@ -679,8 +679,6 @@ static void CG_Aura_AddDebris( centity_t *player, auraState_t *state, auraConfig
 	if(!CG_FrameHist_HadAura( player->currentState.number)){
 		PSys_SpawnCachedSystem( "AuraDebris", player->lerpOrigin, NULL, player, NULL, qtrue, qfalse);
 	}
-
-	CG_FrameHist_SetAura( player->currentState.number);
 }
 
 /*===================
@@ -693,6 +691,7 @@ static void CG_Aura_AddParticleSystem(centity_t *player,auraState_t *state,auraC
 	if(!CG_FrameHist_HadAura(player->currentState.number)){
 		PSys_SpawnCachedSystem(config->particleSystem,player->lerpOrigin,NULL,player,NULL,qtrue,qfalse);
 	}
+	CG_FrameHist_SetAura( player->currentState.number);
 }
 
 /*===================
