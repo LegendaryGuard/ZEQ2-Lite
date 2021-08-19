@@ -125,13 +125,7 @@ qboolean CG_weapGfx_ParseModel(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInde
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'skin' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseSkin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -155,13 +149,7 @@ qboolean CG_weapGfx_ParseSkin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'shader' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -186,13 +174,7 @@ qboolean CG_weapGfx_ParseShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'animationRange' '=' ( '[' <int> <int> ']' | <int> )
 qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -210,24 +192,14 @@ qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCat
 		cg_weapGfxBuffer.chargeEndPct = token->intval;
 	}
 	else if(token->tokenSym == TOKEN_OPENRANGE){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_INTEGER){
 			return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 		}
 		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
 		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
 		cg_weapGfxBuffer.chargeStartPct = token->intval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_INTEGER){return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);}
 		// NOTE: This is the only range that must NOT be inverted.
 		if(token->intval < cg_weapGfxBuffer.chargeStartPct){
@@ -236,12 +208,7 @@ qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCat
 		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
 		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
 		cg_weapGfxBuffer.chargeEndPct = token->intval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_CLOSERANGE){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
 		}
@@ -249,13 +216,7 @@ qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCat
 	else{
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'size' '=' ( <int> | <float> )  |  ( '[' ( <int> | float ) ( <int> | <float> ']' )
 qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -271,24 +232,14 @@ qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 		}
 		else if(token->tokenSym == TOKEN_OPENRANGE){
 			int range;
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			for(range=0;range<2;++range){
 				size = range == 0 ? &cg_weapGfxBuffer.chargeStartsize : &cg_weapGfxBuffer.chargeEndsize;
 				if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
 					return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 				}
 				*size = token->floatval;
-				if(!CG_weapGfx_NextSym(scanner,token)){
-					if(token->tokenSym == TOKEN_EOF){
-						return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-					}
-					return qfalse;
-				}
+				if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			}
 			if(token->tokenSym != TOKEN_CLOSERANGE){
 				return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
@@ -311,13 +262,7 @@ qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 		}
 		*size = token->floatval;
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}	
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'light' '=' '(' <i>|<f>  <i>|<f>  <i>|<f> ')' (   ( <i>|<f> )  |  ( '[' <i>|<f>  <i>|<f> ']' )   )
 qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -335,12 +280,7 @@ qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 	if(token->tokenSym != TOKEN_OPENVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	for(channel=0;channel<3;++channel){
 		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
 			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
@@ -348,22 +288,12 @@ qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		if(token->floatval > 1.0f){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"1.0");}
 		if(token->floatval < 0.0f){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0.0");}
 		RGB[channel] = token->floatval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	}
 	if(token->tokenSym != TOKEN_CLOSEVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	if(category == CAT_CHARGE){
 		if(token->tokenSym == TOKEN_INTEGER || token->tokenSym == TOKEN_FLOAT){
 			cg_weapGfxBuffer.chargeDlightStartRadius = token->floatval;
@@ -371,24 +301,14 @@ qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		}
 		else if(token->tokenSym == TOKEN_OPENRANGE){
 			int range;
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			for(range=0;range<2;++range){
 				floatField = range == 0 ? &cg_weapGfxBuffer.chargeDlightStartRadius : &cg_weapGfxBuffer.chargeDlightEndRadius;
 				if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
 					return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 				}
 				*floatField = token->floatval;
-				if(!CG_weapGfx_NextSym(scanner,token)){
-					if(token->tokenSym == TOKEN_EOF){
-						return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-					}
-					return qfalse;
-				}
+				if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			}
 			if(token->tokenSym != TOKEN_CLOSERANGE){
 				return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
@@ -418,13 +338,7 @@ qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		*floatField = token->floatval;
 		VectorCopy(RGB,*colorField);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'spin' '=' '(' <i>|<f>  <i>|<f>  <i>|<f> ')'
 qboolean CG_weapGfx_ParseSpin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -440,33 +354,18 @@ qboolean CG_weapGfx_ParseSpin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 	if(token->tokenSym != TOKEN_OPENVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	for(axis=0;axis<3;++axis){
 		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
 			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 		}
 		spin[axis] = token->floatval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	}
 	if(token->tokenSym != TOKEN_CLOSEVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	if(category == CAT_CHARGE){VectorCopy(spin,cg_weapGfxBuffer.chargeSpin);}
 	if(category == CAT_MISSILE){VectorCopy(spin,cg_weapGfxBuffer.missileSpin);}
 	return qtrue;
@@ -488,12 +387,7 @@ qboolean CG_weapGfx_ParseTagTo(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInde
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.chargeTag[0],token->stringval,sizeof(cg_weapGfxBuffer.chargeTag[0]));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	return qtrue;
 }
 // Syntax: 'soundFx' '=' ( 'null' | "filename" | '(' "filename"* ')' )
@@ -514,24 +408,14 @@ qboolean CG_weapGfx_ParseSoundFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIn
 		Q_strncpyz(sound[0],token->stringval,MAX_QPATH);
 	}
 	else if(token->tokenSym == TOKEN_OPENVECTOR){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		while(token->tokenSym == TOKEN_STRING){
 			if(index >= 4){
 				return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,"4");
 			}
 			Q_strncpyz(sound[index],token->stringval,MAX_QPATH);
 			index++;
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		}
 		if(token->tokenSym != TOKEN_CLOSEVECTOR){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
@@ -540,13 +424,7 @@ qboolean CG_weapGfx_ParseSoundFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIn
 	else if(token->tokenSym != TOKEN_NULL){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'voiceFx' '=' ( 'null' | "filename" | '(' "filename"* ')' )
 qboolean CG_weapGfx_ParseVoiceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -563,24 +441,14 @@ qboolean CG_weapGfx_ParseVoiceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIn
 		Q_strncpyz(cg_weapGfxBuffer.voiceSound[0],token->stringval,sizeof(cg_weapGfxBuffer.voiceSound[0]));
 	}
 	else if(token->tokenSym == TOKEN_OPENVECTOR){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		while(token->tokenSym == TOKEN_STRING){
 			if(index >= 4){
 				return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,"4");
 			}
 			Q_strncpyz(cg_weapGfxBuffer.voiceSound[index],token->stringval,sizeof(cg_weapGfxBuffer.voiceSound[index]));
 			index++;
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		}
 		if(token->tokenSym != TOKEN_CLOSEVECTOR){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
@@ -589,13 +457,7 @@ qboolean CG_weapGfx_ParseVoiceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIn
 	else if(token->tokenSym != TOKEN_NULL) {
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'loopFx' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseLoopFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -617,13 +479,7 @@ qboolean CG_weapGfx_ParseLoopFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(sound,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'timedFx' '=' ( ( '(' ( <i> "filename" )* ')' ) | 'null' )
 qboolean CG_weapGfx_ParseTimedFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -638,56 +494,29 @@ qboolean CG_weapGfx_ParseTimedFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIn
 	memset(cg_weapGfxBuffer.chargeVoice,0,sizeof(chargeVoiceParseBuffer_t)*6);
 	// Don't have to do anything but blank it out and advance the token, if 'null' was passed.
 	if(token->tokenSym == TOKEN_NULL){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
-		return qtrue;
+		return CG_weapGfx_CheckPrematureEOF(scanner,token);
 	}
 	if(token->tokenSym != TOKEN_OPENVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
+	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	while(token->tokenSym == TOKEN_INTEGER){
 		if(i >= 6){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,"6");}
 		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
 		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
 		cg_weapGfxBuffer.chargeVoice[i].startPct = token->intval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(cg_weapGfxBuffer.chargeVoice[i].voice,token->stringval,sizeof(cg_weapGfxBuffer.chargeVoice[i].voice));
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		i++;
 	}
 	if(token->tokenSym != TOKEN_CLOSEVECTOR){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'onceFx' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseOnceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -705,13 +534,7 @@ qboolean CG_weapGfx_ParseOnceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.flashOnceSound,token->stringval,sizeof(cg_weapGfxBuffer.flashOnceSound));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'duration' '=' <int>
 qboolean CG_weapGfx_ParseDuration(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -726,13 +549,7 @@ qboolean CG_weapGfx_ParseDuration(cg_weapGfxParser_t* parser,cg_weapGfxCategoryI
 		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 	}
 	cg_weapGfxBuffer.explosionTime = token->intval;
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'shockwave' '=' ( ("filename" "filename") | null )
 qboolean CG_weapGfx_ParseShockwave(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -749,12 +566,7 @@ qboolean CG_weapGfx_ParseShockwave(cg_weapGfxParser_t* parser,cg_weapGfxCategory
 	}
 	else if(token->tokenSym == TOKEN_STRING){
 		Q_strncpyz(cg_weapGfxBuffer.shockwaveModel,token->stringval,sizeof(cg_weapGfxBuffer.shockwaveModel));
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
@@ -763,13 +575,7 @@ qboolean CG_weapGfx_ParseShockwave(cg_weapGfxParser_t* parser,cg_weapGfxCategory
 	else{
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'markShader' '=' ( "filename" | null )
 qboolean CG_weapGfx_ParseMarkShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -787,13 +593,7 @@ qboolean CG_weapGfx_ParseMarkShader(cg_weapGfxParser_t* parser,cg_weapGfxCategor
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.markShader,token->stringval,sizeof(cg_weapGfxBuffer.markShader));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'markSize' '=' <int>
 qboolean CG_weapGfx_ParseMarkSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -808,13 +608,7 @@ qboolean CG_weapGfx_ParseMarkSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryI
 		return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 	}
 	cg_weapGfxBuffer.markSize = token->floatval;
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'noRockDebris' '=' <int>
 qboolean CG_weapGfx_ParseRockDebris(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -829,13 +623,7 @@ qboolean CG_weapGfx_ParseRockDebris(cg_weapGfxParser_t* parser,cg_weapGfxCategor
 		return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 	}
 	cg_weapGfxBuffer.noRockDebris = token->intval;
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'smokeParticles' '=' "system name" | 'null'
 qboolean CG_weapGfx_ParseSmokeParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -853,13 +641,7 @@ qboolean CG_weapGfx_ParseSmokeParticles(cg_weapGfxParser_t* parser,cg_weapGfxCat
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.smokeParticleSystem,token->stringval,sizeof(cg_weapGfxBuffer.smokeParticleSystem));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'loopParticles' '=' "system name" | 'null'
 qboolean CG_weapGfx_ParseLoopParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -880,13 +662,7 @@ qboolean CG_weapGfx_ParseLoopParticles(cg_weapGfxParser_t* parser,cg_weapGfxCate
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(systemField,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'particles' '=' "system name" | 'null'
 qboolean CG_weapGfx_ParseParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -908,13 +684,7 @@ qboolean CG_weapGfx_ParseParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategory
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(systemField,token->stringval,MAX_QPATH);
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'spiralShader' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseSpiralShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -932,13 +702,7 @@ qboolean CG_weapGfx_ParseSpiralShader(cg_weapGfxParser_t* parser,cg_weapGfxCateg
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.missileTrailSpiralShader,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'spiralSize' '=' (<int> | <float>)
 qboolean CG_weapGfx_ParseSpiralSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -953,13 +717,7 @@ qboolean CG_weapGfx_ParseSpiralSize(cg_weapGfxParser_t* parser,cg_weapGfxCategor
 		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 	}
 	cg_weapGfxBuffer.missileTrailSpiralRadius = token->floatval;
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'spiralOffset' '=' (<int> | <float>)
 qboolean CG_weapGfx_ParseSpiralOffset(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -974,13 +732,7 @@ qboolean CG_weapGfx_ParseSpiralOffset(cg_weapGfxParser_t* parser,cg_weapGfxCateg
 		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 	}
 	cg_weapGfxBuffer.missileTrailSpiralOffset = token->floatval;
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'icon' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseIcon(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -997,14 +749,8 @@ qboolean CG_weapGfx_ParseIcon(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 	else if(token->tokenSym != TOKEN_STRING){
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
-	Q_strncpyz(cg_weapGfxBuffer.weaponIcon,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader) );
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	Q_strncpyz(cg_weapGfxBuffer.weaponIcon,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 // Syntax: 'displayName' '=' ( "filename" | 'null' )
 qboolean CG_weapGfx_ParseDisplayName(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
@@ -1022,13 +768,7 @@ qboolean CG_weapGfx_ParseDisplayName(cg_weapGfxParser_t* parser,cg_weapGfxCatego
 		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
 	Q_strncpyz(cg_weapGfxBuffer.weaponName,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
-	if(!CG_weapGfx_NextSym(scanner,token)){
-		if(token->tokenSym == TOKEN_EOF){
-			return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-		}
-		return qfalse;
-	}
-	return qtrue;
+	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
 //============================================
 // FIXED FUNCTIONS - Do not change the below.
@@ -1043,41 +783,21 @@ static qboolean CG_weapGfx_ParseImports(cg_weapGfxParser_t* parser){
 	scanner = &parser->scanner;
 	token = &parser->token;
 	while(token->tokenSym == TOKEN_IMPORT){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(refname,token->stringval,sizeof(refname));
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(filename,token->stringval,sizeof(filename));
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
@@ -1100,21 +820,11 @@ static qboolean CG_weapGfx_ParseFields(cg_weapGfxParser_t* parser,cg_weapGfxCate
 	token = &parser->token;
 	while(token->tokenSym == TOKEN_FIELD){
 		int field = token->identifierIndex;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(!cg_weapGfxFields[field].parseFunc(parser,category,field)){
 			return qfalse;
 		}
@@ -1129,33 +839,18 @@ static qboolean CG_weapGfx_ParseCategories(cg_weapGfxParser_t* parser){
 	token = &parser->token;
 	while(token->tokenSym == TOKEN_CATEGORY){
 		int currentCategory = token->identifierIndex;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_OPENBLOCK){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
 		}
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(!CG_weapGfx_ParseFields(parser,currentCategory)){
 			return qfalse;
 		}
 		if(token->tokenSym != TOKEN_CLOSEBLOCK){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
 		}
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 	}
 	if(token->tokenSym != TOKEN_CLOSEBLOCK){
 		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
@@ -1188,31 +883,16 @@ static qboolean CG_weapGfx_PreParseDefinitions(cg_weapGfxParser_t* parser){
 		if(token->tokenSym == TOKEN_PUBLIC){accessLvl = LVL_PUBLIC;}
 		if(token->tokenSym == TOKEN_PROTECTED){accessLvl = LVL_PROTECTED;}
 		hasSuper = qfalse;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(refname,token->stringval,sizeof(refname));
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		// Are we deriving?
 		if(token->tokenSym == TOKEN_EQUALS){
 			hasSuper = qtrue;
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			if(token->tokenSym != TOKEN_STRING){
 				return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 			}
@@ -1220,12 +900,7 @@ static qboolean CG_weapGfx_PreParseDefinitions(cg_weapGfxParser_t* parser){
 				return qfalse;
 			}
 			Q_strncpyz(supername,token->stringval,sizeof(supername));
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		}
 		if(token->tokenSym != TOKEN_OPENBLOCK){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"{");
@@ -1237,12 +912,7 @@ static qboolean CG_weapGfx_PreParseDefinitions(cg_weapGfxParser_t* parser){
 			return qfalse;
 		}
 		while(blockCount > 0){
-			if(!CG_weapGfx_NextSym(scanner,token)){
-				if(token->tokenSym == TOKEN_EOF){
-					return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-				}
-				return qfalse;
-			}
+			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 			if(token->tokenSym == TOKEN_OPENBLOCK){blockCount++;}
 			if(token->tokenSym == TOKEN_CLOSEBLOCK){blockCount--;}
 		}
@@ -1266,31 +936,16 @@ static qboolean CG_weapGfx_ParseLinks(cg_weapGfxParser_t* parser){
 	scanner = &parser->scanner;
 	token = &parser->token;
 	while(token->tokenSym == TOKEN_WEAPON){
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_INTEGER){
 			return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 		}
 		weaponNum = token->intval;
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
 			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
 			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
@@ -1408,12 +1063,7 @@ qboolean CG_weapGfx_ParseDefinition(cg_weapGfxParser_t* parser,char* refname,cg_
 		}
 		// Skip the '{' opening brace of the definition block, and align to the first real
 		// symbol in the block.
-		if(!CG_weapGfx_NextSym(scanner,token)){
-			if(token->tokenSym == TOKEN_EOF){
-				return CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL);
-			}
-			return qfalse;
-		}
+		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
 		if(!CG_weapGfx_ParseCategories(parser)){return qfalse;}
 	}
 	else{
