@@ -289,6 +289,10 @@ qboolean CG_weapGfx_NextSym(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* toke
 	}
 	return CG_weapGfx_ErrorHandle(ERROR_UNKNOWN_SYMBOL,scanner,token->stringval,NULL);
 }
+qboolean CG_weapGfx_CheckPrematureEOF(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* token){
+	if(CG_weapGfx_NextSym(scanner,token)){return qtrue;}
+	return token->tokenSym == TOKEN_EOF ? CG_weapGfx_ErrorHandle(ERROR_PREMATURE_EOF,scanner,NULL,NULL) : qfalse;
+}
 qboolean CG_weapGfx_LoadFile(cg_weapGfxScanner_t* scanner,char* filename){
 	int len;
 	qhandle_t file;
