@@ -214,7 +214,6 @@ static int				g_gametype;
 static int				g_sortkey;
 static int				g_emptyservers;
 static int				g_fullservers;
-int	currentValue;
 qboolean updateAddress;
 qboolean readPort;
 
@@ -583,7 +582,7 @@ static void ArenaServers_Insert( char* adrstr, char* info, int pingtime )
 	servernodeptr->minPing    = atoi( Info_ValueForKey( info, "minPing") );
 	servernodeptr->maxPing    = atoi( Info_ValueForKey( info, "maxPing") );
 
-	/*
+	
 	s = Info_ValueForKey( info, "nettype" );
 	for (i=0; ;i++)
 	{
@@ -598,7 +597,7 @@ static void ArenaServers_Insert( char* adrstr, char* info, int pingtime )
 			break;
 		}
 	}
-	*/
+	
 	servernodeptr->nettype = atoi(Info_ValueForKey(info, "nettype"));
 	if (servernodeptr->nettype < 0 || servernodeptr->nettype >= ARRAY_LEN(netnames) - 1) {
 		servernodeptr->nettype = 0;
@@ -1178,31 +1177,23 @@ void strrep(char *str, char old, char new)  {
     }
 }
 static void ArenaServers_MenuDraw( void ){
-	servernode_t*	servernode;
-	if (g_arenaservers.refreshservers){
-		ArenaServers_DoRefresh();
-	}
+	char* addressString = g_arenaservers.domain.field.buffer;
+	char* portString = g_arenaservers.port.field.buffer;
+	int serverIndex;
+	servernode_t*	serverNode;
+	if(g_arenaservers.refreshservers){ArenaServers_DoRefresh();}
+	serverIndex = g_arenaservers.list.curvalue;
+	serverNode = g_arenaservers.table[serverIndex].servernode;
 	uis.menuamount = 4;
 	uis.hideEarth = qtrue;
 	uis.showFrame = qfalse;
-	updateAddress = qfalse;
-	if(currentValue != g_arenaservers.list.curvalue){
-		currentValue = g_arenaservers.list.curvalue;
-		updateAddress = qtrue;
+	if(g_arenaservers.list.generic.flags & QMF_HASMOUSEFOCUS && serverNode){
+		char* split = serverNode->adrstr;
+		strrep(split,':',' ');
+		strcpy(addressString,COM_Parse(&split));
+		strcpy(portString,COM_Parse(&split));
 	}
-	if(updateAddress){
-		servernode = g_arenaservers.table[currentValue].servernode;
-		if(servernode){
-			char *piece,*simple;
-			char find = ':';
-			char replace = ' ';
-			simple = servernode->adrstr;
-			strrep(simple,find,replace);
-			strcpy(g_arenaservers.domain.field.buffer,COM_Parse(&simple));
-			strcpy(g_arenaservers.port.field.buffer,COM_Parse(&simple));
-		}
-	}
-	Menu_Draw( &g_arenaservers.menu );
+	Menu_Draw(&g_arenaservers.menu);
 }
 
 
