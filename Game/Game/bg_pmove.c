@@ -1095,7 +1095,7 @@ float PM_CmdScale(usercmd_t *cmd){
 	if(pm->ps->bitFlags & usingBoost){totalSpeed *= pm->ps->timers[tmBoost] <= 1000 ? 4.2 : 2.8;}
 	if(pm->cmd.buttons & BUTTON_WALKING){totalSpeed = 1000;}
 	if(pm->ps->powerups[PW_DRIFTING] > 0){
-		totalSpeed = 1000;
+		totalSpeed = 500;
 		if(pm->ps->lockedPlayer->timers[tmMeleeIdle] > 1500 && pm->ps->timers[tmMeleeIdle] > 1500){totalSpeed = 1500;}
 	}
 	if(pm->ps->timers[tmMeleeIdle] < 0){totalSpeed = 4000;}
