@@ -163,3 +163,4 @@ int CG_weapGfx_FindDefinitionRef(cg_weapGfxParser_t* parser,char* refname);
 qboolean CG_weapGfx_AddImportRef(cg_weapGfxParser_t* parser,char* refname,char* filename,char* defname);
 qboolean CG_weapGfx_AddDefinitionRef(cg_weapGfxParser_t* parser,char* refname,char* pos,int line,cg_weapGfxAccessLvls_t accessLvl,qboolean hasSuper,char* supername);
 qboolean CG_weapGfx_AddLinkRef(cg_weapGfxParser_t* parser,int index,char* pri_refname,char* sec_refname);
+qboolean CG_weapGfx_CheckPrematureEOF(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* token);
