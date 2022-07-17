@@ -556,8 +556,8 @@ qboolean G_UserRadiusDamage ( vec3_t origin, gentity_t *attacker, gentity_t *ign
 			// push the center of mass higher than the origin so players
 			// get knocked into the air more
 			dir[2] += 24;
-			G_LocationImpact(origin,ent,attacker);
 			if(ent->client){
+                G_LocationImpact(origin,ent,attacker);
 				ent->client->ps.powerLevel[plDamageGeneric] += realDamage;
 				if(ent->pain){ent->pain(ent,attacker,realDamage);}
 				/*if(ent->client->lasthurt_location == LOCATION_FRONT){
@@ -1332,10 +1332,10 @@ void G_ImpactUserWeapon(gentity_t *self,trace_t *trace){
 	vec3_t	velocity;
 	int radius;
 	other = &g_entities[trace->entityNum];
-	G_LocationImpact(trace->endpos,other,GetMissileOwnerEntity(self));
 	//G_Printf("Attack's power level is : %i\n",self->powerLevelCurrent);
 	// Initiate Player Interaction
 	if(other->s.eType == ET_PLAYER){
+        G_LocationImpact(trace->endpos,other,GetMissileOwnerEntity(self));
 		SnapVectorTowards( trace->endpos, self->s.pos.trBase );
 		G_SetOrigin( self, trace->endpos );
 		if((other->client->ps.bitFlags & usingBlock) && other->client->lasthurt_location == LOCATION_FRONT){
