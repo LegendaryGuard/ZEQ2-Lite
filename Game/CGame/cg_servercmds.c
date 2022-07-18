@@ -399,7 +399,6 @@ static void CG_MapRestart( void ) {
 
 	CG_InitLocalEntities();
 	CG_InitMarkPolys();
-	CG_ClearParticles ();
 
 	// ADDING FOR ZEQ2
 	CG_FrameHist_Init();

@@ -639,7 +639,6 @@ static void CG_RegisterGraphics( void ) {
 		}
 		cgs.gameModels[i] = trap_R_RegisterModel( modelName );
 	}
-	CG_ClearParticles ();
 }
 
 

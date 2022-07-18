@@ -769,7 +769,6 @@ void CG_DrawActiveFrame(int serverTime, stereoFrame_t stereoView, qboolean demoP
 		CG_AddBeamTables();
 		CG_AddTrailsToScene();
 		CG_AddMarks();
-		CG_AddParticles ();
 		CG_AddLocalEntities();
 		CG_AddParticleSystems();
 	}
