@@ -29,7 +29,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cg_userweapons.h"
 #include "cg_auras.h"
 #include "cg_tiers.h"
-#include "cg_music.h"
 // END ADDING
 #include "cg_public.h"
 
@@ -875,8 +874,6 @@ typedef struct {
 	int		chatTimer;
 	// media
 	cgMedia_t	media;
-	musicSystem music;
-
 } cgs_t;
 
 //==============================================================================
@@ -1021,6 +1018,15 @@ void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
 score_t *CG_GetSelectedScore( void );
 void CG_BuildSpectatorString( void );
+//
+// cg_music.c
+//
+void CG_Music_Start(void);
+void CG_Music_Update(void);
+void CG_Music_Play(char* track,int duration);
+void CG_Music_NextTrack(void);
+void CG_Music_FadeNext(void);
+int CG_Music_GetMilliseconds(char* time);
 //
 // cg_view.c
 //

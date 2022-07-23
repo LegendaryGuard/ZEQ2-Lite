@@ -795,6 +795,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	CG_InitParticleSystems();
 	CG_InitBeamTables();
 	CG_InitRadarBlips();
+	CG_Music_Start();
 	// END ADDING
 
 	CG_InitMarkPolys();
