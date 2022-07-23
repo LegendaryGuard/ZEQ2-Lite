@@ -1,192 +1,122 @@
-#include "cg_local.h"
-void CG_CheckMusic(void){
-	playerState_t *ps = &cg.predictedPlayerState;
-	clientInfo_t *ci = &cgs.clientinfo[ps->clientNum];
-	tierConfig_cg *tier = &ci->tierConfig[ci->tierCurrent];
-	if(!cgs.music.started){
-		CG_StartMusic();
+#include "cg_music.h"
+void CG_Music_Start(void){CG_Music_ParsePlaylist();}
+void CG_Music_Update(void){
+	playerState_t* state = &cg.predictedPlayerState;
+	int difference = cg.time - Music.endTime;
+	int flags = state->bitFlags;
+	TrackTypes type = flags & isStruggling ? Struggling : Fighting;
+	if(flags & isTransforming){
+		char var[8];
+		type = Transforming;
+		trap_Cvar_VariableStringBuffer("cg_playTransformTrackToEnd",var,sizeof(var));
+		Music.playToEnd = atoi(var) ? qtrue : qfalse;
 	}
-	if(ps->bitFlags & isTransforming){
-		if(cgs.music.currentType != transform){
-			char var[8];
-			cgs.music.currentType = transform;
-			if(tier->transformMusic[0]){
-				CG_PlayTransformTrack();
-			}
-			else{
-				CG_NextTrack();
-			}
-			trap_Cvar_VariableStringBuffer("cg_playTransformTrackToEnd",var,sizeof(var));
-            cgs.music.playToEnd = atoi(var) ? qtrue : qfalse;
+	else if(!(flags & isUnsafe)){
+		float dangerThreshold = state->powerLevel[plMaximum] * 0.4f;
+		type = flags & underWater ? Underwater : Idling;
+		type = state->powerLevel[plHealth] < dangerThreshold ? IdleDanger : type;
+		if(flags & isTargeted || state->lockedTarget > 0){
+			type = state->powerLevel[plHealth] < dangerThreshold ? StandoffDanger : Standoff;
 		}
 	}
-	else if(ps->bitFlags & isStruggling){
-		if(cgs.music.currentType != struggle){
-			cgs.music.currentType = struggle;
-			CG_NextTrack();
-		}
+	CG_Music_CheckType(type);
+	if(cg.time <= Music.endTime){return;}
+	if(difference < Music.fadeAmount){
+		float percent = 1.0f - (float)difference / (float)Music.fadeAmount;
+		trap_Cvar_Set("s_musicvolume",va("%f",percent * cg_music.value));
+		return;
 	}
-	else if(!(ps->bitFlags & isUnsafe)){
-		if(ps->bitFlags & isTargeted || ps->lockedTarget > 0){
-			if(ps->powerLevel[plHealth] < (ps->powerLevel[plMaximum] * 0.4)){
-				if(cgs.music.currentType != standoffDanger){
-					cgs.music.currentType = standoffDanger;
-					CG_NextTrack();
-				}
-			}
-			else if(cgs.music.currentType != standoff){
-				cgs.music.currentType = standoff;
-				CG_NextTrack();
-			}
-		}
-		else{
-			if(ps->powerLevel[plHealth] < (ps->powerLevel[plMaximum] * 0.4)){
-				if(cgs.music.currentType != idleDanger){
-					cgs.music.currentType = idleDanger;
-					CG_FadeNext();
-				}
-			}
-			else if(ps->bitFlags & underWater){
-				if(cgs.music.currentType != idleWater){
-					cgs.music.currentType = idleWater;
-					CG_NextTrack();
-				}
-			}
-			else if(cgs.music.currentType != idle){
-				cgs.music.currentType = idle;
-				CG_FadeNext();
-			}
-		}
-	}
-	else if(cgs.music.currentType != battle){
-		cgs.music.currentType = battle;
-		CG_NextTrack();		
-	}
-	if(cg.time > cgs.music.endTime){	
-		int difference = (cg.time - cgs.music.endTime);
-		float percent = 0.0;
-		if(difference < cgs.music.fadeAmount){
-			percent = 1.0 - ((float)difference / (float)cgs.music.fadeAmount);
-			trap_Cvar_Set("s_musicvolume",va("%f",percent * cg_music.value));
-		}
-		else{
-			cgs.music.fading = qfalse;
-			cgs.music.playToEnd = qfalse;
-			CG_NextTrack();
-		}
-	}
+	Music.isFading = qfalse;
+	Music.playToEnd = qfalse;
+	CG_Music_NextTrack();
 }
-int CG_GetMilliseconds(char *time){
-	int index = 0;
-    int compareIndex = 0;
-	int amount = 0;
-	char current[8] = {0};
-	while(1){
-		if(index > Q_PrintStrlen(time)){break;}
-		current[compareIndex] = time[index];
-		if(strcmp(&current[index],":") == 0){
-			amount += atoi(current) * 60 * 1000;
-			compareIndex = -1;
-			memset(current,0,8);
-		}
-		++index;
-		++compareIndex;
+void CG_Music_CheckType(int type){
+	if(Music.currentType == type){return;}
+	Music.currentType = type;
+	if(type == Idling || type == IdleDanger){CG_Music_FadeNext();}
+	else if(type == Transforming){
+		playerState_t* state = &cg.predictedPlayerState;
+		clientInfo_t* info = &cgs.clientinfo[state->clientNum];
+		tierConfig_cg* tier = &info->tierConfig[info->tierCurrent];
+		CG_Music_Play(tier->transformMusic,tier->transformMusicLength);
 	}
-	amount += atoi(current) * 1000;
-	return amount;
+	else{CG_Music_NextTrack();}
 }
-void CG_ParsePlaylist(void){
-	fileHandle_t playlist;
-	char *token,*parse;
-	char first,last;
+void CG_Music_Play(char* track,int duration){
+	char* path = va("music/%s",track);
+	if(duration > MUSIC_MAXDURATION){duration = MUSIC_MAXDURATION;}
+	Music.endTime = cg.time + duration - Music.fadeAmount;
+	trap_S_StartBackgroundTrack(path,path);
+	trap_Cvar_Set("s_musicvolume",va("%f",cg_music.value));
+}
+void CG_Music_NextTrack(){
+	int type = Music.currentType;
+	int typeSize = Music.typeSize[type];
 	int trackIndex = 0;
-    int typeIndex = 0;
-	int fileLength;
+	if(Music.isFading || Music.playToEnd){return;}
+	trackIndex = Music.isRandom ? random() * typeSize : Music.lastTrack[type]+1;
+	trackIndex %= typeSize;
+	if(trackIndex == Music.lastTrack[type]){trackIndex = (Music.lastTrack[type]+1) % typeSize;}
+	Music.lastTrack[type] = trackIndex;
+	CG_Music_Play(Music.playlist[type][trackIndex],Music.trackLength[type][trackIndex]);
+}
+void CG_Music_FadeNext(void){
+	if(Music.playToEnd){return;}
+	Music.isFading = qtrue;
+	Music.endTime = cg.time;
+}
+int CG_Music_GetMilliseconds(char* time){
+	int msPerSecond = 1000;
+	int msPerMinute = 60000;
+	char* minuteMark = strchr(time,':');
+	*minuteMark = '\0';
+	return atoi(time) * msPerMinute + atoi(minuteMark+1) * msPerSecond;
+}
+void CG_Music_ParsePlaylist(void){
+	fileHandle_t playlist;
+	char* token;
+	char* parse;
+	char first;
+	char last;
+	int trackIndex = 0;
+	int typeIndex = 0;
+	int fileLength = trap_FS_FOpenFile("music/playlist.cfg",&playlist,FS_READ);
 	char fileContents[32000];
-	cgs.music.fadeAmount = 0;
-	cgs.music.started = qtrue;
-	cgs.music.random = qfalse;
-    for(; typeIndex<MUSICTYPES; typeIndex++){
-        cgs.music.lastTrack[typeIndex] = -1;
-    }
-    typeIndex = 0;
-	if(trap_FS_FOpenFile("music/playlist.cfg",0,FS_READ)>0){
-		fileLength = trap_FS_FOpenFile("music/playlist.cfg",&playlist,FS_READ);
-		trap_FS_Read(fileContents,fileLength,playlist);
-		fileContents[fileLength] = 0;
-		trap_FS_FCloseFile(playlist);
-		parse = fileContents;
-		while(1){
+	Music.fadeAmount = 0;
+	Music.isRandom = qfalse;
+	if(!fileLength){return;}
+	typeIndex = 0;
+	trap_FS_Read(fileContents,fileLength,playlist);
+	fileContents[fileLength] = 0;
+	trap_FS_FCloseFile(playlist);
+	parse = fileContents;
+	while(1){
+		token = COM_Parse(&parse);
+		if(!token[0]){break;}
+		first = token[0];
+		last = token[strlen(token)-1];
+		if(!Q_stricmp(token,"type")){
 			token = COM_Parse(&parse);
 			if(!token[0]){break;}
-			first = token[0];
-            last = token[Q_PrintStrlen(token)-1];
-			if(!Q_stricmp(token,"type")){
-				token = COM_Parse(&parse);
-				if(!token[0]){break;}
-				if(!Q_stricmp(token,"random")){
-					cgs.music.random = qtrue;
-				}
-			}
-			else if(!Q_stricmp(token,"fade")){
-				token = COM_Parse(&parse);
-				if(!token[0]){break;}
-				cgs.music.fadeAmount = CG_GetMilliseconds(token);
-			}
-			else if(first == '}'){
-				cgs.music.typeSize[typeIndex] = trackIndex;
-				trackIndex = 0;
-                ++typeIndex;
-			}
-			else if(last != '{'){
-				static char temp[16][32][256];
-				strncpy(temp[typeIndex][trackIndex],token,256-1);
-				cgs.music.playlist[typeIndex][trackIndex] = temp[typeIndex][trackIndex];
-				cgs.music.trackLength[typeIndex][trackIndex] = CG_GetMilliseconds(COM_Parse(&parse));
-				//cgs.music.hasPlayed[typeIndex][trackIndex] = qfalse;
-				++trackIndex;
-			}
+			if(!Q_stricmp(token,"random")){Music.isRandom = qtrue;}
+		}
+		else if(!Q_stricmp(token,"fade")){
+			token = COM_Parse(&parse);
+			if(!token[0]){break;}
+			Music.fadeAmount = CG_Music_GetMilliseconds(token);
+		}
+		else if(first == '}'){
+			Music.typeSize[typeIndex] = trackIndex;
+			typeIndex += 1;
+			trackIndex = 0;
+		}
+		else if(last != '{'){
+			char* track = Music.playlist[typeIndex][trackIndex];
+			Q_strncpyz(track,token,strlen(token)+1);
+			token = COM_Parse(&parse);
+			if(!token[0]){break;}
+			Music.trackLength[typeIndex][trackIndex] = CG_Music_GetMilliseconds(token);
+			trackIndex += 1;
 		}
 	}
-}
-void CG_StartMusic(void){
-	CG_ParsePlaylist();
-}
-void CG_FadeNext(void){
-	if(!cgs.music.playToEnd){
-		cgs.music.fading = qtrue;
-		cgs.music.endTime = cg.time;
-	}
-}
-void CG_NextTrack(void){
-	int nextIndex = 0;
-	int typeSize;
-	char *path;
-	int duration;
-	if(cgs.music.fading || cgs.music.playToEnd){return;}
-	typeSize = cgs.music.typeSize[cgs.music.currentType];
-	if(cgs.music.random){
-		nextIndex = fabs(crandom()) * typeSize;
-	}
-	if(nextIndex == cgs.music.lastTrack[cgs.music.currentType]){nextIndex += 1;}
-	if(nextIndex < 0){nextIndex = typeSize-1;}
-	if(nextIndex >= typeSize){nextIndex = 0;}
-	path = va("music/%s",cgs.music.playlist[cgs.music.currentType][nextIndex]);
-	duration = cgs.music.trackLength[cgs.music.currentType][nextIndex];
-	if(duration > 300000){duration = 300000;}
-	cgs.music.endTime = cg.time + duration - cgs.music.fadeAmount;
-	cgs.music.lastTrack[cgs.music.currentType] = nextIndex;
-	trap_S_StartBackgroundTrack(path,path);
-	trap_Cvar_Set("s_musicvolume",va("%f",cg_music.value));
-}
-void CG_PlayTransformTrack(void){
-	playerState_t	*ps = &cg.predictedPlayerState;
-	clientInfo_t	*ci = &cgs.clientinfo[ps->clientNum];
-	tierConfig_cg	*tier = &ci->tierConfig[ci->tierCurrent];
-	char			*path = va("music/%s",tier->transformMusic);
-	int				duration = tier->transformMusicLength;
-	if(duration > 300000){duration = 300000;}
-	cgs.music.endTime = cg.time + duration - cgs.music.fadeAmount;
-	trap_S_StartBackgroundTrack(path,path);
-	trap_Cvar_Set("s_musicvolume",va("%f",cg_music.value));
 }

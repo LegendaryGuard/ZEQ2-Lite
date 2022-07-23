@@ -816,7 +816,7 @@ void CG_DrawActiveFrame(int serverTime, stereoFrame_t stereoView, qboolean demoP
 	}
 	// actually issue the rendering calls
 	CG_DrawActive(stereoView);
-	CG_CheckMusic();
+	CG_Music_Update();
 
 	trap_Cvar_VariableStringBuffer("cl_paused", var, sizeof(var ));
 	cgs.clientPaused = atoi(var);

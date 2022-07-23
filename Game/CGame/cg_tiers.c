@@ -253,7 +253,7 @@ void parseTier(char *path,tierConfig_cg *tier){
 					Q_strncpyz(tier->transformMusic, token, sizeof(tier->transformMusic));
 					token = COM_Parse(&parse);
 					if(!token[0]){break;}
-					tier->transformMusicLength = CG_GetMilliseconds(token);
+					tier->transformMusicLength = CG_Music_GetMilliseconds(token);
 				}
 			}
 			else if(!Q_stricmp(token,"poweringUpSound")){

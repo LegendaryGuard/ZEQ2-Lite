@@ -1,36 +1,31 @@
-#define MUSICTYPES 10
-typedef struct{
-	char *playlist[MUSICTYPES][32];
-	int trackLength[MUSICTYPES][32];
-	int hasPlayed[MUSICTYPES][32];
-	qboolean random;
-	qboolean started;
-	qboolean fading;
-	qboolean playToEnd;
-	int typeSize[MUSICTYPES];
-	int lastTrack[MUSICTYPES];
+#include "cg_local.h"
+#define MUSIC_MAXTYPES 10
+#define MUSIC_MAXTRACKS 32
+#define MUSIC_MAXDURATION 300000
+struct{
+	char playlist[MUSIC_MAXTYPES][MUSIC_MAXTRACKS][MAX_QPATH];
+	int trackLength[MUSIC_MAXTYPES][MUSIC_MAXTRACKS];
+	int typeSize[MUSIC_MAXTYPES];
+	int lastTrack[MUSIC_MAXTYPES];
 	int currentType;
-	int currentIndex;
 	int fadeAmount;
 	int endTime;
 	int volume;
-}musicSystem;
-typedef enum {
-	battle,
-	idle,
-	idleWater,
-	idleDanger,
-	struggle,
-	standoff,
-	standoffDanger,
-	victoryGood,
-	victoryEvil,
-	transform
-}trackTypes;
-void CG_CheckMusic(void);
-int CG_GetMilliseconds(char*);
-void CG_ParsePlaylist(void);
-void CG_StartMusic(void);
-void CG_FadeNext(void);
-void CG_NextTrack(void);
-void CG_PlayTransformTrack(void);
+	qboolean isRandom;
+	qboolean isFading;
+	qboolean playToEnd;
+}Music;
+typedef enum{
+	Fighting,
+	Idling,
+	Underwater,
+	IdleDanger,
+	Struggling,
+	Standoff,
+	StandoffDanger,
+	VictoryGood,
+	VictoryEvil,
+	Transforming
+}TrackTypes;
+void CG_Music_ParsePlaylist(void);
+void CG_Music_CheckType(int type);
