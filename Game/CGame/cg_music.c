@@ -38,7 +38,8 @@ void CG_Music_CheckType(int type){
 		playerState_t* state = &cg.predictedPlayerState;
 		clientInfo_t* info = &cgs.clientinfo[state->clientNum];
 		tierConfig_cg* tier = &info->tierConfig[info->tierCurrent];
-		CG_Music_Play(tier->transformMusic,tier->transformMusicLength);
+		if(!tier->transformMusic[0]){CG_Music_NextTrack();}
+		else{CG_Music_Play(tier->transformMusic,tier->transformMusicLength);}
 	}
 	else{CG_Music_NextTrack();}
 }
@@ -55,6 +56,7 @@ void CG_Music_NextTrack(){
 	int trackIndex = 0;
 	if(Music.isFading || Music.playToEnd){return;}
 	trackIndex = Music.isRandom ? random() * typeSize : Music.lastTrack[type]+1;
+	CG_Printf("^2%d\n",trackIndex);
 	trackIndex %= typeSize;
 	if(trackIndex == Music.lastTrack[type]){trackIndex = (Music.lastTrack[type]+1) % typeSize;}
 	Music.lastTrack[type] = trackIndex;
