@@ -56,7 +56,6 @@ void CG_Music_NextTrack(){
 	int trackIndex = 0;
 	if(Music.isFading || Music.playToEnd){return;}
 	trackIndex = Music.isRandom ? random() * typeSize : Music.lastTrack[type]+1;
-	CG_Printf("^2%d\n",trackIndex);
 	trackIndex %= typeSize;
 	if(trackIndex == Music.lastTrack[type]){trackIndex = (Music.lastTrack[type]+1) % typeSize;}
 	Music.lastTrack[type] = trackIndex;
