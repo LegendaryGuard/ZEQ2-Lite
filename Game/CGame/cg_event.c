@@ -174,9 +174,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	int				clientNum;
 	clientInfo_t	*ci;
 	int	r,size;
+	int tier = cg.predictedPlayerState.powerLevel[plTierCurrent];
 
 	r = random() * 10;
-
 	es = &cent->currentState;
 	nextState = &cent->nextState;
 	event = es->event & ~EV_EVENT_BITS;
@@ -547,33 +547,33 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_TIERUP_FIRST:
 		DEBUGNAME("EV_TIERUP_FIRST");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundTransformFirst);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[tier].soundTransformFirst);
 		break;
 	case EV_TIERUP:
 		DEBUGNAME("EV_TIERUP");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundTransformUp);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[tier].soundTransformUp);
 		break;
 	case EV_TIERDOWN:
 		DEBUGNAME("EV_TIERDOWN");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundTransformDown);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[tier].soundTransformDown);
 		break;
 	case EV_SYNCTIER:
 		DEBUGNAME("EV_SYNCTIER");
 		break;
 	case EV_ALTERUP_START:
 		DEBUGNAME("EV_ALTERUP_START");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->auraConfig[ci->tierCurrent]->boostStartSound);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->auraConfig[tier]->boostStartSound);
 		break;
 	case EV_ALTERDOWN_START:
 		DEBUGNAME("EV_ALTERDOWN_START");
 		break;
 	case EV_POWERINGUP_START:
 		DEBUGNAME("EV_POWERINGUP_START");
-		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[ci->tierCurrent].soundPoweringUp);
+		trap_S_StartSound(cent->lerpOrigin,es->number,CHAN_BODY,ci->tierConfig[tier].soundPoweringUp);
 		break;
 	case EV_BOOST_START:
 		DEBUGNAME("EV_BOOST_START");
-		trap_S_StartSound(cent->lerpOrigin, es->number,CHAN_BODY,ci->auraConfig[ci->tierCurrent]->boostStartSound);
+		trap_S_StartSound(cent->lerpOrigin, es->number,CHAN_BODY,ci->auraConfig[tier]->boostStartSound);
 		break;
 	case EV_POWER_STRUGGLE_START:
 		DEBUGNAME("EV_POWER_STRUGGLE_START");
