@@ -557,7 +557,7 @@ qboolean G_UserRadiusDamage ( vec3_t origin, gentity_t *attacker, gentity_t *ign
 			// get knocked into the air more
 			dir[2] += 24;
 			if(ent->client){
-                G_LocationImpact(origin,ent,attacker);
+				G_LocationImpact(origin,ent,attacker);
 				ent->client->ps.powerLevel[plDamageGeneric] += realDamage;
 				if(ent->pain){ent->pain(ent,attacker,realDamage);}
 				/*if(ent->client->lasthurt_location == LOCATION_FRONT){
@@ -1335,7 +1335,7 @@ void G_ImpactUserWeapon(gentity_t *self,trace_t *trace){
 	//G_Printf("Attack's power level is : %i\n",self->powerLevelCurrent);
 	// Initiate Player Interaction
 	if(other->s.eType == ET_PLAYER){
-        G_LocationImpact(trace->endpos,other,GetMissileOwnerEntity(self));
+		G_LocationImpact(trace->endpos,other,GetMissileOwnerEntity(self));
 		SnapVectorTowards( trace->endpos, self->s.pos.trBase );
 		G_SetOrigin( self, trace->endpos );
 		if((other->client->ps.bitFlags & usingBlock) && other->client->lasthurt_location == LOCATION_FRONT){
@@ -1466,35 +1466,36 @@ void G_ImpactUserWeapon(gentity_t *self,trace_t *trace){
 		trap_LinkEntity(self);
 	}
 }
-void G_DetachUserWeapon (gentity_t *self) {
-	gentity_t *other;
-	other = self->enemy;
+void G_DetachUserWeapon(gentity_t *self){
 	if(self->s.eType == ET_BEAMHEAD && self->powerLevelCurrent > 0){
 		g_entities[self->s.clientNum].client->ps.weaponstate = WEAPON_READY;
 		self->s.eType = ET_MISSILE;
 		self->think = Think_NormalMissile;
 	}
 }
-void G_RemoveUserWeapon (gentity_t *self) {
-	gentity_t *other;
-	other = self->enemy;
-	other->client->ps.bitFlags &= ~isStruggling;
-	self->client->ps.bitFlags &= ~isStruggling;
-	if(other->client->ps.lockedTarget >= MAX_CLIENTS){
-		other->client->ps.lockedPosition = NULL;
-		other->client->ps.lockedTarget = 0;
+void G_RemoveUserWeapon(gentity_t *self){
+	gentity_t *other = self->enemy;
+	if(self->client){
+		self->client->ps.bitFlags &= ~isStruggling;
 	}
-	if (self->guided) {
-		g_entities[ self->s.clientNum ].client->ps.weaponstate = WEAPON_READY;
+	if(other){
+		other->client->ps.bitFlags &= ~isStruggling;
+		if(other->client->ps.lockedTarget >= MAX_CLIENTS){
+			other->client->ps.lockedPosition = NULL;
+			other->client->ps.lockedTarget = 0;
+		}
 	}
-	if (self->s.eType == ET_BEAMHEAD && self->powerLevelCurrent > 0) {
-		G_ExplodeUserWeapon ( self );
+	if(self->guided){
+		g_entities[self->s.clientNum].client->ps.weaponstate = WEAPON_READY;
+	}
+	if(self->s.eType == ET_BEAMHEAD && self->powerLevelCurrent > 0){
+		G_ExplodeUserWeapon(self);
 		return;
 	}
-	G_FreeEntity( self );
+	G_FreeEntity(self);
 }
 
-void Missile_Smooth (gentity_t *ent, vec3_t origin, trace_t *tr) {
+void Missile_Smooth(gentity_t *ent, vec3_t origin, trace_t *tr){
 	int touch[MAX_GENTITIES];
 	vec3_t mins, maxs;
 	int num;
@@ -1508,7 +1509,7 @@ void Missile_Smooth (gentity_t *ent, vec3_t origin, trace_t *tr) {
 
 /*
    -----------------------------------------
-     R U N   F R A M E   F U N C T I O N S
+	R U N   F R A M E   F U N C T I O N S
    -----------------------------------------
 */
 void G_RunUserExplosion(gentity_t *ent) {
