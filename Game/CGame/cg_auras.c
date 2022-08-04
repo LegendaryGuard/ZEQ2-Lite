@@ -720,18 +720,13 @@ static void CG_Aura_AddSounds( centity_t *player, auraState_t *state, auraConfig
 CG_Aura_AddDLight
 ===================*/
 static void CG_Aura_AddDLight( centity_t *player, auraState_t *state, auraConfig_t *config){
-	vec3_t	lightPos;
-
-	// add dynamic light when necessary
-	if(state->isActive ||(state->lightAmt > config->lightMin)){
-
+	if(state->isActive || state->lightAmt > config->lightMin){
+		vec3_t lightPos;
+		vec3_t color;
 		// Since lerpOrigin is the lightingOrigin for the player, this will add a backsplash light for the aura.
 		VectorAdd( player->lerpOrigin, cg.refdef.viewaxis[0], lightPos);
-
-		trap_R_AddLightToScene( lightPos, state->lightAmt, // +(cos(cg.time / 50.0f) * state->lightDev),
-								config->lightColor[0] * state->modulate,
-								config->lightColor[1] * state->modulate,
-								config->lightColor[2] * state->modulate);
+		VectorScale(config->lightColor,state->modulate,color);
+		trap_R_AddLightToScene( lightPos, state->lightAmt,color);
 	}
 }
 

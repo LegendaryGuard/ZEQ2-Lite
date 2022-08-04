@@ -841,3 +841,25 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 
 	UI_DrawProportionalString2( x, y, str, color, sizeScale, cgs.media.charsetProp );
 }
+
+void CG_DrawLineRGBA(vec3_t start,vec3_t end,float width,qhandle_t shader,vec4_t color){
+	vec3_t line;
+	vec3_t offset;
+	vec3_t viewLine;
+	polyVert_t vertices[4];
+	float coordinates[] = {1,0,0,0,0,1,1,1};
+	int index;
+	VectorSubtract(end,start,line);
+	VectorSubtract(start,cg.refdef.vieworg,viewLine);
+	CrossProduct(viewLine,line,offset);
+	if(!VectorNormalize(offset)){return;}
+	VectorMA(end,-width,offset,vertices[0].xyz);
+	VectorMA(end,width,offset,vertices[1].xyz);
+	VectorMA(start,width,offset,vertices[2].xyz);
+	VectorMA(start,-width,offset,vertices[3].xyz);
+	for(index=0;index<4;++index){
+		Vector4Copy(color,vertices[index].modulate);
+		memcpy(vertices[index].st,&coordinates[index*2],sizeof(vertices[index].st));
+	}
+	trap_R_AddPolyToScene(shader,4,vertices);
+}

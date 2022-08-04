@@ -1053,9 +1053,8 @@ void CG_AdjustEarthquakes(const vec3_t delta);
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h,qboolean stretch);
 void CG_FillRect( float x, float y, float width, float height, const float *color );
 void CG_DrawPic(qboolean stretch, float x, float y, float width, float height, qhandle_t hShader );
-void CG_DrawString( float x, float y, const char *string, 
-				   float charWidth, float charHeight, const float *modulate );
-
+void CG_DrawString(float x,float y,const char* string,float charWidth,float charHeight,const float* modulate);
+void CG_DrawLineRGBA (vec3_t start, vec3_t end, float width, qhandle_t shader, vec4_t RGBA);
 
 void CG_DrawStringExt(int spacing, int x, int y, const char *string, const float *setColor, 
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars);
@@ -1211,19 +1210,12 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire );
 void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType );
 void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum );
 void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean flesh, int fleshEntityNum );
-void CG_Draw3DLine(const vec3_t start, const vec3_t end, qhandle_t shader);	// JUHOX
 
 void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi );
 void CG_AddViewWeapon (playerState_t *ps);
-void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team );
+void CG_AddPlayerWeapon(refEntity_t* parent,centity_t* cent);
 void CG_DrawWeaponSelect( void );
-
-
-// FIXME: Should these be in drawtools instead?
-//        Should these be generalized for use in all manual poly drawing functions? (probably, yes...)
-void CG_DrawLine (vec3_t start, vec3_t end, float width, qhandle_t shader, float RGBModulate);
-void CG_DrawLineRGBA (vec3_t start, vec3_t end, float width, qhandle_t shader, vec4_t RGBA);
 
 void CG_UserMissileHitWall( int weapon, int clientNum, int powerups, int number, vec3_t origin, vec3_t dir, qboolean inAir );
 void CG_UserMissileHitPlayer( int weapon, int clientNum, int powerups, int number, vec3_t origin, vec3_t dir, int entityNum );
@@ -1459,7 +1451,7 @@ void		trap_R_AddRefEntityToScene( const refEntity_t *re );
 void		trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts );
 void		trap_R_AddPolysToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int numPolys );
 void		trap_R_AddFogToScene( float start, float end, float r, float g, float b, float opacity, float mode, float hint );
-void		trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+void		trap_R_AddLightToScene( const vec3_t org, float intensity,vec3_t color);
 int			trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 void		trap_R_RenderScene( const refdef_t *fd );
 void		trap_R_SetColor( const float *rgba );	// NULL = 1,1,1,1
