@@ -272,17 +272,13 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 
 	// constant light glow
-	if(cent->currentState.constantLight)
-	{
-		int		cl;
-		float		i, r, g, b;
-
-		cl = cent->currentState.constantLight;
-		r = (float) (cl & 0xFF) / 255.0;
-		g = (float) ((cl >> 8) & 0xFF) / 255.0;
-		b = (float) ((cl >> 16) & 0xFF) / 255.0;
-		i = (float) ((cl >> 24) & 0xFF) * 4.0;
-		trap_R_AddLightToScene(cent->lerpOrigin, i, r, g, b);
+	if(cent->currentState.constantLight){
+		int cl = cent->currentState.constantLight;
+		vec3_t color;
+		float intensity = ((cl >> 24) & 0xff) * 4.0f;
+		VectorSet(color,cl & 0xff,(cl >> 8) & 0xff,(cl >> 16) & 0xff);
+		VectorScale(color,1/255,color);
+		trap_R_AddLightToScene(cent->lerpOrigin,intensity,color);
 	}
 
 }
@@ -367,6 +363,7 @@ void CG_TrailFunc_StraightBeam( centity_t *ent ) {
 	int			beamPowerLevelCurrent;
 	int			beamPowerLevelTotal;
 	float		radiusScale;
+	vec4_t color = {255,255,255,255};
 
 	// Initialize some things for quick reference
 	es = &ent->currentState;
@@ -401,7 +398,7 @@ void CG_TrailFunc_StraightBeam( centity_t *ent ) {
 	}
 
 	if ( CG_GetTagOrientationFromPlayerEntity( &cg_entities[es->clientNum], weaponGraphics->chargeTag[0], &orient )) {
-		CG_DrawLine (orient.origin, ent->lerpOrigin, radius, weaponGraphics->missileTrailShader, 1/*radiusScale*/);
+		CG_DrawLineRGBA (orient.origin, ent->lerpOrigin, radius, weaponGraphics->missileTrailShader, color/*radiusScale*/);
 	}
 }
 
@@ -776,12 +773,9 @@ static void CG_Missile( centity_t *cent ) {
 	}
 
 	// add dynamic light
-	if ( weaponGraphics->missileDlightRadius ) {
-		trap_R_AddLightToScene(cent->lerpOrigin,
-			100 * weaponGraphics->missileDlightRadius, 
-			weaponGraphics->missileDlightColor[0],
-			weaponGraphics->missileDlightColor[1],
-			weaponGraphics->missileDlightColor[2] );
+	if(weaponGraphics->missileDlightRadius){
+		float scale = 100 * weaponGraphics->missileDlightRadius;
+		trap_R_AddLightToScene(cent->lerpOrigin,scale,weaponGraphics->missileDlightColor);
 	}
 
 	// add missile sound

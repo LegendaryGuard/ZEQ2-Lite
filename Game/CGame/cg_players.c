@@ -1042,7 +1042,7 @@ void CG_Player( centity_t *cent ) {
 	memcpy( &playerInfoDuplicate[cent->currentState.number], &cent->pe, sizeof(playerEntity_t));
 	if(onBodyQue){return;}
 	CG_Camera(cent);
-	CG_AddPlayerWeapon(&torso,NULL,cent,ci->team);
+	CG_AddPlayerWeapon(&torso,cent);
 	CG_PlayerPowerups(cent,&torso);
 	if((cent->currentState.eFlags & EF_AURA) || ci->auraConfig[tier]->auraAlways){
 		CG_AuraStart(cent);

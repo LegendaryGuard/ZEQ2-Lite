@@ -274,8 +274,8 @@ void	trap_R_AddFogToScene( float start, float end, float r, float g, float b, fl
 	syscall( CG_R_ADDFOGTOSCENE, PASSFLOAT(start), PASSFLOAT(end), PASSFLOAT(r), PASSFLOAT(g), PASSFLOAT(b), PASSFLOAT(opacity), PASSFLOAT(mode), PASSFLOAT(hint) );
 }
 
-void	trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
-	syscall( CG_R_ADDLIGHTTOSCENE, org, PASSFLOAT(intensity), PASSFLOAT(r), PASSFLOAT(g), PASSFLOAT(b) );
+void trap_R_AddLightToScene(const vec3_t org,float intensity,vec3_t color){
+	syscall(CG_R_ADDLIGHTTOSCENE,org,PASSFLOAT(intensity),PASSFLOAT(color[0]),PASSFLOAT(color[1]),PASSFLOAT(color[2]));
 }
 
 void	trap_R_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
