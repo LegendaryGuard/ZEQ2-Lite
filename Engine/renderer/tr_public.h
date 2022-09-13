@@ -66,7 +66,7 @@ typedef struct {
 	void	(*AddPolyToScene)( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 	int		(*LightForPoint)( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
 	void	(*AddFogToScene)( float start, float end, float r, float g, float b, float opacity, float mode, float hint );
-	void	(*AddLightToScene)( const vec3_t org, float intensity, float r, float g, float b );
+	void	(*AddLightToScene)(const vec3_t org,float intensity,vec3_t color);
 	void	(*AddAdditiveLightToScene)( const vec3_t org, float intensity, float r, float g, float b );
 	void	(*RenderScene)( const refdef_t *fd );
 

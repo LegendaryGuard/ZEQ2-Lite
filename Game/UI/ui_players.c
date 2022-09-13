@@ -854,7 +854,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	vec3_t			maxs = {16, 16, 32};
 	float			len;
 	float			xx;
-
+	vec3_t lightColor = {1.0f,1.0f,1.0f}; //{1.0f};
 
 	if ( !pi->legsModel || !pi->torsoModel || !pi->headModel || !pi->animations[0].numFrames ) {
 		return;
@@ -1017,8 +1017,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 
 		// make a dlight for the flash
 		if ( pi->flashDlightColor[0] || pi->flashDlightColor[1] || pi->flashDlightColor[2] ) {
-			trap_R_AddLightToScene( flash.origin, 200 + (rand()&31), pi->flashDlightColor[0],
-				pi->flashDlightColor[1], pi->flashDlightColor[2] );
+			trap_R_AddLightToScene( flash.origin, 200 + (rand()&31), pi->flashDlightColor );
 		}
 	}
 */
@@ -1035,7 +1034,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	origin[0] -= 0;//100;	// + = behind, - = in front
 	origin[1] += 100;	// + = left, - = right
 	origin[2] += 0;//100;	// + = above, - = below
-	trap_R_AddLightToScene( origin, 500, 1.0, 1.0, 1.0 );
+	trap_R_AddLightToScene( origin, 500, lightColor );
 /*
 	origin[0] -= 100;
 	origin[1] -= 100;

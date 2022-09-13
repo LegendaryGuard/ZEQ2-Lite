@@ -659,6 +659,7 @@ typedef struct {
 // loaded at gamestate time are stored in cgMedia_t
 // Other media that can be tied to clients, weapons, or items are
 // stored in the clientInfo_t, itemInfo_t, weaponInfo_t, and powerupInfo_t
+#define MAX_MEDIA_SOUNDS 10
 typedef struct {
 	qhandle_t	charsetShader;
 	qhandle_t	charsetProp;
@@ -747,13 +748,7 @@ typedef struct {
 	sfxHandle_t	lightspeedSound3;
 	sfxHandle_t	lightspeedSound4;
 	sfxHandle_t	lightspeedSound5;
-	sfxHandle_t	bigLightningSound1;
-	sfxHandle_t	bigLightningSound2;
-	sfxHandle_t	bigLightningSound3;
-	sfxHandle_t	bigLightningSound4;
-	sfxHandle_t	bigLightningSound5;
-	sfxHandle_t	bigLightningSound6;
-	sfxHandle_t	bigLightningSound7;
+	sfxHandle_t bigLightning[MAX_MEDIA_SOUNDS];
 	sfxHandle_t	blockSound;
 	sfxHandle_t	knockbackSound;
 	sfxHandle_t	knockbackLoopSound;
@@ -770,16 +765,10 @@ typedef struct {
 	sfxHandle_t hover;
 	sfxHandle_t hoverFast;
 	sfxHandle_t hoverLong;
-	sfxHandle_t waterSplashSmall1;
-	sfxHandle_t waterSplashSmall2;
-	sfxHandle_t waterSplashSmall3;
-	sfxHandle_t waterSplashMedium1;
-	sfxHandle_t waterSplashMedium2;
-	sfxHandle_t waterSplashMedium3;
-	sfxHandle_t waterSplashMedium4;
-	sfxHandle_t waterSplashLarge1;
-	sfxHandle_t waterSplashExtraLarge1;
-	sfxHandle_t waterSplashExtraLarge2;
+	sfxHandle_t smallSplash[MAX_MEDIA_SOUNDS];
+	sfxHandle_t mediumSplash[MAX_MEDIA_SOUNDS];
+	sfxHandle_t largeSplash[MAX_MEDIA_SOUNDS];
+	sfxHandle_t extraLargeSplash[MAX_MEDIA_SOUNDS];
 	// END ADDING
 } cgMedia_t;
 
@@ -1243,15 +1232,6 @@ void	CG_AddLocalEntities( void );
 //
 // cg_effects.c
 //
-localEntity_t *CG_SmokePuff( const vec3_t p, 
-				   const vec3_t vel, 
-				   float radius,
-				   float r, float g, float b, float a,
-				   float duration,
-				   int startTime,
-				   int fadeInTime,
-				   int leFlags,
-				   qhandle_t hShader );
 void CG_Aura_DrawInnerSpike (vec3_t start, vec3_t end, float width, centity_t *player);
 localEntity_t *CG_AuraSpike( const vec3_t p, const vec3_t vel, 
 				   float radius,
@@ -1260,15 +1240,7 @@ localEntity_t *CG_AuraSpike( const vec3_t p, const vec3_t vel,
 				   int fadeInTime,
 				   int leFlags,
 				   centity_t *player);
-localEntity_t *CG_WaterBubble( const vec3_t p, 
-				   const vec3_t vel, 
-				   float radius,
-				   float r, float g, float b, float a,
-				   float duration,
-				   int startTime,
-				   int fadeInTime,
-				   int leFlags,
-				   qhandle_t hShader );
+void CG_WaterBubble(const vec3_t p,float radius,float alpha,float duration,int fadeInTime,qhandle_t hShader);
 void CG_PlayerSplash( centity_t *cent, int scale );
 void CG_PlayerDirtPush( centity_t *cent, int scale, qboolean once );
 void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing );
@@ -1281,16 +1253,8 @@ void CG_BigLightningEffect( vec3_t org );
 void CG_SpeedMeleeEffect( vec3_t org, int tier );
 void CG_PowerMeleeEffect( vec3_t org, int tier );
 void CG_PowerStruggleEffect( vec3_t org, int size );
-void CG_ScorePlum( int client, vec3_t org, int score );
-
-void CG_GibPlayer( vec3_t playerOrigin );
-void CG_BigExplode( vec3_t playerOrigin );
 
 void CG_Bleed( vec3_t origin, int entityNum );
-
-localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
-								qhandle_t hModel, qhandle_t shader, int msec,
-								qboolean isSprite );
 
 void CG_MakeUserExplosion( vec3_t origin, vec3_t dir, cg_userWeapon_t *weaponGraphics, int powerups, int number);
 void CG_CreateStraightBeamFade(vec3_t start, vec3_t end, cg_userWeapon_t *weaponGraphics);

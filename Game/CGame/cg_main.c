@@ -484,13 +484,13 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.lightspeedSound3 = trap_S_RegisterSound( "effects/zanzoken/zanzoken3.ogg", qfalse );
 	cgs.media.lightspeedSound4 = trap_S_RegisterSound( "effects/zanzoken/zanzoken4.ogg", qfalse );
 	cgs.media.lightspeedSound5 = trap_S_RegisterSound( "effects/zanzoken/zanzoken5.ogg", qfalse );
-	cgs.media.bigLightningSound1 = trap_S_RegisterSound( "effects/melee/lightning1.ogg", qfalse );
-	cgs.media.bigLightningSound2 = trap_S_RegisterSound( "effects/melee/lightning2.ogg", qfalse );
-	cgs.media.bigLightningSound3 = trap_S_RegisterSound( "effects/melee/lightning3.ogg", qfalse );
-	cgs.media.bigLightningSound4 = trap_S_RegisterSound( "effects/melee/lightning4.ogg", qfalse );
-	cgs.media.bigLightningSound5 = trap_S_RegisterSound( "effects/melee/lightning5.ogg", qfalse );
-	cgs.media.bigLightningSound6 = trap_S_RegisterSound( "effects/melee/lightning6.ogg", qfalse );
-	cgs.media.bigLightningSound7 = trap_S_RegisterSound( "effects/melee/lightning7.ogg", qfalse );
+	cgs.media.bigLightning[0] = trap_S_RegisterSound("effects/melee/lightning1.ogg",qfalse);
+	cgs.media.bigLightning[1] = trap_S_RegisterSound("effects/melee/lightning2.ogg",qfalse);
+	cgs.media.bigLightning[2] = trap_S_RegisterSound("effects/melee/lightning3.ogg",qfalse);
+	cgs.media.bigLightning[3] = trap_S_RegisterSound("effects/melee/lightning4.ogg",qfalse);
+	cgs.media.bigLightning[4] = trap_S_RegisterSound("effects/melee/lightning5.ogg",qfalse);
+	cgs.media.bigLightning[5] = trap_S_RegisterSound("effects/melee/lightning6.ogg",qfalse);
+	cgs.media.bigLightning[6] = trap_S_RegisterSound("effects/melee/lightning7.ogg",qfalse);
 	cgs.media.blockSound = trap_S_RegisterSound( "effects/melee/block.ogg", qfalse );
 	cgs.media.knockbackSound = trap_S_RegisterSound( "effects/melee/knockback.ogg", qfalse );
 	cgs.media.knockbackLoopSound = trap_S_RegisterSound( "effects/melee/knockbackLoop.ogg", qfalse );
@@ -509,16 +509,16 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.hover = trap_S_RegisterSound( "effects/hover.ogg", qfalse );
 	cgs.media.hoverFast = trap_S_RegisterSound( "effects/hoverFast.ogg", qfalse );
 	cgs.media.hoverLong = trap_S_RegisterSound( "effects/hoverLong.ogg", qfalse );
-	cgs.media.waterSplashSmall1 = trap_S_RegisterSound( "effects/water/SplashSmall.ogg", qfalse );
-	cgs.media.waterSplashSmall2 = trap_S_RegisterSound( "effects/water/SplashSmall2.ogg", qfalse );
-	cgs.media.waterSplashSmall3 = trap_S_RegisterSound( "effects/water/SplashSmall3.ogg", qfalse );
-	cgs.media.waterSplashMedium1 = trap_S_RegisterSound( "effects/water/SplashMedium.ogg", qfalse );
-	cgs.media.waterSplashMedium2 = trap_S_RegisterSound( "effects/water/SplashMedium2.ogg", qfalse );
-	cgs.media.waterSplashMedium3 = trap_S_RegisterSound( "effects/water/SplashMedium3.ogg", qfalse );
-	cgs.media.waterSplashMedium4 = trap_S_RegisterSound( "effects/water/SplashMedium4.ogg", qfalse );
-	cgs.media.waterSplashLarge1 = trap_S_RegisterSound( "effects/water/SplashLarge.ogg", qfalse );
-	cgs.media.waterSplashExtraLarge1 = trap_S_RegisterSound( "effects/water/SplashExtraLarge.ogg", qfalse );
-	cgs.media.waterSplashExtraLarge2 = trap_S_RegisterSound( "effects/water/SplashExtraLarge2.ogg", qfalse );
+	cgs.media.smallSplash[0] = trap_S_RegisterSound("effects/water/SplashSmall.ogg",qfalse);
+	cgs.media.smallSplash[1] = trap_S_RegisterSound("effects/water/SplashSmall2.ogg",qfalse);
+	cgs.media.smallSplash[2] = trap_S_RegisterSound("effects/water/SplashSmall3.ogg",qfalse);
+	cgs.media.mediumSplash[0] = trap_S_RegisterSound("effects/water/SplashMedium.ogg",qfalse);
+	cgs.media.mediumSplash[1] = trap_S_RegisterSound("effects/water/SplashMedium2.ogg",qfalse);
+	cgs.media.mediumSplash[2] = trap_S_RegisterSound("effects/water/SplashMedium3.ogg",qfalse);
+	cgs.media.mediumSplash[3] = trap_S_RegisterSound("effects/water/SplashMedium4.ogg",qfalse);
+	cgs.media.largeSplash[0] = trap_S_RegisterSound("effects/water/SplashLarge.ogg",qfalse);
+	cgs.media.extraLargeSplash[0] = trap_S_RegisterSound("effects/water/SplashExtraLarge.ogg",qfalse);
+	cgs.media.extraLargeSplash[1] = trap_S_RegisterSound("effects/water/SplashExtraLarge2.ogg",qfalse);
 	// END ADDING
 
 }
