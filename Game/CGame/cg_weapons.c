@@ -327,11 +327,12 @@ void CG_UserMissileHitWall(int weapon,int clientNum,int powerups,int number,vec3
 		CG_Trace(&tr,origin,NULL,NULL,end,-1,MASK_PLAYERSOLID);
 		if(!weaponGraphics->noRockDebris){
 			char particles[MAX_QPATH] = "ExtraLarge";
-			if(weaponGraphics->explosionSize <= 10){strcat(particles,"Small");}
-			else if(weaponGraphics->explosionSize <= 25){strcat(particles,"Normal");}
-			else if(weaponGraphics->explosionSize <= 50){strcat(particles,"Large");}
+			if(weaponGraphics->explosionSize <= 10){Q_strncpyz(particles,"Small",sizeof("Small")+1);}
+			else if(weaponGraphics->explosionSize <= 25){Q_strncpyz(particles,"Normal",sizeof("Normal")+1);}
+			else if(weaponGraphics->explosionSize <= 50){Q_strncpyz(particles,"Large",sizeof("Large")+1);}
 			strcat(particles,"ExplosionDebris");
 			if(cg_particlesQuality.value == 1){strcat(particles,"Low");}
+			PSys_SpawnCachedSystem(particles,origin,tempAxis,NULL,NULL,qfalse,qfalse);
 		}
 		if(weaponGraphics->markSize && weaponGraphics->markShader){
 			CG_ImpactMark(weaponGraphics->markShader,origin,dir,random() * 360,1,1,1,1,qfalse,60,qfalse);
