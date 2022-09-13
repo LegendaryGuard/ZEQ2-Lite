@@ -298,8 +298,8 @@ RE_AddLightToScene
 
 =====================
 */
-void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
-	RE_AddDynamicLightToScene( org, intensity, r, g, b, qfalse );
+void RE_AddLightToScene(const vec3_t org,float intensity,vec3_t color){
+	RE_AddDynamicLightToScene(org,intensity,color[0],color[1],color[2],qfalse);
 }
 
 /*

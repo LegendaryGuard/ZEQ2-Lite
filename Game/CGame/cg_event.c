@@ -579,15 +579,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_POWER_STRUGGLE_START");
 		CG_AddEarthquake(position, 20000, 1, 0, 1, 100);
 		if(es->dashDir[1] > 300){
-			size = 4;
+			size = 2048;
 		}else if(es->dashDir[1] > 200){
-			size = 3;
+			size = 1024;
 		}else if(es->dashDir[1] > 100){
-			size = 2;
+			size = 512;
 		}else if(es->dashDir[1] > 50){
-			size = 1;
+			size = 256;
 		}else{
-			size = 0;
+			size = 128;
 		}
 		CG_PowerStruggleEffect(position,size);
 		trap_S_StartSound(position,es->number,CHAN_BODY,cgs.media.airBrake1);
