@@ -583,7 +583,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.waterRippleSingleModel = trap_R_RegisterModel( "effects/water/waterRippleSingle.md3" );
 	cgs.media.meleeSpeedEffectShader = trap_R_RegisterShader( "skills/energyBlast" );
 	cgs.media.meleePowerEffectShader = trap_R_RegisterShader( "shockwave" );
-	cgs.media.teleportEffectShader = trap_R_RegisterShader( "teleportEffect" );
 	cgs.media.boltEffectShader = trap_R_RegisterShader( "boltEffect" );
 	cgs.media.auraLightningSparks1 = trap_R_RegisterShader( "AuraLightningSparks1" );
 	cgs.media.auraLightningSparks2 = trap_R_RegisterShader( "AuraLightningSparks2" );

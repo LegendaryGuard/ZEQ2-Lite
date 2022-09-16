@@ -713,7 +713,6 @@ typedef struct {
 	qhandle_t	shadowMarkShader;
 	qhandle_t	wakeMarkShader;
 	qhandle_t	teleportEffectModel;
-	qhandle_t	teleportEffectShader;
 	qhandle_t	meleeSpeedEffectShader;
 	qhandle_t	meleePowerEffectShader;
 	qhandle_t	powerStruggleRaysEffectShader;
@@ -1244,7 +1243,6 @@ void CG_WaterBubble(const vec3_t p,float radius,float alpha,float duration,int f
 void CG_PlayerSplash( centity_t *cent, int scale );
 void CG_PlayerDirtPush( centity_t *cent, int scale, qboolean once );
 void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing );
-void CG_SpawnEffect( vec3_t org );
 void CG_WaterRipple( vec3_t org, int size, qboolean single );
 void CG_DirtPush( vec3_t org, vec3_t dir, int size );
 void CG_WaterSplash( vec3_t org, int size );

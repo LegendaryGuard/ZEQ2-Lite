@@ -392,7 +392,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_ZANZOKEN_START:
 	case EV_ZANZOKEN_END:
 		DEBUGNAME("EV_ZANZOKEN");
-		CG_SpawnEffect( position );
+		PSys_SpawnCachedSystem("SpawnEffect",position,NULL,cent,NULL,qfalse,qfalse);
 		CG_SpawnLightSpeedGhost( cent );
 		break;
 	case EV_PLAYER_TELEPORT_IN:
