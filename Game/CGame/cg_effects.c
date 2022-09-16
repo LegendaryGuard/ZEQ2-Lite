@@ -97,31 +97,6 @@ void CG_WaterBubble(const vec3_t p,float radius,float alpha,float duration,int f
 	contents = trap_CM_PointContents(re->origin,0);
 	if(!(contents & CONTENTS_WATER)){le->fadeInTime = 0;}
 }
-void CG_SpawnEffect(vec3_t org){
-	localEntity_t* le;
-	refEntity_t* re;
-	if(cgs.clientPaused){return;}
-	le = CG_AllocLocalEntity();
-	le->leFlags = 0;
-	le->leType = LE_FADE_ALPHA;
-	le->startTime = cg.time;
-	le->endTime = cg.time + 250;
-	le->lifeRate = 1.0 / (le->endTime - le->startTime);
-	le->radius = 64;
-	VectorSet(le->color,1.0f,1.0f,1.0f);
-	le->color[3] = 1.0f;
-	re = &le->refEntity;
-	re->reType = RT_SPRITE;
-	re->radius = le->radius;
-	re->shaderRGBA[0] = le->color[0] * 255;
-	re->shaderRGBA[1] = le->color[1] * 255;
-	re->shaderRGBA[2] = le->color[2] * 255;
-	re->shaderRGBA[3] = 255;
-	re->customShader = cgs.media.teleportEffectShader;
-	AxisClear(re->axis);
-	VectorCopy(org, re->origin);
-	re->origin[2] += 16;
-}
 void CG_DirtPush(vec3_t org,vec3_t dir,int size){
 	localEntity_t* le;
 	refEntity_t* re;
