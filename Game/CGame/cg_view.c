@@ -119,17 +119,6 @@ qboolean CG_WorldCoordToScreenCoordVec(vec3_t world, vec2_t screen ){
 
 //==============================================================================
 
-// this causes a compiler bug on mac MrC compiler
-static void CG_StepOffset(void ){
-	int		timeDelta;
-	
-	// smooth out stair climbing
-	timeDelta = cg.time - cg.stepTime;
-	if(timeDelta < STEP_TIME ){
-		cg.refdef.vieworg[2] -= cg.stepChange 
-			* (STEP_TIME - timeDelta) / STEP_TIME;
-	}
-}
 static void AddEarthquakeTremble(earthquake_t* quake);
 /*===============
 CG_Camera
@@ -142,21 +131,17 @@ int cameraLastFrame;
 void CG_Camera(centity_t *cent ){
 	static vec3_t	cameramins = { -CAMERA_SIZE, -CAMERA_SIZE, -CAMERA_SIZE };
 	static vec3_t	cameramaxs = { CAMERA_SIZE, CAMERA_SIZE, CAMERA_SIZE };
-	vec3_t			view, right, forward, up, overrideAngles, overrideOrg, focusAngles, focusPoint, tagForwardAngles, locdiff, angdiff, diff;
+	vec3_t			view, right, forward, up, focusAngles, tagForwardAngles, locdiff, diff;
 	int 			i,clientNum,cameraRange,cameraAngle,cameraSlide,cameraHeight;
-	float			lerpFactor = 0.0, lerpTime, ratio, forwardScale, sideScale, focusDist;
+	float			lerpFactor = 0.0, forwardScale, sideScale;
 	orientation_t	tagOrient,tagOrient2;
 	trace_t			trace;
 	clientInfo_t	*ci;
-	tierConfig_cg	*tier;
 	playerState_t	*ps;
-	centity_t 		targetEntity;
-	char			targetTag[256];
 	ps = &cg.snap->ps;
 	clientNum = cent->currentState.clientNum;
 	if(clientNum != ps->clientNum){return;}
 	ci = &cgs.clientinfo[clientNum];
-	tier = &ci->tierConfig[ci->tierCurrent];
 	cameraAngle = cg_thirdPersonAngle.value;
 	cameraSlide = cg_thirdPersonSlide.value + ci->tierConfig[ci->tierCurrent].cameraOffset[0];
 	cameraHeight = cg_thirdPersonHeight.value + ci->tierConfig[ci->tierCurrent].cameraOffset[1];
@@ -204,12 +189,9 @@ void CG_Camera(centity_t *cent ){
 					VectorCopy(tagOrient.origin,cg.guide_target);
 					cg.guide_view = qfalse;
 			}
-			VectorCopy(cg.refdefViewAngles, overrideAngles);
-			VectorCopy(tagOrient.origin, overrideOrg);
 			cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
 			VectorCopy(cg.refdefViewAngles, focusAngles);
 			AngleVectors(focusAngles, forward, NULL, NULL);
-			VectorMA(tagOrient.origin, 512, forward, focusPoint);
 			VectorCopy(tagOrient.origin, view);	
 			AngleVectors(cg.refdefViewAngles, forward, right, up);
 			if(!cent->pe.camera.animation->continuous){

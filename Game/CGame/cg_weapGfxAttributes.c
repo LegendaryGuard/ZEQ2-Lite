@@ -15,11 +15,9 @@ false already.)
 */
 int CG_weapGfx_FindImportRef( cg_weapGfxParser_t *parser, char *refname ) {
 	cg_weapGfxImportRef_t	*importList;
-	cg_weapGfxScanner_t		*scanner;
 	int i;
 
 	importList = parser->importRef;
-	scanner = &parser->scanner;
 
 
 	for ( i = 0; i < MAX_IMPORTS; i++ ) {

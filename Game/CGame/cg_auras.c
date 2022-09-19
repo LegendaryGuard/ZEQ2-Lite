@@ -87,8 +87,6 @@ CG_Aura_GetHullPoints
 static void CG_Aura_GetHullPoints( centity_t *player, auraState_t *state, auraConfig_t *config){
 	char		tagName[MAX_AURATAGNAME];
 	int			i, j;
-	clientInfo_t	*ci;
-	ci = &cgs.clientinfo[player->currentState.clientNum];
 	j = 0;
 	
 
@@ -889,12 +887,11 @@ void parseAura(char *path,auraConfig_t *aura);
 void CG_RegisterClientAura(int clientNum,clientInfo_t *ci){
 	int	i;
 	char filename[MAX_QPATH * 2];
-	char auraPath[MAX_QPATH];
 	memset(&(auraStates[clientNum]), 0, sizeof(auraState_t));
 	for(i = 0;i < 8;i++){ 
 		ci->auraConfig[i] = &(auraStates[clientNum].configurations[i]);
 		memset(ci->auraConfig[i],0,sizeof(auraConfig_t));
-		Com_sprintf(filename,sizeof(filename),"players/TierDefault.config",ci->modelName,i+1);
+		Com_sprintf(filename,sizeof(filename),"players/TierDefault.config");
 		parseAura(filename,ci->auraConfig[i]);
 		Com_sprintf(filename,sizeof(filename),"players/%s/Tier%i/%s/Tier.config",ci->modelName,i+1,ci->skinName);
 		parseAura(filename,ci->auraConfig[i]);
@@ -1104,7 +1101,7 @@ void CG_Aura_DrawInnerSpike (vec3_t start, vec3_t end, float width, centity_t *p
 	verts[3].st[1] = 1;
 	
 	for (i = 0;i < 4;i++){
-		for (j = 0;j < 4;j++){
+		for (j = 0;j < 3;j++){
 			verts[i].modulate[j] = 255 * config->auraColor[j];
 		}
 	}

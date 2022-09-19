@@ -49,7 +49,7 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		if(trap_FS_FOpenFile(tierPath,0,FS_READ) > 0){
 			ci->tierConfig[i].transformScriptExists = qtrue;
 		}
-		Com_sprintf(filename,sizeof(filename),"players/TierDefault.config",modelName,i+1);
+		Com_sprintf(filename,sizeof(filename),"players/TierDefault.config");
 		parseTier(filename,&ci->tierConfig[i]);
 		Com_sprintf(filename,sizeof(filename),"players/%s/Tier%i/%s/Tier.config",modelName,i+1,skinName);
 		parseTier(filename,&ci->tierConfig[i]);
@@ -151,11 +151,9 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 }
 void parseTier(char *path,tierConfig_cg *tier){
 	fileHandle_t tierCFG;
-	int i;
 	char *token,*parse;
 	int fileLength;
 	int tokenInt;
-	float tokenFloat;
 	char fileContents[32000];
 	if(trap_FS_FOpenFile(path,0,FS_READ)>0){
 		fileLength = trap_FS_FOpenFile(path,&tierCFG,FS_READ);

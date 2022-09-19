@@ -46,10 +46,6 @@ typedef enum {
 	RTYPE_RAY			// Only uses shader field. Shoots a ray from particle's origin to its current position.
 } PSys_RenderType_t;
 
-// Need these prototyped
-typedef struct PSys_Particle_s;
-typedef struct PSys_System_s;
-
 typedef struct PSys_FloatTimeLerp_s {
 	float	startVal;
 	float	midVal;
@@ -256,19 +252,6 @@ typedef struct PSys_SystemTemplate_s {
 	float					gravity;
 	PSys_MemberTemplate_t	members[MAX_PARTICLESYSTEM_MEMBERS];
 } PSys_SystemTemplate_t;
-
-static void PSys_AccumulateSystem( PSys_System_t *system );
-static void PSys_AccumulateParticle( PSys_System_t *system, PSys_Particle_t *particle );
-
-static void PSys_IntegrateSystem( PSys_System_t *system, float timeStepSquare, float timeStepCorrected );
-static void PSys_IntegrateParticle( PSys_Particle_t *particle, float timeStepSquare, float timeStepCorrected );
-
-static qboolean PSys_ConstrainSystem( PSys_System_t *system );
-static qboolean PSys_ApplyConstraint( PSys_System_t *system, PSys_Constraint_t *constraint );
-	static qboolean PSys_ApplyDistanceMaxConstraint( PSys_System_t *system, float value );
-	static qboolean PSys_ApplyDistanceMinConstraint( PSys_System_t *system, float value );
-	static qboolean PSys_ApplyDistanceConstraint( PSys_System_t *system, float value );
-	static qboolean PSys_ApplyPlaneConstraint( PSys_System_t *system, float value );
 
 void PSys_InitCache( void );
 PSys_SystemTemplate_t* PSys_LoadSystemFromCache( char *systemName );

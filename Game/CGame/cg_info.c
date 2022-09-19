@@ -37,7 +37,7 @@ CG_DrawLoadingIcons
 */
 static void CG_DrawLoadingIcons( void ) {
 	int		n;
-	int		x, y;
+	int		y;
 	cgs.media.chatBackgroundShader = trap_R_RegisterShaderNoMip("chatBox");
 	for( n = 0; n < loadingPlayerIconCount; n++ ) {
 		y = 80 + (40 * n);
@@ -118,14 +118,9 @@ Draw all the status / pacifier stuff during level loading
 void CG_DrawInformation( void ) {
 	const char	*s;
 	const char	*info;
-	const char	*sysInfo;
-	int			y;
-	int			value;
 	qhandle_t	levelshot,text,dots;
-	char		buf[1024];
 
 	info = CG_ConfigString( CS_SERVERINFO );
-	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
 	s = Info_ValueForKey(info,"mapname");
 	levelshot = trap_R_RegisterShaderNoMip(va("maps/%s.jpg",s));
 	dots = trap_R_RegisterShaderNoMip("dots");
@@ -142,7 +137,6 @@ void CG_DrawInformation( void ) {
 		text = trap_R_RegisterShaderNoMip("ready");
 		CG_DrawPic(qfalse,0,18,127,64,text);
 	}
-	y = 180-32;
 	// Remote Server only
 }
 

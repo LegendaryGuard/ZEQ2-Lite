@@ -1079,6 +1079,8 @@ extern  char teamChat1[256];
 extern  char teamChat2[256];
 
 void CG_DrawChat(char *text );
+void CG_DrawScreenEffects(void);
+void CG_DrawScoreboard(void);
 void CG_CenterPrint( const char *str, int y, int charWidth );
 void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t headAngles );
 void CG_DrawActive( stereoFrame_t stereoView );

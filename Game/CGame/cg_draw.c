@@ -35,67 +35,6 @@ char teamChat1[256];
 char teamChat2[256];
 
 /*
-==============
-CG_DrawField
-
-Draws large numbers for status bar and powerups
-==============
-*/
-static void CG_DrawField (int x, int y, int width, int value) {
-	char	num[16], *ptr;
-	int		l;
-	int		frame;
-
-	if ( width < 1 ) {
-		return;
-	}
-
-	// draw number string
-	if ( width > 5 ) {
-		width = 5;
-	}
-
-	switch ( width ) {
-	case 1:
-		value = value > 9 ? 9 : value;
-		value = value < 0 ? 0 : value;
-		break;
-	case 2:
-		value = value > 99 ? 99 : value;
-		value = value < -9 ? -9 : value;
-		break;
-	case 3:
-		value = value > 999 ? 999 : value;
-		value = value < -99 ? -99 : value;
-		break;
-	case 4:
-		value = value > 9999 ? 9999 : value;
-		value = value < -999 ? -999 : value;
-		break;
-	}
-
-	Com_sprintf (num, sizeof(num), "%i", value);
-	l = strlen(num);
-	if (l > width)
-		l = width;
-	x += 2 + CHAR_WIDTH*(width - l);
-
-	ptr = num;
-	while (*ptr && l)
-	{
-		if (*ptr == '-')
-			frame = STAT_MINUS;
-		else
-			frame = *ptr -'0';
-
-		CG_DrawPic(qfalse, x,y, CHAR_WIDTH, CHAR_HEIGHT, cgs.media.numberShaders[frame] );
-		x += CHAR_WIDTH;
-		ptr++;
-		l--;
-	}
-}
-
-/*
 =================
 CG_DrawHorGauge
 
@@ -278,63 +217,6 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 
 /*
 ================
-CG_DrawStatusBarHead
-
-================
-*/
-static void CG_DrawStatusBarHead( float x ) {
-	vec3_t		angles;
-	float		size, stretch;
-	float		frac;
-
-	VectorClear( angles );
-
-	if ( cg.damageTime && cg.time - cg.damageTime < DAMAGE_TIME ) {
-		frac = (float)(cg.time - cg.damageTime ) / DAMAGE_TIME;
-		size = ICON_SIZE * 1.25 * ( 1.5 - frac * 0.5 );
-
-		stretch = size - ICON_SIZE * 1.25;
-		// kick in the direction of damage
-		x -= stretch * 0.5 + cg.damageX * stretch * 0.5;
-
-		cg.headStartYaw = 180 + cg.damageX * 45;
-
-		cg.headEndYaw = 180 + 20 * cos( crandom()*M_PI );
-		cg.headEndPitch = 5 * cos( crandom()*M_PI );
-
-		cg.headStartTime = cg.time;
-		cg.headEndTime = cg.time + 100 + random() * 2000;
-	} else {
-		if ( cg.time >= cg.headEndTime ) {
-			// select a new head angle
-			cg.headStartYaw = cg.headEndYaw;
-			cg.headStartPitch = cg.headEndPitch;
-			cg.headStartTime = cg.headEndTime;
-			cg.headEndTime = cg.time + 100 + random() * 2000;
-
-			cg.headEndYaw = 180 + 20 * cos( crandom()*M_PI );
-			cg.headEndPitch = 5 * cos( crandom()*M_PI );
-		}
-
-		size = ICON_SIZE * 1.25;
-	}
-
-	// if the server was frozen for a while we may have a bad head start time
-	if ( cg.headStartTime > cg.time ) {
-		cg.headStartTime = cg.time;
-	}
-
-	frac = ( cg.time - cg.headStartTime ) / (float)( cg.headEndTime - cg.headStartTime );
-	frac = frac * frac * ( 3 - 2 * frac );
-	angles[YAW] = cg.headStartYaw + ( cg.headEndYaw - cg.headStartYaw ) * frac;
-	angles[PITCH] = cg.headStartPitch + ( cg.headEndPitch - cg.headStartPitch ) * frac;
-
-	CG_DrawHead( x, 480 - size, size, size, 
-				cg.snap->ps.clientNum, angles );
-}
-
-/*
-================
 CG_DrawTeamBackground
 
 ================
@@ -374,7 +256,7 @@ void strrep(char *str, char old, char new)  {
     }
 }
 void CG_CheckChat(void){
-	int index,offset;
+	int index;
 	vec3_t angles;
 	int yStart = cg.predictedPlayerState.lockedTarget ? 330 : 0;
 	int yOffset = cg.predictedPlayerState.lockedTarget ? -40 : 40;
@@ -395,7 +277,7 @@ void CG_CheckChat(void){
 	}
 }
 void CG_DrawChat(char *text){
-	int clientNum,index,safeIndex;
+	int clientNum,safeIndex;
 	char cleaned[256];
 	char name[14];
 	char *safe;
@@ -422,7 +304,7 @@ void CG_DrawChat(char *text){
 	}
 	strcpy(cgs.messages[safeIndex],cleaned);
 }
-void CG_DrawScreenEffects(){
+void CG_DrawScreenEffects(void){
 	clientInfo_t	*ci;
 	tierConfig_cg	*tier;
 	playerState_t	*ps;
@@ -442,7 +324,7 @@ void CG_DrawScreenEffects(){
 /*================
 CG_Scoreboard
 ================*/
-void CG_DrawScoreboard(){
+void CG_DrawScoreboard(void){
 	int clientNum;
 	vec3_t	angles;
 	for(clientNum=0;clientNum<MAX_CLIENTS;++clientNum){
@@ -476,7 +358,6 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	vec4_t	plFatigueHealthColor = {0.5f,0.16f,0.16f,1.0f};
 	vec4_t	plFatigueColor = {0.4f,0.4f,0.5f,1.0f};
 	vec4_t	readyColor = {0.588f,1.0f,0.0,1.0f};
-	vec4_t	clearColor = {0.0f,0.0f,0.0f,0.0f};
 	vec4_t	*chargeColor;
 	vec3_t	angles;
 	if(!charging){
@@ -520,12 +401,12 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 		}
 		if(ps->powerLevel[plCurrent] < 9001){
 			powerLevelDisplay = (float)ps->powerLevel[plCurrent] * multiplier;
-			powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%i",powerLevelDisplay);
+			powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%ld",powerLevelDisplay);
 			powerLevelOffset = (Q_PrintStrlen(powerLevelString)-2)*8;
 		}
 		if(ps->powerLevel[plCurrent] > 9001){
 			powerLevelDisplay = (float)ps->powerLevel[plCurrent] * multiplier;
-			powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%i",powerLevelDisplay);
+			powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%ld",powerLevelDisplay);
 			powerLevelOffset = (Q_PrintStrlen(powerLevelString)-2)*8;
 		}
 		powerLevelDisplay = (float)ps->powerLevel[plCurrent] * multiplier;
@@ -535,7 +416,7 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	else{
 		skill = CG_FindUserWeaponGraphics(cg.snap->ps.clientNum,cg.weaponSelect);
 		CG_DrawPic(qfalse,x+6,y+22,50,50,skill->weaponIcon);
-		powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%i",powerLevelDisplay);
+		powerLevelString = powerLevelDisplay >= 1000000 ? va("%.1f ^3mil",(float)powerLevelDisplay / 1000000.0) : va("%ld",powerLevelDisplay);
 		powerLevelOffset = (Q_PrintStrlen(powerLevelString)-2)*8;
 		if(chargeReady){
 			CG_DrawPic(qfalse,x+(int)(198*(chargeReady/100.0))+55,y+25,13,38,cgs.media.markerAscendShader);
@@ -544,12 +425,9 @@ void CG_DrawHUD(playerState_t *ps,int clientNum,int x,int y,qboolean flipped){
 	CG_DrawSmallStringHalfHeight(x+239-powerLevelOffset,y+44,powerLevelString,1.0F);
 }
 static void CG_DrawStatusBar( void ) {
-	centity_t		*cent;
 	playerState_t	*ps;
 	float			tierLast,tierNext,tier;
-	int				base;
 	clientInfo_t	*ci;
-	cg_userWeapon_t	*weaponGraphics;
 	tierConfig_cg	*activeTier;
 	qboolean charging;
 	ci = &cgs.clientinfo[cg.snap->ps.clientNum];
@@ -562,7 +440,6 @@ static void CG_DrawStatusBar( void ) {
 		CG_DrawPic(qfalse,0,0,640,480,cgs.media.speedLineShader);
 	}
 	if(cg_drawStatus.integer == 0){return;}
-	cent = &cg_entities[cg.snap->ps.clientNum];
 	tier = (float)ps->powerLevel[plTierCurrent];
 	CG_CheckChat();	
 	//CG_DrawScoreboard();
@@ -707,40 +584,6 @@ static void CG_DrawUpperRight( void ) {
 }
 
 /*==============
-CG_DrawDisconnect
-Should we draw something differnet for long lag vs no packets?
-==============*/
-static void CG_DrawDisconnect( void ) {
-	float		x, y;
-	int			cmdNum;
-	usercmd_t	cmd;
-	const char		*s;
-	int			w;
-
-	// draw the phone jack if we are completely past our buffers
-	cmdNum = trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
-	trap_GetUserCmd( cmdNum, &cmd );
-	if ( cmd.serverTime <= cg.snap->ps.commandTime
-		|| cmd.serverTime > cg.time ) {	// special check for map_restart
-		return;
-	}
-
-	// also add text in center of screen
-	s = "Connection Interrupted";
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString( 320 - w/2, 100, s, 1.0F);
-
-	// blink the icon
-	if ( ( cg.time >> 9 ) & 1 ) {
-		return;
-	}
-
-	x = 640 - 48;
-	y = 480 - 48;
-
-	CG_DrawPic(qfalse, x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
-}
-/*==============
 CG_CenterPrint
 Called for important messages that should stay in the center of the screen
 for a few moments
@@ -764,56 +607,6 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 		s++;
 	}
 }
-/*===================
-CG_DrawCenterString
-===================*/
-static void CG_DrawCenterString( void ) {
-	char	*start;
-	int		l;
-	int		x, y, w;
-	float	*color;
-
-	if ( !cg.centerPrintTime ) {
-		return;
-	}
-
-	color = CG_FadeColor( cg.centerPrintTime, 1000 * cg_centertime.value, 200 );
-	if ( !color ) {
-		return;
-	}
-
-	trap_R_SetColor( color );
-
-	start = cg.centerPrint;
-
-	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
-
-	while ( 1 ) {
-		char linebuffer[1024];
-
-		for ( l = 0; l < 50; l++ ) {
-			if ( !start[l] || start[l] == '\n' ) {
-				break;
-			}
-			linebuffer[l] = start[l];
-		}
-		linebuffer[l] = 0;
-		w = cg.centerPrintCharWidth * CG_DrawStrlen( linebuffer );
-		x = ( SCREEN_WIDTH - w ) / 2;
-		CG_DrawStringExt(-1, x, y, linebuffer, color, qfalse, qtrue,
-			cg.centerPrintCharWidth, (int)(cg.centerPrintCharWidth * 1.5), 0 );
-		y += cg.centerPrintCharWidth * 1.5;
-		while ( *start && ( *start != '\n' ) ) {
-			start++;
-		}
-		if ( !*start ) {
-			break;
-		}
-		start++;
-	}
-
-	trap_R_SetColor( NULL );
-}
 /*=================
 CG_DrawCrosshair
 =================*/
@@ -823,7 +616,6 @@ static void CG_DrawCrosshair(void) {
 	float			f;
 	float			x, y;
 	int				ca;
-	int				i;
 	trace_t			trace;
 	playerState_t	*ps;
 	clientInfo_t	*ci;
@@ -833,7 +625,7 @@ static void CG_DrawCrosshair(void) {
 	vec4_t			lockOnEnemyColor	= {1.0f,0.0f,0.0f,1.0f};
 	vec4_t			lockOnAllyColor		= {0.0f,1.0f,0.0f,1.0f};
 	vec4_t			chargeColor			= {0.5f,0.5f,1.0f,1.0f};
-	radar_t			cg_playerOrigins[MAX_CLIENTS];
+	//radar_t			cg_playerOrigins[MAX_CLIENTS];
 	if(!cg_drawCrosshair.integer || cg.snap->ps.lockedTarget > 0){return;}
 	if(cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR){return;}
 	ci = &cgs.clientinfo[cg.snap->ps.clientNum];
@@ -877,7 +669,7 @@ static void CG_DrawCrosshair(void) {
 	if ( cg.snap->ps.currentSkill[WPSTAT_BITFLAGS] & WPF_READY || cg.snap->ps.currentSkill[WPSTAT_ALT_BITFLAGS] & WPF_READY) {
 		trap_R_SetColor( chargeColor );
 	}
-	else if (cg.crosshairClientNum > 0 && cg.crosshairClientNum <= MAX_CLIENTS || ps->lockedTarget > 0) {
+	else if ((cg.crosshairClientNum > 0 && cg.crosshairClientNum <= MAX_CLIENTS) || ps->lockedTarget > 0) {
 		if( cgs.clientinfo[cg.crosshairClientNum].team == cg.snap->ps.persistant[PERS_TEAM] && cgs.clientinfo[cg.crosshairClientNum].team != TEAM_FREE  ) {
 			trap_R_SetColor( lockOnAllyColor );
 		}
@@ -895,7 +687,7 @@ static void CG_DrawCrosshair(void) {
 CG_ScanForCrosshairEntity
 =================*/
 static void CG_ScanForCrosshairEntity(void){
-	trace_t			trace,trace2;
+	trace_t			trace;
 	vec3_t			start,end,muzzle,forward,up,minSize,maxSize;
 	playerState_t	*ps;
 	ps = &cg.predictedPlayerState;
@@ -1014,110 +806,6 @@ static void CG_DrawTeamVote(void) {
 	CG_DrawSmallString( 0, 90, s, 1.0F );
 }
 /*=================
-CG_DrawWarmup
-=================*/
-static void CG_DrawWarmup( void ) {
-	int			w;
-	int			sec;
-	int			i;
-	float scale;
-	clientInfo_t	*ci1, *ci2;
-	int			cw;
-	const char	*s;
-
-	sec = cg.warmup;
-	if ( !sec ) {
-		return;
-	}
-
-	if ( sec < 0 ) {
-		s = "Waiting for players";		
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-		CG_DrawBigString(320 - w / 2, 24, s, 1.0F);
-		cg.warmupCount = 0;
-		return;
-	}
-
-	if (cgs.gametype == GT_TOURNAMENT) {
-		// find the two active players
-		ci1 = NULL;
-		ci2 = NULL;
-		for ( i = 0 ; i < cgs.maxclients ; i++ ) {
-			if ( cgs.clientinfo[i].infoValid && cgs.clientinfo[i].team == TEAM_FREE ) {
-				if ( !ci1 ) {
-					ci1 = &cgs.clientinfo[i];
-				} else {
-					ci2 = &cgs.clientinfo[i];
-				}
-			}
-		}
-
-		if ( ci1 && ci2 ) {
-			s = va( "%s vs %s", ci1->name, ci2->name );
-			w = CG_DrawStrlen( s );
-			if ( w > 640 / GIANT_WIDTH ) {
-				cw = 640 / w;
-			} else {
-				cw = GIANT_WIDTH;
-			}
-			CG_DrawStringExt(-1, 320 - w * cw/2, 20,s, colorWhite, 
-					qfalse, qtrue, cw, (int)(cw * 1.5f), 0 );
-		}
-	} else {
-		if ( cgs.gametype == GT_FFA ) {
-			s = "Free For All";
-		} else if ( cgs.gametype == GT_STRUGGLE ) {
-			s = "Struggle";
-		} else if ( cgs.gametype == GT_TEAM ) {
-			s = "Team Deathmatch";
-		} else if ( cgs.gametype == GT_CTF ) {
-			s = "Capture the Flag";
-		} else {
-			s = "";
-		}
-		w = CG_DrawStrlen( s );
-		if ( w > 640 / GIANT_WIDTH ) {
-			cw = 640 / w;
-		} else {
-			cw = GIANT_WIDTH;
-		}
-		CG_DrawStringExt(-1, 320 - w * cw/2, 25,s, colorWhite, 
-				qfalse, qtrue, cw, (int)(cw * 1.1f), 0 );
-	}
-
-	sec = ( sec - cg.time ) / 1000;
-	if ( sec < 0 ) {
-		cg.warmup = 0;
-		sec = 0;
-	}
-	s = va( "Starts in: %i", sec + 1 );
-	if ( sec != cg.warmupCount ) {
-		cg.warmupCount = sec;
-	}
-	scale = 0.45f;
-	switch ( cg.warmupCount ) {
-	case 0:
-		cw = 28;
-		scale = 0.54f;
-		break;
-	case 1:
-		cw = 24;
-		scale = 0.51f;
-		break;
-	case 2:
-		cw = 20;
-		scale = 0.48f;
-		break;
-	default:
-		cw = 16;
-		scale = 0.45f;
-		break;
-	}
-	w = CG_DrawStrlen( s );
-	CG_DrawStringExt(-1, 320 - w * cw/2, 70, s, colorWhite, 
-			qfalse, qtrue, cw, (int)(cw * 1.5), 0 );
-}
-/*=================
 CG_Draw2D
 =================*/
 void CG_DrawScripted2D(void){
@@ -1156,10 +844,6 @@ static void CG_Draw2D( void ) {
 	}
 	else if(!(cg.snap->ps.bitFlags & usingSoar)){
 		if (!(cg.snap->ps.timers[tmTransform] > 1) && !(cg.snap->ps.powerups[PW_STATE] < 0)){
-			playerState_t	*ps;
-			clientInfo_t *ci;
-			ci = &cgs.clientinfo[cg.snap->ps.clientNum];
-			ps = &cg.snap->ps;
 			CG_DrawStatusBar();
 			CG_DrawCrosshair();
 			CG_DrawCrosshairNames();
@@ -1176,7 +860,6 @@ static void CG_Draw2D( void ) {
 void CG_DrawScreenFlash ( void ) {
 	float		*color;
 	vec4_t		white = {1.0f,1.0f,1.0f,0.5f};
-	vec4_t		black = {0.0f,0.0f,0.0f,0.5f};
 	color = CG_FadeColor( cg.screenFlashTime, cg.screenFlastTimeTotal, cg.screenFlashFadeTime );
 	if ( !color ) {
 		return;

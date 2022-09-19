@@ -8,6 +8,18 @@
 #define MAX_ITERATIONS		10 // NOTE -RiO; Will this be enough?
 #define MIN_BOUNCE_DELTA	 8
 
+// Prototypes.
+static void PSys_AccumulateSystem( PSys_System_t *system );
+static void PSys_AccumulateParticle( PSys_System_t *system, PSys_Particle_t *particle );
+static void PSys_IntegrateSystem( PSys_System_t *system, float timeStepSquare, float timeStepCorrected );
+static void PSys_IntegrateParticle( PSys_Particle_t *particle, float timeStepSquare, float timeStepCorrected );
+static qboolean PSys_ConstrainSystem( PSys_System_t *system );
+static qboolean PSys_ApplyConstraint( PSys_System_t *system, PSys_Constraint_t *constraint );
+static qboolean PSys_ApplyDistanceMaxConstraint( PSys_System_t *system, float value );
+static qboolean PSys_ApplyDistanceMinConstraint( PSys_System_t *system, float value );
+static qboolean PSys_ApplyDistanceConstraint( PSys_System_t *system, float value );
+static qboolean PSys_ApplyPlaneConstraint( PSys_System_t *system, float value );
+
 // Linked list storage for the systems, particles, forces and constraints.
 static PSys_System_t			PSys_Systems[MAX_PARTICLESYSTEMS];
 static PSys_System_t			PSys_Systems_inuse;
@@ -903,7 +915,7 @@ static qboolean PSys_ApplyConstraint( PSys_System_t *system, PSys_Constraint_t *
 
 
 static qboolean PSys_ApplyDistanceMaxConstraint( PSys_System_t *system, float value ) {
-	PSys_Particle_t		*pt1, *pt2, *next1, *next2, *minDistPt;
+	PSys_Particle_t		*pt1, *pt2, *next1, *next2, *minDistPt = NULL;
 	float				dist, tempDist;
 	vec3_t				dir;
 	qboolean			retval;	
@@ -937,7 +949,7 @@ static qboolean PSys_ApplyDistanceMaxConstraint( PSys_System_t *system, float va
 
 		// If the minimum distance to another particle in the system is greater than the
 		// distance allowed by the constraint, ...
-		if ( dist > value ) {
+		if ( dist > value && minDistPt) {
 			VectorSubtract( pt1->position, minDistPt->position, dir );
 			VectorNormalize( dir );
 			// ... slide both half the distance overshoot closer together and ...
@@ -955,7 +967,7 @@ static qboolean PSys_ApplyDistanceMaxConstraint( PSys_System_t *system, float va
 }
 
 static qboolean PSys_ApplyDistanceMinConstraint( PSys_System_t *system, float value ) {
-	PSys_Particle_t		*pt1, *pt2, *next1, *next2, *minDistPt;
+	PSys_Particle_t		*pt1, *pt2, *next1, *next2, *minDistPt = NULL;
 	float				dist, tempDist;
 	vec3_t				dir;
 	qboolean			retval;	
@@ -989,7 +1001,7 @@ static qboolean PSys_ApplyDistanceMinConstraint( PSys_System_t *system, float va
 
 		// If the minimum distance to another particle in the system is less than the
 		// distance allowed by the constraint, ...
-		if ( dist < value ) {
+		if ( dist < value && minDistPt) {
 			VectorSubtract( pt1->position, minDistPt->position, dir );
 			VectorNormalize( dir );
 			// ... slide both half the distance overshoot closer together and ...
@@ -1188,8 +1200,7 @@ static void PSys_RenderSystems( void ) {
 	vec4_t			lerpedRGBA;
 	vec4_t			lerpedRotation;
 	float			lerpedScale;
-	
-	static int		seed = 0x92;
+
 	vec3_t			angles;
 
 	system = PSys_Systems_inuse.prev;

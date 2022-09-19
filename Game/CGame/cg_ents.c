@@ -292,7 +292,6 @@ CG_General
 static void CG_General( centity_t *cent ) {
 	refEntity_t			ent;
 	entityState_t		*s1;
-	int num;
 
 	s1 = &cent->currentState;
 
@@ -356,7 +355,6 @@ CG_TrailFunc_StraightBeam
 */
 void CG_TrailFunc_StraightBeam( centity_t *ent ) {
 	entityState_t	*es;
-	centity_t		*owner_ent;
 	cg_userWeapon_t	*weaponGraphics;
 	float			radius;
 	orientation_t	orient;
@@ -367,7 +365,6 @@ void CG_TrailFunc_StraightBeam( centity_t *ent ) {
 
 	// Initialize some things for quick reference
 	es = &ent->currentState;
-	owner_ent = &cg_entities[es->clientNum];
 	weaponGraphics = CG_FindUserWeaponGraphics( es->clientNum, es->weapon );
 
 	if (!weaponGraphics->missileTrailShader) {
@@ -611,21 +608,6 @@ void CG_TrailFunc_FadeTail( centity_t *cent ) {
 	cent->lastTrailTime = cg.time;
 }
 
-
-/*
-===============
-CG_Torch
-===============
-*/
-static void CG_Torch( centity_t *cent ) {
-	entityState_t		*s1;
-	cg_userWeapon_t		*weaponGraphics;
-
-	s1 = &cent->currentState;
-	weaponGraphics = CG_FindUserWeaponGraphics(s1->clientNum, s1->weapon);
-}
-
-
 /*
 ===============
 CG_Missile
@@ -637,21 +619,18 @@ static void CG_Missile( centity_t *cent ) {
 	cg_userWeapon_t		*weaponGraphics;
 	float				missileScale;
 	int					missileChargeLvl;
-	playerState_t		*ps;
 	int					missilePowerLevelCurrent;
 	int					missilePowerLevelTotal;
 	float				radiusScale;
 	qboolean			missileIsStruggling;
-	qboolean			splash;
 	vec3_t				origin, lastPos;
 	int					contents;
 	int					lastContents;
 	vec3_t				start, end;
 	trace_t				trace;
-	ps = &cg.predictedPlayerState;
 	s1 = &cent->currentState;
 	weaponGraphics = CG_FindUserWeaponGraphics(s1->clientNum, s1->weapon);
-/*
+
 	// Water bubble/splash setup
 
 	BG_EvaluateTrajectory( s1, &s1->pos, cg.time, origin );
@@ -669,24 +648,8 @@ static void CG_Missile( centity_t *cent ) {
 	// trace down to find the surface
 	trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
 
-	splash = qtrue;
-
-	contents = trap_CM_PointContents( end, 0 );
-	if ( !( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {
-		splash = qfalse;
-	}
-
-	contents = trap_CM_PointContents( start, 0 );
-	if ( contents & ( CONTENTS_SOLID | CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
-		splash = qfalse;
-	}
-
-	if ( trace.fraction == 1.0 ) {
-		splash = qfalse;
-	}
-
 	cent->trailTime = cg.time;
-*/
+
 	// The missile's charge level was stored in this field. We hijacked it on the
 	// server to be able to transmit the missile's own charge level.
 	missileChargeLvl = s1->powerups;
@@ -744,11 +707,6 @@ static void CG_Missile( centity_t *cent ) {
 		VectorCopy(cent->lerpOrigin, cg.guide_target);
 		cg.guide_view = qtrue;
 	}
-/*
-	if (splash) {
-		CG_WaterSplash(trace.endpos, missileScale);
-	}
-*/
 	// add trails
 	if ( weaponGraphics->missileTrailShader && weaponGraphics->missileTrailRadius ) {
 		if ( cent->currentState.eType == ET_MISSILE ) {
@@ -1006,7 +964,7 @@ Also called by client movement prediction code
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out ) {
 	centity_t	*cent;
 	vec3_t	oldOrigin, origin, deltaOrigin;
-	vec3_t	oldAngles, angles, deltaAngles;
+	vec3_t	oldAngles, angles/*, deltaAngles*/;
 
 	if ( moverNum <= 0 || moverNum >= ENTITYNUM_MAX_NORMAL ) {
 		VectorCopy( in, out );
@@ -1110,13 +1068,6 @@ static void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		cg.snap->serverTime, cg.time, cent->lerpOrigin );
 	}
 }
-
-/*
-===============
-CG_TeamBase
-===============
-*/
-static void CG_TeamBase( centity_t *cent ){}
 
 /*
 ===============

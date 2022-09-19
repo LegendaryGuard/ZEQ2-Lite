@@ -220,7 +220,7 @@ qboolean CG_weapGfx_NextSym(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* toke
 	{
 		int len = 0;
 		int i;
-		while(*scanner->pos >= 'a' && *scanner->pos <= 'z' || *scanner->pos >= 'A' && *scanner->pos <= 'Z'){
+		while((*scanner->pos >= 'a' && *scanner->pos <= 'z') || (*scanner->pos >= 'A' && *scanner->pos <= 'Z')){
 			if(len > MAX_TOKENSTRING_LENGTH-1){
 				return CG_weapGfx_ErrorHandle(ERROR_TOKEN_TOOBIG,scanner,NULL,NULL);
 			}

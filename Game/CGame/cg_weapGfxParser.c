@@ -257,8 +257,8 @@ qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex
 qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	float* floatField;
-	vec3_t* colorField;
+	float* floatField = NULL;
+	vec3_t* colorField = NULL;
 	vec3_t RGB;
 	int channel;
 	if(category != CAT_CHARGE && category != CAT_EXPLOSION && category != CAT_MISSILE && category != CAT_FLASH){
@@ -322,8 +322,8 @@ qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryInd
 		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
 			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 		}
-		*floatField = token->floatval;
-		VectorCopy(RGB,*colorField);
+		if(floatField){*floatField = token->floatval;}
+		if(colorField){VectorCopy(RGB,*colorField);}
 	}
 	return CG_weapGfx_CheckPrematureEOF(scanner,token);
 }
