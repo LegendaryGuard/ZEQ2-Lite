@@ -78,16 +78,6 @@ CLIENT INFO
 
 /*
 ==========================
-CG_FileExists
-==========================
-*/
-static qboolean	CG_FileExists(const char *filename) {
-	int fileLength = trap_FS_FOpenFile( filename, NULL, FS_READ );
-	return fileLength > 0;
-}
-
-/*
-==========================
 CG_RegisterClientModelname
 ==========================
 */
@@ -104,15 +94,13 @@ This will usually be deferred to a safe time
 ===================
 */
 static void CG_LoadClientInfo( clientInfo_t *ci ) {
-	const char	*dir, *fallback;
-	int			i,tier,count,currentIndex,soundIndex,loopIndex,modelloaded;
+	const char	*dir;
+	int			i,tier,count,currentIndex,soundIndex,loopIndex;
 	char		soundPath[MAX_QPATH];
 	char		singlePath[MAX_QPATH];
 	char		loopPath[MAX_QPATH];
 	int			clientNum;
 	char		teamname[MAX_QPATH] = "";
-
-	modelloaded = qtrue;
 	//Com_Printf("LoadClientInfo pre CG_RegisterClientModelname\n");
 	if (!CG_RegisterClientModelname(ci,ci->modelName,ci->skinName, ci->headModelName,ci->headSkinName,teamname)){
 		strcpy(ci->modelName,DEFAULT_MODEL);
@@ -120,17 +108,15 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 		strcpy(ci->skinName,"default");
 		strcpy(ci->headSkinName,"default");
 		if ( cg_buildScript.integer ) {
-			CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci, ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName,teamname);
+			CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName,teamname);
 		}
 		if (!CG_RegisterClientModelname(ci,DEFAULT_MODEL,"default",DEFAULT_MODEL,"default",teamname) ) {
 			CG_Error("DEFAULT_MODEL (%s) failed to register",DEFAULT_MODEL);
 		}
-		modelloaded = qfalse;
 	}
 	ci->newAnims = qfalse;
 	// sounds
 	dir = ci->modelName;
-	fallback = DEFAULT_MODEL;
 	for (tier = 0 ; tier < MAX_TIERS ; tier++ ){
 		for(i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++){
 			ci->sounds[tier][i] = cgs.media.nullSound;
@@ -150,8 +136,8 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 				}
 				else{
 					Com_sprintf(singlePath,sizeof(singlePath),"players/%s/tier%i/%s.ogg",dir,tier,cg_customSoundNames[i]);
-					Com_sprintf(soundPath,sizeof(soundPath),"players/%s/tier%i/%s.ogg",dir,tier,cg_customSoundNames[i],count);
-					Com_sprintf(loopPath,sizeof(loopPath),"players/%s/tier%i/%s.ogg",dir,tier,cg_customSoundNames[i],currentIndex);
+					Com_sprintf(soundPath,sizeof(soundPath),"players/%s/tier%i/%s%i.ogg",dir,tier,cg_customSoundNames[i],count);
+					Com_sprintf(loopPath,sizeof(loopPath),"players/%s/tier%i/%s%i.ogg",dir,tier,cg_customSoundNames[i],currentIndex);
 				}
 				ci->sounds[tier][soundIndex] = 0;
 				if(trap_FS_FOpenFile(singlePath,0,FS_READ)>0){
@@ -202,7 +188,6 @@ void CG_NewClientInfo( int clientNum ) {
 	clientInfo_t newInfo;
 	const char	*configstring;
 	const char	*v,*model;
-	char *slash;
 	char *skin;
 	ci = &cgs.clientinfo[clientNum];
 	configstring = CG_ConfigString( clientNum + CS_PLAYERS );
@@ -522,11 +507,9 @@ CG_BubblesTrail
 static void CG_BubblesTrail( centity_t *cent, refEntity_t *head) {
 	vec3_t origin;
 	int contents;
-	entityState_t	*s1;
 	float			xyzspeed;
 	int r1,r2,r3,r4,r5,r6;
 	if ( cent->currentState.eFlags & EF_DEAD ) {return;}
-	s1 = &cent->currentState;
 	// Measure the objects velocity
 	xyzspeed = sqrt( cent->currentState.pos.trDelta[0] * cent->currentState.pos.trDelta[0] +
 					cent->currentState.pos.trDelta[1] * cent->currentState.pos.trDelta[1] + 
@@ -612,13 +595,13 @@ static void CG_BreathPuffs( centity_t *cent, refEntity_t *head) {
 CG_PlayerPowerups
 ===============*/
 static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
-	int		powerups;
+	/*int		powerups;
 	clientInfo_t	*ci;
 	powerups = cent->currentState.powerups;
 	if ( !powerups ) {
 		return;
 	}
-	ci = &cgs.clientinfo[ cent->currentState.clientNum ];
+	ci = &cgs.clientinfo[ cent->currentState.clientNum ];*/
 }
 
 
@@ -731,7 +714,6 @@ void CG_PlayerSplash( centity_t *cent, int scale ) {
 	trace_t			trace;
 	polyVert_t		verts[4];
 	entityState_t	*s1;
-	clientInfo_t	*ci;
 	int				contents;
 	int				powerBoost;
 	float			xyzspeed;
@@ -853,17 +835,14 @@ CG_PlayerDirtPush
 ===============
 */
 void CG_PlayerDirtPush( centity_t *cent, int scale, qboolean once ) {
-	vec3_t			start, end;
+	vec3_t			end;
 	trace_t			trace;
-	playerState_t	*ps;
-	ps = &cg.snap->ps;
 	if(!once){
 		if(cent->dustTrailTime > cg.time){return;}
 		cent->dustTrailTime += 250;
 		if(cent->dustTrailTime < cg.time){cent->dustTrailTime = cg.time;}
 	}
 	VectorCopy(cent->lerpOrigin,end);
-	VectorCopy(cent->lerpOrigin,start);
 	end[2] -= once ? 4096 : 512;
 	CG_Trace(&trace,cent->currentState.pos.trBase,NULL,NULL,end,cent->currentState.number,MASK_PLAYERSOLID);
 	if(trace.fraction == 1.0f){return;}
@@ -907,7 +886,6 @@ void CG_Player( centity_t *cent ) {
 	float			meshScale;
 	qboolean		onBodyQue;
 	int				tier,health,damageState,damageTextureState,damageModelState;
-	int				state,enemyState;
 	int				scale;
 	float			xyzspeed;
 	vec3_t			mins = {-15, -15, -24};

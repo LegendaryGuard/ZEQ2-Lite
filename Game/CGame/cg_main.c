@@ -335,25 +335,6 @@ void CG_RegisterCvars( void ) {
 	trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO | CVAR_ARCHIVE );
 }
 
-/*																																			
-===================
-CG_ForceModelChange
-===================
-*/
-static void CG_ForceModelChange( void ) {
-	int		i;
-
-	for (i=0 ; i<MAX_CLIENTS ; i++) {
-		const char		*clientInfo;
-
-		clientInfo = CG_ConfigString( CS_PLAYERS+i );
-		if ( !clientInfo[0] ) {
-			continue;
-		}
-		CG_NewClientInfo( i );
-	}
-}
-
 /*
 =================
 CG_UpdateCvars
@@ -463,7 +444,6 @@ called during a precache command
 */
 static void CG_RegisterSounds( void ) {
 	int		i;
-	char	name[MAX_QPATH];
 	const char	*soundName;
 
 	for ( i = 1 ; i < MAX_SOUNDS ; i++ ) {

@@ -75,7 +75,7 @@ CG_Obituary
 =============
 */
 static void CG_Obituary( entityState_t *ent ) {
-	int			mod;
+/*	int			mod;
 	int			target, attacker;
 	char		*message;
 	char		*message2;
@@ -136,7 +136,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	}
 
 	// we don't know what it was
-	CG_Printf( "%s died.\n", targetName );
+	CG_Printf( "%s died.\n", targetName );*/
 }
 
 //==========================================================================
@@ -149,7 +149,7 @@ Also called by playerstate transition
 ================
 */
 void CG_PainEvent( centity_t *cent, int powerLevel ) {
-	char	*snd;
+	//char	*snd;
 	if ( cg.time - cent->pe.painTime < 500 ) {
 		return;
 	}
@@ -167,7 +167,7 @@ also called by CG_CheckPlayerstateEvents
 */
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){CG_Printf(x"\n");}
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
-	entityState_t	*es,*nextState;
+	entityState_t	*es;
 	int				event;
 	vec3_t			dir;
 	const char		*s;
@@ -178,7 +178,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	r = random() * 10;
 	es = &cent->currentState;
-	nextState = &cent->nextState;
 	event = es->event & ~EV_EVENT_BITS;
 
 	if ( cg_debugEvents.integer ) {

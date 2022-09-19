@@ -320,8 +320,8 @@ CG_AddMoveScaleFade
 static void CG_AddMoveScaleFade( localEntity_t *le ) {
 	refEntity_t	*re;
 	float		c;
-	vec3_t		delta;
-	float		len;
+	//vec3_t		delta;
+	//float		len;
 
 	re = &le->refEntity;
 
@@ -367,8 +367,8 @@ There are often many of these, so it needs to be simple.
 static void CG_AddScaleFade( localEntity_t *le ) {
 	refEntity_t	*re;
 	float		c;
-	vec3_t		delta;
-	float		len;
+	//vec3_t		delta;
+	//float		len;
 
 	re = &le->refEntity;
 
@@ -393,8 +393,8 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 static void CG_AddScaleFadeRGB( localEntity_t *le ) {
 	refEntity_t	*re;
 	float		c;
-	vec3_t		delta;
-	float		len;
+	//vec3_t		delta;
+	//float		len;
 
 	re = &le->refEntity;
 
@@ -431,8 +431,8 @@ There are often 100+ of these, so it needs to be simple.
 static void CG_AddFallScaleFade( localEntity_t *le ) {
 	refEntity_t	*re;
 	float		c;
-	vec3_t		delta;
-	float		len;
+	//vec3_t		delta;
+	//float		len;
 
 	re = &le->refEntity;
 
@@ -591,7 +591,7 @@ CG_AddZEQSplash
 static void CG_AddZEQSplash( localEntity_t *le ) {
 	refEntity_t	*ent;
 	float		c;
-	float		phase;
+	//float		phase;
 	float		RGBfade;
 	vec3_t		tmpAxes[3];
 	

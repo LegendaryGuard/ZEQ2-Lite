@@ -59,7 +59,7 @@ void CG_RunLerpFrame(clientInfo_t* ci,lerpFrame_t* lf,int newAnimation,float spe
 	if(newAnimation != lf->animationNumber){
 		// If the only difference is the togglebit, and the animation is supposed to be
 		// continuous.
-		if(newAnimation & ~ANIM_TOGGLEBIT == lf->animationNumber & ~ANIM_TOGGLEBIT && lf->animation->continuous){
+		if((newAnimation & ~ANIM_TOGGLEBIT) == (lf->animationNumber & ~ANIM_TOGGLEBIT) && lf->animation->continuous){
 			// do nothing, animation should continue to loop
 		}
 		else{
@@ -160,12 +160,10 @@ void CG_PlayerAnimation(centity_t* cent,
 	*camera = cent->pe.camera.frame;
 	*cameraBackLerp = cent->pe.camera.backlerp;
 	{
-		int torsoAnimNum;
-		int headAnimation;
-		qboolean isLockedOn = cg.predictedPlayerState.lockedTarget > 0;
-		qboolean isBoosting = cg.predictedPlayerState.bitFlags & usingBoost;
 		// NOTE: Torso animations take precedence over leg animations when deciding which head animation to play.
-		torsoAnimNum = cent->currentState.torsoAnim & ~ANIM_TOGGLEBIT;
+		int torsoAnimNum = cent->currentState.torsoAnim & ~ANIM_TOGGLEBIT;
+		int headAnimation = torsoAnimNum;
+		qboolean isBoosting = cg.predictedPlayerState.bitFlags & usingBoost;
 		if(isBoosting){
 			headAnimation = ANIM_KI_CHARGE;
 		}
@@ -178,9 +176,6 @@ void CG_PlayerAnimation(centity_t* cent,
 		}
 		else if(torsoAnimNum == ANIM_KI_CHARGE || torsoAnimNum == ANIM_PL_UP || torsoAnimNum == ANIM_PUSH){
 			headAnimation = ANIM_TRANS_UP;
-		}
-		else{
-			headAnimation = torsoAnimNum;
 		}
 		CG_RunLerpFrame(ci,&cent->pe.head,headAnimation,speedScale,qfalse);
 	}

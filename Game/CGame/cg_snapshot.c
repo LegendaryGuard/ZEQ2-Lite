@@ -173,17 +173,6 @@ static void CG_TransitionSnapshot( void ) {
 
 /*
 ===================
-JUHOX: CG_StopMover
-===================
-*/
-static void CG_StopMover(centity_t* cent) {
-	cent->currentState.pos.trType = TR_STATIONARY;
-	VectorCopy(cent->lerpOrigin, cent->currentState.pos.trBase);
-	VectorClear(cent->currentState.pos.trDelta);
-}
-
-/*
-===================
 CG_SetNextSnap
 
 A new snapshot has just been read in from the client system.

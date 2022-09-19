@@ -35,10 +35,8 @@ static void CG_DrawRadarBlips( float x, float y, float w, float h ) {
 
 	float			powerLevel;
 	float			powerLevel2;
-	float			powerLevelAverage;
 	float			powerLevelMaximum;
 	float			powerLevelMaximum2;
-	float			powerLevelMaximumAverage;
 
 	float			difference, differenceCurrent, differenceMaximum;
 
