@@ -130,8 +130,8 @@ void CG_DirtPush(vec3_t org,vec3_t dir,int size){
 	VectorCopy(org,re->origin);
 }
 void CG_WaterRipple(vec3_t org,int size,qboolean single){
-	sfxHandle_t* sounds;
-	int soundIndex = 0;
+	sfxHandle_t* sounds = cgs.media.smallSplash;
+	int soundIndex = random() * MAX_MEDIA_SOUNDS;
 	localEntity_t* le;
 	refEntity_t* re;
 	if(cgs.clientPaused){return;}
@@ -149,16 +149,12 @@ void CG_WaterRipple(vec3_t org,int size,qboolean single){
 	re->shaderRGBA[1] = le->color[1] * 255;
 	re->shaderRGBA[2] = le->color[2] * 255;
 	re->shaderRGBA[3] = 255;
-	if(single){
-		re->customSkin = cgs.media.waterRippleSingleSkin;
-		re->hModel = cgs.media.waterRippleSingleModel;
-		sounds = cgs.media.smallSplash;
-	}
-	else{
+	re->customSkin = single ? cgs.media.waterRippleSingleSkin : cgs.media.waterRippleSkin;
+	re->hModel = single ? cgs.media.waterRippleSingleModel : cgs.media.waterRippleModel;
+	if(!single){
 		re->customSkin = cgs.media.waterRippleSkin;
 		re->hModel = cgs.media.waterRippleModel;
-		if(size > 0){sounds = cgs.media.smallSplash;}
-		else if(size > 10){sounds = cgs.media.mediumSplash;}
+		if(size > 10){sounds = cgs.media.mediumSplash;}
 		else if(size > 25){sounds = cgs.media.largeSplash;}
 		else if(size > 50){sounds = cgs.media.extraLargeSplash;}
 	}

@@ -84,7 +84,7 @@ static void CG_AddPlayerWeaponChargeVoices(centity_t* player,cg_userWeapon_t* we
 	for(;index>=0;--index){
 		chargeVoice_t* voice = &weaponGraphics->chargeVoice[index];
 		if(!voice->voice){continue;}
-		if(voice->startPct > previousProgress && voice->startPct < currentProgress && previousProgress < currentProgress){
+		if(previousProgress < voice->startPct && voice->startPct <= currentProgress){
 			trap_S_StartSound(NULL,player->currentState.number,CHAN_VOICE,voice->voice);
 			break;
 		}
