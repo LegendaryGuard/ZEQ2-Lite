@@ -211,7 +211,7 @@ static void CG_DrawWeaponSelectHorCenterBar(void){
 		return;
 	}
 	trap_R_SetColor(color);
-	for(i=1;i<MAX_PLAYERWEAPONS;++i){
+	for(i=1;i<(MAX_PLAYERWEAPONS * 2);++i){
 		qboolean exists = statBits & (1 << i);
 		qboolean usable = cg.snap->ps.powerups[PW_SKILLS] & (1 << (i-1));
 		if(!exists || !usable){continue;}
