@@ -418,21 +418,21 @@ void CG_MakeUserExplosion(vec3_t origin,vec3_t dir,cg_userWeapon_t* weaponGraphi
 	// Obtain the scale the missile must have.
 	if(weaponGraphics->chargeGrowth){
 		// below the start, we use the lowest form
-		if(weaponGraphics->chargeStartPct >= attackChargeLvl){
-			explosionScale = weaponGraphics->chargeStartsize;
+		if(weaponGraphics->chargePercentRange[0] >= attackChargeLvl){
+			explosionScale = weaponGraphics->chargeSizeRange[0];
 		}
 		else{
 			// above the end, we use the highest form
-			if(weaponGraphics->chargeEndPct <= attackChargeLvl){
-				explosionScale = weaponGraphics->chargeEndsize;
+			if(weaponGraphics->chargePercentRange[1] <= attackChargeLvl){
+				explosionScale = weaponGraphics->chargeSizeRange[1];
 			}
 			else{
 				// inbetween, we work out the value
-				float PctRange = weaponGraphics->chargeEndPct - weaponGraphics->chargeStartPct;
-				float PctVal = attackChargeLvl - weaponGraphics->chargeStartPct;
-				float SizeRange = weaponGraphics->chargeEndsize - weaponGraphics->chargeStartsize;
+				float PctRange = weaponGraphics->chargePercentRange[1] - weaponGraphics->chargePercentRange[0];
+				float PctVal = attackChargeLvl - weaponGraphics->chargePercentRange[0];
+				float SizeRange = weaponGraphics->chargeSizeRange[1] - weaponGraphics->chargeSizeRange[0];
 				float SizeVal = (PctVal / PctRange) * SizeRange;
-				explosionScale = SizeVal + weaponGraphics->chargeStartsize;
+				explosionScale = SizeVal + weaponGraphics->chargeSizeRange[0];
 			}
 		}
 	}
