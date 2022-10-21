@@ -942,7 +942,7 @@ void _VectorScale( const vec3_t in, vec_t scale, vec3_t out ) {
 	out[2] = in[2]*scale;
 }
 
-void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out ) {
+void _Vector4Scale( const vec4_t in, vec_t scale, vec4_t out ) {
 	out[0] = in[0]*scale;
 	out[1] = in[1]*scale;
 	out[2] = in[2]*scale;
