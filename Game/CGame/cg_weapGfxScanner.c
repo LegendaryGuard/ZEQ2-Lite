@@ -169,7 +169,7 @@ qboolean CG_weapGfx_NextSym(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* toke
 		}
 		else if(scanner->pos[0] == '/' && scanner->pos[1] == '*'){
 			char* endComment = strstr(scanner->pos,"*/");
-			scanner->pos = endComment ? endComment + 2: scanner->pos + 2;
+			scanner->pos = endComment ? endComment + 2 : scanner->pos + 2;
 		}
 		else{break;}
 	}
@@ -187,8 +187,8 @@ qboolean CG_weapGfx_NextSym(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* toke
 	}
 	//Numbers
 	if(scanner->pos[0] >= '0' && scanner->pos[0] <= '9'){
-		start = scanner->pos;
 		qboolean dot = qfalse;
+		start = scanner->pos;
 		length = 0;
 		while(scanner->pos[0] >= '0' && scanner->pos[0] <= '9'){
 			if(length >= MAX_TOKENSTRING_LENGTH-1){
