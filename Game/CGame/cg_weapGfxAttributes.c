@@ -54,12 +54,12 @@ qboolean CG_weapGfx_AddImportRef( cg_weapGfxParser_t *parser, char *refname, cha
 		if ( importList[i].active ) {
 			
 			if ( !Q_stricmp( refname, importList[i].refname ) ) {
-				CG_weapGfx_ErrorHandle( ERROR_IMPORT_REDEFINED, scanner, refname, NULL );
+				CG_weapGfx_Error( ERROR_IMPORT_REDEFINED, scanner, refname, NULL );
 				return qfalse;
 			}
 
 			if ( !Q_stricmp( filename, importList[i].filename ) && !Q_stricmp( defname, importList[i].defname ) ) {
-				CG_weapGfx_ErrorHandle( ERROR_IMPORT_DOUBLED, scanner, refname, NULL );
+				CG_weapGfx_Error( ERROR_IMPORT_DOUBLED, scanner, refname, NULL );
 				return qfalse;
 			}
 
@@ -72,7 +72,7 @@ qboolean CG_weapGfx_AddImportRef( cg_weapGfxParser_t *parser, char *refname, cha
 	}
 	
 	if ( i == MAX_IMPORTS ) {
-		CG_weapGfx_ErrorHandle( ERROR_IMPORTS_EXCEEDED, scanner, NULL, NULL ); 
+		CG_weapGfx_Error( ERROR_IMPORTS_EXCEEDED, scanner, NULL, NULL ); 
 		return qfalse;
 	}
 
@@ -120,7 +120,7 @@ int CG_weapGfx_FindDefinitionRef( cg_weapGfxParser_t *parser, char *refname ) {
 
 	retval = CG_weapGfx_FindImportRef( parser, refname );
 	if ( !retval ) {
-		CG_weapGfx_ErrorHandle( ERROR_DEFINITION_UNDEFINED, scanner, refname, NULL );
+		CG_weapGfx_Error( ERROR_DEFINITION_UNDEFINED, scanner, refname, NULL );
 		return qfalse;
 	} else {
 		return retval + MAX_DEFINES; // So we can seperate a local ref from an import
@@ -145,7 +145,7 @@ qboolean CG_weapGfx_AddDefinitionRef( cg_weapGfxParser_t *parser, char* refname,
 	scanner = &parser->scanner;
 
 	if ( CG_weapGfx_FindImportRef( parser, refname ) ) {
-		CG_weapGfx_ErrorHandle( ERROR_REDEFINE_IMPORT_AS_DEFINITION, scanner, refname, NULL );
+		CG_weapGfx_Error( ERROR_REDEFINE_IMPORT_AS_DEFINITION, scanner, refname, NULL );
 		return qfalse;
 	}
 
@@ -154,7 +154,7 @@ qboolean CG_weapGfx_AddDefinitionRef( cg_weapGfxParser_t *parser, char* refname,
 		if ( defList[i].active ) {
 
 			if ( !Q_stricmp( refname, defList[i].refname ) ) {
-				CG_weapGfx_ErrorHandle( ERROR_DEFINITION_REDEFINED, scanner, refname, NULL );
+				CG_weapGfx_Error( ERROR_DEFINITION_REDEFINED, scanner, refname, NULL );
 				return qfalse;
 			}
 			
@@ -167,7 +167,7 @@ qboolean CG_weapGfx_AddDefinitionRef( cg_weapGfxParser_t *parser, char* refname,
 	}
 	
 	if ( i == MAX_DEFINES ) {
-		CG_weapGfx_ErrorHandle( ERROR_DEFINITIONS_EXCEEDED, scanner, NULL, NULL ); 
+		CG_weapGfx_Error( ERROR_DEFINITIONS_EXCEEDED, scanner, NULL, NULL ); 
 		return qfalse;
 	}
 
@@ -206,12 +206,12 @@ qboolean CG_weapGfx_AddLinkRef( cg_weapGfxParser_t *parser, int index, char* pri
 	true_index = index - 1; // The script parses 1 as the first weapon, but arrays start at 0.
 
 	if ( ( true_index < 0 ) || ( true_index > MAX_LINKS ) ) {
-		CG_weapGfx_ErrorHandle( ERROR_LINK_BOUNDS, scanner, NULL, NULL );
+		CG_weapGfx_Error( ERROR_LINK_BOUNDS, scanner, NULL, NULL );
 		return qfalse;
 	}
 	
 	if ( linkList[true_index].active ) {
-		CG_weapGfx_ErrorHandle( ERROR_LINK_REDEFINED, scanner, NULL, NULL );
+		CG_weapGfx_Error( ERROR_LINK_REDEFINED, scanner, NULL, NULL );
 		return qfalse;
 	}
 

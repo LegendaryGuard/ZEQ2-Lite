@@ -1,10 +1,10 @@
 // Copyright (C) 2003-2005 RiO
 // cg_weapGfxParser.c -- token parser for ZEQ2's weapon graphics script language.
-#include "cg_weapGfxParser.h" // <-- cg_local.h included in this
+#include "cg_weapGfxParser.h"
 static int cg_weapGfxRecursionDepth;
 // FIXME: Can this be a local variable instead, or would it give us
 //		  > 32k locals errors in the VM-bytecode compiler?
-static cg_userWeaponParseBuffer_t cg_weapGfxBuffer;
+cg_userWeaponParseBuffer_t cg_weapGfxBuffer;
 //=========================================
 // Copies buffer to a client's weapon
 // configuration, converting filestrings
@@ -28,13 +28,13 @@ void CG_weapGfx_StoreBuffer(int clientNum,int weaponNum){
 	VectorCopy(src->chargeDlightColor,dest->chargeDlightColor);
 	VectorCopy(src->chargeSpin,dest->chargeSpin);
 	Q_strncpyz(dest->chargeTag[0],src->chargeTag[0],sizeof(dest->chargeTag[0]));
-	dest->chargeGrowth = src->chargeStartPct != src->chargeEndPct; // <-- May become redundant...
-	dest->chargeStartPct = src->chargeStartPct;
-	dest->chargeEndPct = src->chargeEndPct;
-	dest->chargeStartsize = src->chargeStartsize;
-	dest->chargeEndsize = src->chargeEndsize;
-	dest->chargeDlightStartRadius = src->chargeDlightStartRadius;
-	dest->chargeDlightEndRadius = src->chargeDlightEndRadius;
+	dest->chargeGrowth = src->chargePercentRange[0] != src->chargePercentRange[1];
+	dest->chargePercentRange[0] = src->chargePercentRange[0];
+	dest->chargePercentRange[1] = src->chargePercentRange[1];
+	dest->chargeSizeRange[0] = src->chargeSizeRange[0];
+	dest->chargeSizeRange[1] = src->chargeSizeRange[1];
+	dest->chargeDlightRadiusRange[0] = src->chargeDlightRadiusRange[0];
+	dest->chargeDlightRadiusRange[1] = src->chargeDlightRadiusRange[1];
 	Q_strncpyz(dest->chargeParticleSystem,src->chargeParticleSystem,sizeof(dest->chargeParticleSystem));
 	// --< Flash >--
 	if(*src->flashModel){dest->flashModel = trap_R_RegisterModel(src->flashModel);}
@@ -101,622 +101,129 @@ void CG_weapGfx_StoreBuffer(int clientNum,int weaponNum){
 // if it _would_ be called, it would always hault
 // parsing.
 //=========================================
-qboolean CG_weapGfx_ParseDummy(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){return qfalse;}
-// Syntax: 'model' '=' ( "filename" | null )
-qboolean CG_weapGfx_ParseModel(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
+qboolean CG_weapGfx_ParseDummy(cg_weapGfxParser_t* parser,void* field,int listLimit){return qfalse;}
+qboolean CG_weapGfx_ParseInt(cg_weapGfxParser_t* parser,void* field,int listLimit){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	char* weaponField;
-	if(category == CAT_CHARGE){weaponField = cg_weapGfxBuffer.chargeModel;}
-	else if(category == CAT_EXPLOSION){weaponField = cg_weapGfxBuffer.explosionModel;}
-	else if(category == CAT_STRUGGLE){weaponField = cg_weapGfxBuffer.missileStruggleModel;}
-	else if(category == CAT_MISSILE){weaponField = cg_weapGfxBuffer.missileModel;}
-	else if(category == CAT_FLASH){weaponField = cg_weapGfxBuffer.flashModel;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
+	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
+		return CG_weapGfx_Error(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'skin' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseSkin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	char* weaponField;
-	if(category == CAT_CHARGE){weaponField = cg_weapGfxBuffer.chargeSkin;}
-	else if(category == CAT_EXPLOSION){weaponField = cg_weapGfxBuffer.explosionSkin;}
-	else if(category == CAT_STRUGGLE){weaponField = cg_weapGfxBuffer.missileStruggleSkin;}
-	else if(category == CAT_MISSILE){weaponField = cg_weapGfxBuffer.missileSkin;}
-	else if(category == CAT_FLASH){weaponField = cg_weapGfxBuffer.flashSkin;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'shader' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	char* weaponField;
-	if(category == CAT_CHARGE){weaponField = cg_weapGfxBuffer.chargeShader;}
-	else if(category == CAT_EXPLOSION){weaponField = cg_weapGfxBuffer.explosionShader;}
-	else if(category == CAT_STRUGGLE){weaponField = cg_weapGfxBuffer.missileStruggleShader;}
-	else if(category == CAT_MISSILE){weaponField = cg_weapGfxBuffer.missileShader;}
-	else if(category == CAT_FLASH){weaponField = cg_weapGfxBuffer.flashShader;}
-	else if(category == CAT_TRAIL){weaponField = cg_weapGfxBuffer.missileTrailShader;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(weaponField,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'animationRange' '=' ( '[' <int> <int> ']' | <int> )
-qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_CHARGE){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_INTEGER){
-		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
-		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
-		cg_weapGfxBuffer.chargeStartPct = token->intval;
-		cg_weapGfxBuffer.chargeEndPct = token->intval;
-	}
-	else if(token->tokenSym == TOKEN_OPENRANGE){
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(token->tokenSym != TOKEN_INTEGER){
-			return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
-		}
-		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
-		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
-		cg_weapGfxBuffer.chargeStartPct = token->intval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(token->tokenSym != TOKEN_INTEGER){return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);}
-		// NOTE: This is the only range that must NOT be inverted.
-		if(token->intval < cg_weapGfxBuffer.chargeStartPct){
-			return CG_weapGfx_ErrorHandle(ERROR_INVERTED_RANGE,scanner,token->stringval,va("%d",cg_weapGfxBuffer.chargeStartPct));
-		}
-		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
-		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
-		cg_weapGfxBuffer.chargeEndPct = token->intval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(token->tokenSym != TOKEN_CLOSERANGE){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
-		}
-	}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
-	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'size' '=' ( <int> | <float> )  |  ( '[' ( <int> | float ) ( <int> | <float> ']' )
-qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	float* size;
-	if(category == CAT_CHARGE){
-		if(token->tokenSym == TOKEN_INTEGER || token->tokenSym == TOKEN_FLOAT){
-			cg_weapGfxBuffer.chargeStartsize = token->floatval;
-			cg_weapGfxBuffer.chargeEndsize = token->floatval;
-		}
-		else if(token->tokenSym == TOKEN_OPENRANGE){
-			int range;
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-			for(range=0;range<2;++range){
-				size = range == 0 ? &cg_weapGfxBuffer.chargeStartsize : &cg_weapGfxBuffer.chargeEndsize;
-				if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-					return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-				}
-				*size = token->floatval;
-				if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-			}
-			if(token->tokenSym != TOKEN_CLOSERANGE){
-				return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
-			}
-		}
-		else{
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
-		}
-	}
-	else{
-		if(category == CAT_EXPLOSION){size = &cg_weapGfxBuffer.explosionSize;}
-		else if(category == CAT_MISSILE){size = &cg_weapGfxBuffer.missileSize;}
-		else if(category == CAT_TRAIL){size = &cg_weapGfxBuffer.missileTrailRadius;}
-		else if(category == CAT_FLASH){size = &cg_weapGfxBuffer.flashSize;}
-		else{
-			return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-		}
-		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-		}
-		*size = token->floatval;
-	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'light' '=' '(' <i>|<f>  <i>|<f>  <i>|<f> ')' (   ( <i>|<f> )  |  ( '[' <i>|<f>  <i>|<f> ']' )   )
-qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	float* floatField = NULL;
-	vec3_t* colorField = NULL;
-	vec3_t RGB;
-	int channel;
-	if(category != CAT_CHARGE && category != CAT_EXPLOSION && category != CAT_MISSILE && category != CAT_FLASH){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_OPENVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
-	}
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	for(channel=0;channel<3;++channel){
-		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-		}
-		if(token->floatval > 1.0f){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"1.0");}
-		if(token->floatval < 0.0f){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0.0");}
-		RGB[channel] = token->floatval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	}
-	if(token->tokenSym != TOKEN_CLOSEVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
-	}
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	if(category == CAT_CHARGE){
-		if(token->tokenSym == TOKEN_INTEGER || token->tokenSym == TOKEN_FLOAT){
-			cg_weapGfxBuffer.chargeDlightStartRadius = token->floatval;
-			cg_weapGfxBuffer.chargeDlightEndRadius = token->floatval;
-		}
-		else if(token->tokenSym == TOKEN_OPENRANGE){
-			int range;
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-			for(range=0;range<2;++range){
-				floatField = range == 0 ? &cg_weapGfxBuffer.chargeDlightStartRadius : &cg_weapGfxBuffer.chargeDlightEndRadius;
-				if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-					return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-				}
-				*floatField = token->floatval;
-				if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-			}
-			if(token->tokenSym != TOKEN_CLOSERANGE){
-				return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
-			}
-		}
-		else{
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
-		}
-		VectorCopy(RGB,cg_weapGfxBuffer.chargeDlightColor);
-	}
-	else{
-		if(category == CAT_EXPLOSION){
-			floatField = &cg_weapGfxBuffer.explosionDlightRadius;
-			colorField = &cg_weapGfxBuffer.explosionDlightColor;
-		}
-		else if(category == CAT_MISSILE){
-			floatField = &cg_weapGfxBuffer.missileDlightRadius;
-			colorField = &cg_weapGfxBuffer.missileDlightColor;
-		}
-		else if(category == CAT_FLASH){
-			floatField = &cg_weapGfxBuffer.flashDlightRadius;
-			colorField = &cg_weapGfxBuffer.flashDlightColor;
-		}
-		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-		}
-		if(floatField){*floatField = token->floatval;}
-		if(colorField){VectorCopy(RGB,*colorField);}
-	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'spin' '=' '(' <i>|<f>  <i>|<f>  <i>|<f> ')'
-qboolean CG_weapGfx_ParseSpin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	vec3_t	spin;
-	int axis;
-	if(category != CAT_CHARGE && category != CAT_MISSILE){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_OPENVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
-	}
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	for(axis=0;axis<3;++axis){
-		if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-			return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-		}
-		spin[axis] = token->floatval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	}
-	if(token->tokenSym != TOKEN_CLOSEVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
-	}
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	if(category == CAT_CHARGE){VectorCopy(spin,cg_weapGfxBuffer.chargeSpin);}
-	if(category == CAT_MISSILE){VectorCopy(spin,cg_weapGfxBuffer.missileSpin);}
+	*(int*)field = token->tokenSym == TOKEN_INTEGER ? token->intval : token->floatval;
 	return qtrue;
 }
-// Syntax: 'tagTo' '=' "tagname"
-// FIXME: Should become later: 'tagTo' '=' ( "tagname" | 'null' ) ( "tagname" | 'null' )
-qboolean CG_weapGfx_ParseTagTo(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
+qboolean CG_weapGfx_ParseFloat(cg_weapGfxParser_t* parser,void* field,int listLimit){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_CHARGE){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
+	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
+		return CG_weapGfx_Error(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
 	}
-	// FIXME: When later on we can specify two tags, we will have to be able to pass
-	//        'null' for the 2nd one, to disable the 2nd tag, or to the 1st to change
-	//        the 2nd tag into the first.
-	if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.chargeTag[0],token->stringval,sizeof(cg_weapGfxBuffer.chargeTag[0]));
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+	*(float*)field = token->tokenSym == TOKEN_INTEGER ? token->intval : token->floatval;
 	return qtrue;
 }
-// Syntax: 'soundFx' '=' ( 'null' | "filename" | '(' "filename"* ')' )
-qboolean CG_weapGfx_ParseSoundFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
+qboolean CG_weapGfx_ParseString(cg_weapGfxParser_t* parser,void* field,int listLimit){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	int maximumSounds = category == CAT_EXPLOSION ? MAX_EXPLOSION_SOUNDS : MAX_FLASH_SOUNDS;
-	int index = 0;
-	char (*sound)[MAX_QPATH];
-	if(category == CAT_EXPLOSION){sound = cg_weapGfxBuffer.explosionSound;}
-	else if(category == CAT_FLASH){sound = cg_weapGfxBuffer.flashSound;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	memset(sound,0,MAX_QPATH * maximumSounds);
-	if(token->tokenSym == TOKEN_STRING){
-		Q_strncpyz(sound[0],token->stringval,MAX_QPATH);
-	}
-	else if(token->tokenSym == TOKEN_OPENVECTOR){
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		while(token->tokenSym == TOKEN_STRING){
-			if(index >= maximumSounds){
-				return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,va("%d",maximumSounds));
-			}
-			Q_strncpyz(sound[index],token->stringval,MAX_QPATH);
-			index++;
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		}
-		if(token->tokenSym != TOKEN_CLOSEVECTOR){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
-		}
-	}
-	else if(token->tokenSym != TOKEN_NULL){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
-	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'voiceFx' '=' ( 'null' | "filename" | '(' "filename"* ')' )
-qboolean CG_weapGfx_ParseVoiceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	int index = 0;
-	if(category != CAT_FLASH){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	memset(cg_weapGfxBuffer.voiceSound,0,MAX_QPATH * MAX_FLASH_VOICES);
-	if(token->tokenSym == TOKEN_STRING){
-		Q_strncpyz(cg_weapGfxBuffer.voiceSound[0],token->stringval,sizeof(cg_weapGfxBuffer.voiceSound[0]));
-	}
-	else if(token->tokenSym == TOKEN_OPENVECTOR){
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		while(token->tokenSym == TOKEN_STRING){
-			if(index >= MAX_FLASH_VOICES){
-				return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,va("%d",MAX_FLASH_VOICES));
-			}
-			Q_strncpyz(cg_weapGfxBuffer.voiceSound[index],token->stringval,sizeof(cg_weapGfxBuffer.voiceSound[index]));
-			index++;
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		}
-		if(token->tokenSym != TOKEN_CLOSEVECTOR){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
-		}
-	}
-	else if(token->tokenSym != TOKEN_NULL) {
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
-	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'loopFx' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseLoopFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	char* sound;
-	if(category == CAT_CHARGE){sound = cg_weapGfxBuffer.chargeLoopSound;}
-	else if(category == CAT_MISSILE){sound = cg_weapGfxBuffer.missileSound;}
-	else if(category == CAT_FLASH){sound = cg_weapGfxBuffer.firingSound;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
 	if(token->tokenSym == TOKEN_NULL){
 		*token->stringval = '\0';
 	}
 	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+		return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 	}
-	Q_strncpyz(sound,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
+	Q_strncpyz(field,token->stringval,MAX_QPATH);
+	return qtrue;
 }
-// Syntax: 'timedFx' '=' ( ( '(' ( <i> "filename" )* ')' ) | 'null' )
-qboolean CG_weapGfx_ParseTimedFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
+qboolean CG_weapGfx_ParseRange(cg_weapGfxParser_t* parser,void* field,int listLimit){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	int i=0;
-	if(category != CAT_CHARGE){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
+	float* start = field;
+	float* end = start + 1;
+	if(token->tokenSym == TOKEN_INTEGER || token->tokenSym == TOKEN_FLOAT){
+		qboolean result = CG_weapGfx_ParseFloat(parser,start,listLimit);
+		*end = *start;
+		return result;
 	}
-	memset(cg_weapGfxBuffer.chargeVoice,0,sizeof(chargeVoiceParseBuffer_t) * MAX_CHARGE_VOICES);
-	// Don't have to do anything but blank it out and advance the token, if 'null' was passed.
-	if(token->tokenSym == TOKEN_NULL){
-		return CG_weapGfx_CheckPrematureEOF(scanner,token);
+	if(token->tokenSym != TOKEN_OPENRANGE){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"[");
+	}
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	CG_weapGfx_ParseFloat(parser,start,listLimit);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	CG_weapGfx_ParseFloat(parser,end,listLimit);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	if(token->tokenSym != TOKEN_CLOSERANGE){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"]");
+	}
+	return qtrue;
+}
+qboolean CG_weapGfx_ParseVector(cg_weapGfxParser_t* parser,void* field,int listLimit){
+	cg_weapGfxScanner_t* scanner = &parser->scanner;
+	cg_weapGfxToken_t* token = &parser->token;
+	float* vector = field;
+	if(token->tokenSym != TOKEN_OPENVECTOR){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
+	}
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	CG_weapGfx_ParseFloat(parser,vector,listLimit);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	CG_weapGfx_ParseFloat(parser,vector+1,listLimit);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	CG_weapGfx_ParseFloat(parser,vector+2,listLimit);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	if(token->tokenSym != TOKEN_CLOSEVECTOR){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
+	}
+	return qtrue;
+}
+qboolean CG_weapGfx_ParseList(cg_weapGfxParser_t* parser,void* field,int listLimit){
+	cg_weapGfxScanner_t* scanner = &parser->scanner;
+	cg_weapGfxToken_t* token = &parser->token;
+	char* name = field;
+	int iteration = 0;
+	if(token->tokenSym == TOKEN_STRING){
+		return CG_weapGfx_ParseString(parser,name,listLimit);
 	}
 	if(token->tokenSym != TOKEN_OPENVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
 	}
-	if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-	while(token->tokenSym == TOKEN_INTEGER){
-		if(i >= MAX_CHARGE_VOICES){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,va("%d",MAX_CHARGE_VOICES));}
-		if(token->intval > 100){return CG_weapGfx_ErrorHandle(ERROR_OVER_MAXBOUND,scanner,token->stringval,"100");}
-		if(token->intval < 0){return CG_weapGfx_ErrorHandle(ERROR_UNDER_MINBOUND,scanner,token->stringval,"0");}
-		cg_weapGfxBuffer.chargeVoice[i].startPct = token->intval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	while(token->tokenSym == TOKEN_STRING){
+		if(iteration > listLimit-1){
+			return CG_weapGfx_Error(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,va("%d",listLimit));
 		}
-		Q_strncpyz(cg_weapGfxBuffer.chargeVoice[i].voice,token->stringval,sizeof(cg_weapGfxBuffer.chargeVoice[i].voice));
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		i++;
+		CG_weapGfx_ParseString(parser,name,listLimit);
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+		name += MAX_QPATH;
+		iteration += 1;
 	}
 	if(token->tokenSym != TOKEN_CLOSEVECTOR){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
 	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
+	return qtrue;
 }
-// Syntax: 'onceFx' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseOnceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
+qboolean CG_weapGfx_ParseTimed(cg_weapGfxParser_t* parser,void* field,int listLimit){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_FLASH){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
+	chargeVoiceParseBuffer_t* voice = field;
+	int iteration = 0;
+	if(token->tokenSym != TOKEN_OPENVECTOR){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"(");
 	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.flashOnceSound,token->stringval,sizeof(cg_weapGfxBuffer.flashOnceSound));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'duration' '=' <int>
-qboolean CG_weapGfx_ParseDuration(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_INTEGER){
-		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
-	}
-	cg_weapGfxBuffer.explosionTime = token->intval;
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'shockwave' '=' ( ("filename" "filename") | null )
-qboolean CG_weapGfx_ParseShockwave(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		Q_strncpyz(cg_weapGfxBuffer.shockwaveModel,"",sizeof(cg_weapGfxBuffer.shockwaveModel));
-		Q_strncpyz(cg_weapGfxBuffer.shockwaveSkin,"",sizeof(cg_weapGfxBuffer.shockwaveSkin));
-	}
-	else if(token->tokenSym == TOKEN_STRING){
-		Q_strncpyz(cg_weapGfxBuffer.shockwaveModel,token->stringval,sizeof(cg_weapGfxBuffer.shockwaveModel));
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+	if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+	while(token->tokenSym == TOKEN_INTEGER || token->tokenSym == TOKEN_FLOAT){
+		if(iteration > listLimit-1){
+			return CG_weapGfx_Error(ERROR_OVER_MAXVECTORELEMS,scanner,token->stringval,va("%d",listLimit));
 		}
-		Q_strncpyz(cg_weapGfxBuffer.shockwaveSkin,token->stringval,sizeof(cg_weapGfxBuffer.shockwaveSkin));
+		CG_weapGfx_ParseFloat(parser,&voice->startPct,listLimit);
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+		CG_weapGfx_ParseString(parser,&voice->voice,listLimit);
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+		voice += 1;
+		iteration += 1;
 	}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+	if(token->tokenSym != TOKEN_CLOSEVECTOR){
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,")");
 	}
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'markShader' '=' ( "filename" | null )
-qboolean CG_weapGfx_ParseMarkShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.markShader,token->stringval,sizeof(cg_weapGfxBuffer.markShader));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'markSize' '=' <int>
-qboolean CG_weapGfx_ParseMarkSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-		return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-	}
-	cg_weapGfxBuffer.markSize = token->floatval;
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'noRockDebris' '=' <int>
-qboolean CG_weapGfx_ParseRockDebris(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-		return CG_weapGfx_ErrorHandle(ERROR_FLOAT_EXPECTED,scanner,token->stringval,NULL);
-	}
-	cg_weapGfxBuffer.noRockDebris = token->intval;
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'smokeParticles' '=' "system name" | 'null'
-qboolean CG_weapGfx_ParseSmokeParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_EXPLOSION){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.smokeParticleSystem,token->stringval,sizeof(cg_weapGfxBuffer.smokeParticleSystem));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'loopParticles' '=' "system name" | 'null'
-qboolean CG_weapGfx_ParseLoopParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	char* systemField;
-	if(category == CAT_CHARGE){systemField = cg_weapGfxBuffer.chargeParticleSystem;}
-	else if(category == CAT_FLASH){systemField = cg_weapGfxBuffer.firingParticleSystem;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(systemField,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'particles' '=' "system name" | 'null'
-qboolean CG_weapGfx_ParseParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	char* systemField;
-	if(category == CAT_EXPLOSION){systemField = cg_weapGfxBuffer.explosionParticleSystem;}
-	else if(category == CAT_MISSILE){systemField = cg_weapGfxBuffer.missileParticleSystem;}
-	else if(category == CAT_FLASH){systemField = cg_weapGfxBuffer.flashParticleSystem;}
-	else{
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(systemField,token->stringval,MAX_QPATH);
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'spiralShader' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseSpiralShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_TRAIL){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.missileTrailSpiralShader,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'spiralSize' '=' (<int> | <float>)
-qboolean CG_weapGfx_ParseSpiralSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_TRAIL){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
-	}
-	cg_weapGfxBuffer.missileTrailSpiralRadius = token->floatval;
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'spiralOffset' '=' (<int> | <float>)
-qboolean CG_weapGfx_ParseSpiralOffset(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_TRAIL){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym != TOKEN_INTEGER && token->tokenSym != TOKEN_FLOAT){
-		return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
-	}
-	cg_weapGfxBuffer.missileTrailSpiralOffset = token->floatval;
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'icon' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseIcon(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_HUD){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.weaponIcon,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
-}
-// Syntax: 'displayName' '=' ( "filename" | 'null' )
-qboolean CG_weapGfx_ParseDisplayName(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field){
-	cg_weapGfxScanner_t* scanner = &parser->scanner;
-	cg_weapGfxToken_t* token = &parser->token;
-	if(category != CAT_HUD){
-		return CG_weapGfx_ErrorHandle(ERROR_FIELD_NOT_IN_CATEGORY,scanner,cg_weapGfxFields[field].fieldname,cg_weapGfxCategories[category]);
-	}
-	if(token->tokenSym == TOKEN_NULL){
-		*token->stringval = '\0';
-	}
-	else if(token->tokenSym != TOKEN_STRING){
-		return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
-	}
-	Q_strncpyz(cg_weapGfxBuffer.weaponName,token->stringval,sizeof(cg_weapGfxBuffer.missileTrailSpiralShader));
-	return CG_weapGfx_CheckPrematureEOF(scanner,token);
+	return qtrue;
 }
 //============================================
 // FIXED FUNCTIONS - Do not change the below.
@@ -729,23 +236,23 @@ static qboolean CG_weapGfx_ParseImports(cg_weapGfxParser_t* parser){
 	char refname[MAX_TOKENSTRING_LENGTH];
 	char filename[MAX_TOKENSTRING_LENGTH];
 	while(token->tokenSym == TOKEN_IMPORT){
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(refname,token->stringval,sizeof(refname));
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(filename,token->stringval,sizeof(filename));
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		if(!CG_weapGfx_AddImportRef(parser,refname,filename,token->stringval)){
 			return qfalse;
@@ -759,19 +266,23 @@ static qboolean CG_weapGfx_ParseImports(cg_weapGfxParser_t* parser){
 	}
 	return qtrue;
 }
-static qboolean CG_weapGfx_ParseFields(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category){
+static qboolean CG_weapGfx_ParseFields(cg_weapGfxParser_t* parser){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
 	while(token->tokenSym == TOKEN_FIELD){
-		int field = token->identifierIndex;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		int fieldIndex = token->identifierIndex;
+		cg_weapGfxCategory_t* category = &cg_weapGfxCategories[scanner->category];
+		cg_weapGfxField_t* field = &category->fields[fieldIndex];
+		if(!Q_stricmp(field->name,"")){
+			return CG_weapGfx_Error(ERROR_FIELD_NOT_IN_CATEGORY,scanner,token->stringval,category->name);
+		}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(!cg_weapGfxFields[field].parseFunc(parser,category,field)){
-			return qfalse;
-		}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+		if(!field->Parse(parser,field->field,field->listIterations)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 	}
 	return qtrue;
 }
@@ -780,22 +291,22 @@ static qboolean CG_weapGfx_ParseCategories(cg_weapGfxParser_t* parser){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
 	while(token->tokenSym == TOKEN_CATEGORY){
-		int currentCategory = token->identifierIndex;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_OPENBLOCK){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"{");
 		}
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-		if(!CG_weapGfx_ParseFields(parser,currentCategory)){
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_ParseFields(parser)){
 			return qfalse;
 		}
+		scanner->category = -1;
 		if(token->tokenSym != TOKEN_CLOSEBLOCK){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
 		}
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 	}
 	if(token->tokenSym != TOKEN_CLOSEBLOCK){
-		return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
+		return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"}");
 	}
 	if(cg_verboseParse.integer){
 		CG_Printf("Processed categories succesfully.\n");
@@ -823,27 +334,27 @@ static qboolean CG_weapGfx_PreParseDefinitions(cg_weapGfxParser_t* parser){
 		if(token->tokenSym == TOKEN_PUBLIC){accessLvl = LVL_PUBLIC;}
 		if(token->tokenSym == TOKEN_PROTECTED){accessLvl = LVL_PROTECTED;}
 		hasSuper = qfalse;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(refname,token->stringval,sizeof(refname));
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		// Are we deriving?
 		if(token->tokenSym == TOKEN_EQUALS){
 			hasSuper = qtrue;
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+			if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 			if(token->tokenSym != TOKEN_STRING){
-				return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+				return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 			}
 			if(!CG_weapGfx_FindDefinitionRef(parser,token->stringval)){
 				return qfalse;
 			}
 			Q_strncpyz(supername,token->stringval,sizeof(supername));
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+			if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		}
 		if(token->tokenSym != TOKEN_OPENBLOCK){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"{");
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"{");
 		}
 		blockCount = 1;
 		defpos = scanner->pos;
@@ -852,9 +363,12 @@ static qboolean CG_weapGfx_PreParseDefinitions(cg_weapGfxParser_t* parser){
 			return qfalse;
 		}
 		while(blockCount > 0){
-			if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
-			if(token->tokenSym == TOKEN_OPENBLOCK){blockCount++;}
-			if(token->tokenSym == TOKEN_CLOSEBLOCK){blockCount--;}
+			if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
+			if(token->tokenSym == TOKEN_OPENBLOCK){blockCount += 1;}
+			if(token->tokenSym == TOKEN_CLOSEBLOCK){
+				scanner->category = -1;
+				blockCount -= 1;
+			}
 		}
 		// NOTE: This makes sure we don't get an error if a file contains no weapon link
 		//       lines, but instead terminates after the definitions. This is what one
@@ -874,21 +388,21 @@ static qboolean CG_weapGfx_ParseLinks(cg_weapGfxParser_t* parser){
 	char pri_refname[MAX_TOKENSTRING_LENGTH];
 	char sec_refname[MAX_TOKENSTRING_LENGTH];
 	while(token->tokenSym == TOKEN_WEAPON){
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_INTEGER){
-			return CG_weapGfx_ErrorHandle(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_INTEGER_EXPECTED,scanner,token->stringval,NULL);
 		}
 		weaponNum = token->intval;
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_EQUALS){
-			return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
+			return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,"=");
 		}
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(token->tokenSym != TOKEN_STRING){
-			return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 		}
 		if(!CG_weapGfx_FindDefinitionRef(parser,token->stringval)){
-			return CG_weapGfx_ErrorHandle(ERROR_DEFINITION_UNDEFINED,scanner,token->stringval,NULL);
+			return CG_weapGfx_Error(ERROR_DEFINITION_UNDEFINED,scanner,token->stringval,NULL);
 		}
 		Q_strncpyz(pri_refname,token->stringval,sizeof(pri_refname));
 		// NOTE: This makes sure we don't get an error if the last link in the file contains
@@ -901,10 +415,10 @@ static qboolean CG_weapGfx_ParseLinks(cg_weapGfxParser_t* parser){
 				return qfalse;
 			}
 			if(token->tokenSym != TOKEN_STRING){
-				return CG_weapGfx_ErrorHandle(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
+				return CG_weapGfx_Error(ERROR_STRING_EXPECTED,scanner,token->stringval,NULL);
 			}
 			if(!CG_weapGfx_FindDefinitionRef(parser,token->stringval)){
-				return CG_weapGfx_ErrorHandle(ERROR_DEFINITION_UNDEFINED,scanner,token->stringval,NULL);
+				return CG_weapGfx_Error(ERROR_DEFINITION_UNDEFINED,scanner,token->stringval,NULL);
 			}
 			Q_strncpyz(sec_refname,token->stringval,sizeof(sec_refname));
 			// NOTE: This makes sure we don't get an error if this is the last link in the file.
@@ -925,7 +439,7 @@ static qboolean CG_weapGfx_IncreaseRecursionDepth(void){
 	if(cg_weapGfxRecursionDepth == MAX_RECURSION_DEPTH){
 		return qfalse;
 	}
-	cg_weapGfxRecursionDepth++;
+	cg_weapGfxRecursionDepth += 1;
 	return qtrue;
 }
 static void CG_weapGfx_DecreaseRecursionDepth(void){cg_weapGfxRecursionDepth--;}
@@ -953,13 +467,13 @@ qboolean CG_weapGfx_ParseRemoteDefinition(char* filename,char* refname){
 	// link definitions.
 	// NOTE: We don't really need to do this, but it does
 	//       ensure file structure.
-	if(token->tokenSym != TOKEN_EOF){return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);}
+	if(token->tokenSym != TOKEN_EOF){return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);}
 	// If we're dealing with a local definition in this file, then that definition
 	// MUST be public, since we're importing it to another file.
 	i = CG_weapGfx_FindDefinitionRef(&parser,refname) - 1;
 	if(i < MAX_DEFINES && parser.definitionRef[i].accessLvl != LVL_PUBLIC){
 		scanner->line = parser.definitionRef[i].scannerLine;
-		return CG_weapGfx_ErrorHandle(ERROR_IMPORTING_NON_PUBLIC,scanner,parser.definitionRef[i].refname,NULL);
+		return CG_weapGfx_Error(ERROR_IMPORTING_NON_PUBLIC,scanner,parser.definitionRef[i].refname,NULL);
 	}
 	return CG_weapGfx_ParseDefinition(&parser,refname,NULL);
 }
@@ -974,7 +488,7 @@ qboolean CG_weapGfx_ParseDefinition(cg_weapGfxParser_t* parser,char* refname,cg_
 		// local declaration
 		if(parser->definitionRef[i].hasSuper){
 			if(!CG_weapGfx_IncreaseRecursionDepth()){
-				return CG_weapGfx_ErrorHandle(ERROR_MAX_RECURSION,scanner,NULL,NULL);
+				return CG_weapGfx_Error(ERROR_MAX_RECURSION,scanner,NULL,NULL);
 			}
 			if(cg_verboseParse.integer){
 				CG_Printf("Inheriting superclass '%s'\n",parser->definitionRef[i].supername);
@@ -985,7 +499,7 @@ qboolean CG_weapGfx_ParseDefinition(cg_weapGfxParser_t* parser,char* refname,cg_
 			CG_weapGfx_DecreaseRecursionDepth();
 		}
 		if(lastAccessLvl == LVL_PRIVATE){
-			return CG_weapGfx_ErrorHandle(ERROR_INHERITING_PRIVATE,scanner,parser->definitionRef[i].supername,NULL);
+			return CG_weapGfx_Error(ERROR_INHERITING_PRIVATE,scanner,parser->definitionRef[i].supername,NULL);
 		}
 		// Reposition the lexical scanner
 		scanner->pos = parser->definitionRef[i].scannerPos;
@@ -994,12 +508,12 @@ qboolean CG_weapGfx_ParseDefinition(cg_weapGfxParser_t* parser,char* refname,cg_
 		if(accessLvl){
 			*accessLvl = parser->definitionRef[i].accessLvl;
 			if(*accessLvl < lastAccessLvl){
-				return CG_weapGfx_ErrorHandle(ERROR_OVERRIDING_WITH_HIGHER_ACCESS,scanner,parser->definitionRef[i].refname,NULL);
+				return CG_weapGfx_Error(ERROR_OVERRIDING_WITH_HIGHER_ACCESS,scanner,parser->definitionRef[i].refname,NULL);
 			}
 		}
 		// Skip the '{' opening brace of the definition block, and align to the first real
 		// symbol in the block.
-		if(!CG_weapGfx_CheckPrematureEOF(scanner,token)){return qfalse;}
+		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(!CG_weapGfx_ParseCategories(parser)){return qfalse;}
 	}
 	else{
@@ -1008,7 +522,7 @@ qboolean CG_weapGfx_ParseDefinition(cg_weapGfxParser_t* parser,char* refname,cg_
 		// an imported and a local definition.
 		i -= MAX_DEFINES;
 		if(!CG_weapGfx_IncreaseRecursionDepth()){
-			return CG_weapGfx_ErrorHandle(ERROR_MAX_RECURSION,scanner,NULL,NULL);
+			return CG_weapGfx_Error(ERROR_MAX_RECURSION,scanner,NULL,NULL);
 		}
 		if(cg_verboseParse.integer) {
 			CG_Printf("Importing '%s'\n",refname);
@@ -1030,6 +544,7 @@ qboolean CG_weapGfx_Parse(char* filename,int clientNum){
 	scanner = &parser.scanner;
 	token = &parser.token;
 	cg_weapGfxRecursionDepth = 0;
+	scanner->category = -1;
 	CG_weapGfx_LoadFile(scanner,filename);
 	// Get the very first token initialized. If
 	// it is an end of file token, we will not parse
@@ -1040,7 +555,7 @@ qboolean CG_weapGfx_Parse(char* filename,int clientNum){
 	if(!CG_weapGfx_ParseLinks(&parser)){return qfalse;}
 	// Respond with an error if something is trailing the
 	// link definitions.
-	if(token->tokenSym != TOKEN_EOF){return CG_weapGfx_ErrorHandle(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);}
+	if(token->tokenSym != TOKEN_EOF){return CG_weapGfx_Error(ERROR_UNEXPECTED_SYMBOL,scanner,token->stringval,NULL);}
 	for(i=0;i<MAX_LINKS;i++){
 		if(!parser.linkRef[i].active){continue;}
 		memset(&cg_weapGfxBuffer,0,sizeof(cg_weapGfxBuffer));

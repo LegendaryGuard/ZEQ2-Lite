@@ -660,12 +660,12 @@ static void CG_Missile( centity_t *cent ) {
 	// Obtain the scale the missile must have.
 	if (weaponGraphics->chargeGrowth) {
 		// below the start, we use the lowest form
-		if (weaponGraphics->chargeStartPct >= missileChargeLvl) {
-			missileScale = weaponGraphics->chargeStartsize;
+		if (weaponGraphics->chargePercentRange[0] >= missileChargeLvl) {
+			missileScale = weaponGraphics->chargeSizeRange[0];
 		} else {
 			// above the end, we use the highest form
-			if (weaponGraphics->chargeEndPct <= missileChargeLvl) {
-				missileScale = weaponGraphics->chargeEndsize;
+			if (weaponGraphics->chargePercentRange[1] <= missileChargeLvl) {
+				missileScale = weaponGraphics->chargeSizeRange[1];
 			} else {
 				float	PctRange;
 				float	PctVal;
@@ -673,12 +673,12 @@ static void CG_Missile( centity_t *cent ) {
 				float	SizeVal;
 
 				// inbetween, we work out the value
-				PctRange = weaponGraphics->chargeEndPct - weaponGraphics->chargeStartPct;
-				PctVal = missileChargeLvl - weaponGraphics->chargeStartPct;
+				PctRange = weaponGraphics->chargePercentRange[1] - weaponGraphics->chargePercentRange[0];
+				PctVal = missileChargeLvl - weaponGraphics->chargePercentRange[0];
 
-				SizeRange = weaponGraphics->chargeEndsize - weaponGraphics->chargeStartsize;
+				SizeRange = weaponGraphics->chargeSizeRange[1] - weaponGraphics->chargeSizeRange[0];
 				SizeVal = (PctVal / PctRange) * SizeRange;
-				missileScale = SizeVal + weaponGraphics->chargeStartsize;
+				missileScale = SizeVal + weaponGraphics->chargeSizeRange[0];
 			}
 		}
 	} else {

@@ -1,21 +1,17 @@
 #define MAX_CHARGES 2
-#define MAX_TAGNAME 20
-#define MAX_WEAPONNAME 40
 #define MAX_CHARGE_VOICES 6
 #define MAX_FLASH_VOICES 4
 #define MAX_FLASH_SOUNDS 4
 #define MAX_EXPLOSION_SOUNDS 4
-typedef struct {
+typedef struct{
 	sfxHandle_t		voice;
 	float			startPct;
 } chargeVoice_t;
-
-
 // NOTE: In cg_userWeapon_t the trailFunc and particleFuncs have an int
 //       for an argument to make sure things compile. (centity_t* is unknown
 //       at this point.) So, we pass the clientside entity number to the function,
 //       then retrieve a pointer to work with in there.
-typedef struct {
+typedef struct{
 	//lerpFrame		chargeAnimation,flashAnimation,missileAnimation,explosionAnimation,shockwaveAnimation;
 	// CHARGING
 	qhandle_t		chargeModel;			// charge model's .md3 file
@@ -23,20 +19,12 @@ typedef struct {
 	qhandle_t		chargeShader;			// charge model's shader (for sprites only!)
 	vec3_t			chargeSpin;				// spin the model during the charge?
 	qboolean		chargeGrowth;			// does the charge grow over time?
-	int				chargeEndPct;			// percentage at which growth stops
-	int				chargeStartPct;			// percentage at which charge becomes visible
-											// and growth starts	
-	float			chargeEndsize;			// ending size for growing attacks
-	float			chargeStartsize;		// starting size for growing attacks, just size
-											// for non-growing
-	float			chargeDlightStartRadius;// radius of light and starting radius
-	float			chargeDlightEndRadius;	// ending radius of light
+	vec2_t			chargePercentRange;		// [0] charge becomes visible and growth starts [1] growth stops
+	vec2_t			chargeSizeRange;		// [0] starting size for growing attacks, just size for non-growing [1] ending size for growing attacks
+	vec2_t			chargeDlightRadiusRange;// [0] radius of light and starting radius [1] ending radius of light
 	vec3_t			chargeDlightColor;		// color of light
-	char			chargeTag[MAX_CHARGES][MAX_TAGNAME];
-											// the names of the player model tags on which to
-											// place an instance of the charge
-	chargeVoice_t	chargeVoice[MAX_CHARGE_VOICES];
-											// voice samples played back when charging
+	char			chargeTag[MAX_CHARGES][MAX_QPATH];// the names of the player model tags on which to place an instance of the charge
+	chargeVoice_t	chargeVoice[MAX_CHARGE_VOICES];// voice samples played back when charging
 	sfxHandle_t		chargeLoopSound;		// sound played while charging
 	char			chargeParticleSystem[MAX_QPATH];
 	// FLASH
@@ -46,12 +34,9 @@ typedef struct {
 	float			flashSize;				// If the weapon was charged, multiply with chargeSize;
 	float			flashDlightRadius;		// radius of light
 	vec3_t			flashDlightColor;		// color of light
-	sfxHandle_t		flashSound[MAX_FLASH_SOUNDS];			// if more than one is specified, a random one	
-											// is chosen. (Breaks repetitiveness for
-											// fastfiring weapons)
+	sfxHandle_t		flashSound[MAX_FLASH_SOUNDS];// if more than one is specified, a random one	is chosen. (Breaks repetitiveness for fastfiring weapons)
 	sfxHandle_t		voiceSound[MAX_FLASH_VOICES];
-	sfxHandle_t		flashOnceSound;			// Played only at the start of a firing session, instead
-											// of with each projectile. Resets when attack button comes up.
+	sfxHandle_t		flashOnceSound;			// Played only at the start of a firing session, instead of with each projectile. Resets when attack button comes up.
 	sfxHandle_t		firingSound;			// When doing a sustained blast
 	char			flashParticleSystem[MAX_QPATH];
 	char			firingParticleSystem[MAX_QPATH];
@@ -87,137 +72,87 @@ typedef struct {
 	char			explosionParticleSystem[MAX_QPATH];
 	char			smokeParticleSystem[MAX_QPATH];
 	qhandle_t		markShader;
-	qhandle_t		markSize;
+	float			markSize;
 	qboolean		noRockDebris;
-
-	sfxHandle_t		explosionSound[MAX_EXPLOSION_SOUNDS];		// if more than one is specified, a random one	
-											// is chosen. (Breaks repetitiveness for
-											// fastfiring weapons)
+	sfxHandle_t		explosionSound[MAX_EXPLOSION_SOUNDS];// if more than one is specified, a random one	is chosen. (Breaks repetitiveness for fastfiring weapons)
 	// HUD
 	qhandle_t		weaponIcon;
-	char			weaponName[MAX_WEAPONNAME];			
-
-} cg_userWeapon_t;
-
-cg_userWeapon_t *CG_FindUserWeaponGraphics( int clientNum, int index );
-void CG_CopyUserWeaponGraphics( int from, int to );
-
-
+	char			weaponName[MAX_QPATH];		
+}cg_userWeapon_t;
+cg_userWeapon_t *CG_FindUserWeaponGraphics(int clientNum,int index);
+void CG_CopyUserWeaponGraphics(int from,int to);
 // cg_userWeaponParseBuffer is used by cg_weapGfxParser.
 // Instead of qhandle_t, we will store filenames as char[].
 // This means we won't have to cache models and sounds that
-// will be overrided in inheritance.
-
-typedef struct {
+// will be overridden in inheritance.
+typedef struct{
 	char			voice[MAX_QPATH];
 	float			startPct;
-} chargeVoiceParseBuffer_t;
-
+}chargeVoiceParseBuffer_t;
 typedef struct {
-
 	// CHARGING
 	char			chargeModel[MAX_QPATH];	// charge model's .md3 file
 	char			chargeSkin[MAX_QPATH];	// charge model's .skin file
 	char			chargeShader[MAX_QPATH];// charge model's shader (for sprites only!)
-
 	vec3_t			chargeSpin;
-	
 	qboolean		chargeGrowth;			// does the charge grow over time?
-	int				chargeEndPct;			// percentage at which growth stops
-	int				chargeStartPct;			// percentage at which charge becomes visible
-											// and growth starts	
-	float			chargeEndsize;			// ending size for growing attacks
-	float			chargeStartsize;		// starting size for growing attacks, just size
-											// for non-growing
-	
-	float			chargeDlightStartRadius;// radius of light and starting radius
-	float			chargeDlightEndRadius;	// ending radius of light
+	vec2_t			chargePercentRange;		// [0] charge becomes visible and growth starts [1] growth stops
+	vec2_t			chargeSizeRange;		// [0] starting size for growing attacks, just size for non-growing [1] ending size for growing attacks
+	vec2_t			chargeDlightRadiusRange;// [0] radius of light and starting radius [1] ending radius of light
 	vec3_t			chargeDlightColor;		// color of light
-
-	char			chargeTag[MAX_CHARGES][MAX_TAGNAME];
-											// the names of the player model tags on which to
-											// place an instance of the charge
-	
-	chargeVoiceParseBuffer_t	chargeVoice[MAX_CHARGE_VOICES];
-											// voice samples played back when charging
-	char			chargeLoopSound[MAX_QPATH];	// sound played while charging
+	char			chargeTag[MAX_CHARGES][MAX_QPATH];// the names of the player model tags on which to place an instance of the charge
+	chargeVoiceParseBuffer_t	chargeVoice[MAX_CHARGE_VOICES];// voice samples played back when charging
+	char			chargeLoopSound[MAX_QPATH];// sound played while charging
 	char			chargeParticleSystem[MAX_QPATH];
-
-		
 	// FLASH
 	char			flashModel[MAX_QPATH];	// flash model's .md3 file
 	char			flashSkin[MAX_QPATH];	// flash model's .skin file
 	char			flashShader[MAX_QPATH];	// flash model's shader (for sprites only!) 
-
 	float			flashSize;				// If the weapon was charged, multiply with chargeSize;
-	
 	float			flashDlightRadius;		// radius of light
 	vec3_t			flashDlightColor;		// color of light
-	
-	char			flashSound[MAX_FLASH_SOUNDS][MAX_QPATH];	// if more than one is specified, a random one	
-												// is chosen. (Breaks repetitiveness for
-												// fastfiring weapons)
+	char			flashSound[MAX_FLASH_SOUNDS][MAX_QPATH];// if more than one is specified, a random one	is chosen. (Breaks repetitiveness for fastfiring weapons)
 	char			voiceSound[MAX_FLASH_VOICES][MAX_QPATH];
-	char			flashOnceSound[MAX_QPATH];	// Played only at the start of a firing session, instead
-												// of with each projectile. Resets when attack button comes up.
-	char			firingSound[MAX_QPATH];		// When doing a sustained blast
-
+	char			flashOnceSound[MAX_QPATH];// Played only at the start of a firing session, instead of with each projectile. Resets when attack button comes up.
+	char			firingSound[MAX_QPATH];	// When doing a sustained blast
 	char			flashParticleSystem[MAX_QPATH];
 	char			firingParticleSystem[MAX_QPATH];
-
 	// MISSILE
 	char			missileModel[MAX_QPATH];
 	char			missileSkin[MAX_QPATH];
 	char			missileShader[MAX_QPATH];
-
 	// MISSILE STRUGGLE
 	char			missileStruggleModel[MAX_QPATH];
 	char			missileStruggleSkin[MAX_QPATH];
 	char			missileStruggleShader[MAX_QPATH];
-
 	float			missileSize;			// If the weapon was charged, multiply with chargeSize;
-	
 	vec3_t			missileSpin;			// Spin the missile during flight
-	
 	float			missileDlightRadius;
 	vec3_t			missileDlightColor;
-	
 	float			missileTrailRadius;
 	char			missileTrailShader[MAX_QPATH];
 	char			missileTrailSpiralShader[MAX_QPATH];
 	float			missileTrailSpiralRadius;
 	float			missileTrailSpiralOffset;
-
 	char			missileParticleSystem[MAX_QPATH];
-
 	char			missileSound[MAX_QPATH];
-	
-
 	// EXPLOSION / SHIELD
 	char			explosionModel[MAX_QPATH];
 	char			explosionSkin[MAX_QPATH];
 	char			explosionShader[MAX_QPATH];
 	int				explosionTime;
-
 	float			explosionSize;			// If the weapon was charged, multiply with chargeSize;
-
 	float			explosionDlightRadius;
 	vec3_t			explosionDlightColor;
-
 	char			shockwaveModel[MAX_QPATH];
 	char			shockwaveSkin[MAX_QPATH];
-
 	char			explosionParticleSystem[MAX_QPATH];
 	char			smokeParticleSystem[MAX_QPATH];
 	char			markShader[MAX_QPATH];
-	qhandle_t		markSize;
+	float			markSize;
 	qboolean		noRockDebris;
-
-	char			explosionSound[MAX_EXPLOSION_SOUNDS][MAX_QPATH];	// if more than one is specified, a random one	
-													// is chosen. (Breaks repetitiveness for
-													// fastfiring weapons)
+	char			explosionSound[MAX_EXPLOSION_SOUNDS][MAX_QPATH];// if more than one is specified, a random one is chosen. (Breaks repetitiveness for fastfiring weapons)
 	// HUD
 	char			weaponIcon[MAX_QPATH];
-	char			weaponName[MAX_WEAPONNAME];			
-
+	char			weaponName[MAX_QPATH];
 } cg_userWeaponParseBuffer_t;

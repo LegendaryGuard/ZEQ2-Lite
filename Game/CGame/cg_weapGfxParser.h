@@ -65,6 +65,15 @@ typedef enum {
 	ERROR_IMPORTING_NON_PUBLIC,
 	ERROR_OVERRIDING_WITH_HIGHER_ACCESS
 } cg_weapGfxError_t;
+typedef enum{
+	CAT_CHARGE,
+	CAT_FLASH,
+	CAT_TRAIL,
+	CAT_MISSILE,
+	CAT_STRUGGLE,
+	CAT_EXPLOSION,
+	CAT_HUD
+}cg_weapGfxCategoryIndex_t;
 // --< Storage structures >--
 typedef struct{
 	int tokenSym;
@@ -75,6 +84,7 @@ typedef struct{
 }cg_weapGfxToken_t;
 typedef struct{
 	char script[MAX_SCRIPT_LENGTH];
+	cg_weapGfxCategoryIndex_t category;
 	int line;
 	char* pos;
 	char filename[MAX_QPATH];
@@ -107,60 +117,42 @@ typedef struct{
 	cg_weapGfxDefinitionRef_t definitionRef[MAX_DEFINES];
 	cg_weapGfxLinkRef_t linkRef[MAX_LINKS];
 }cg_weapGfxParser_t;
-typedef enum{
-	CAT_CHARGE,
-	CAT_EXPLOSION,
-	CAT_STRUGGLE,
-	CAT_MISSILE,
-	CAT_FLASH,
-	CAT_TRAIL,
-	CAT_HUD
-}cg_weapGfxCategoryIndex_t;
 // Prototype these so definition of cg_weapGfxFields doesn't complain
-qboolean CG_weapGfx_ParseModel(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSkin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseAnimationRange(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseDlight(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSpin(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseTagTo(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSoundFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseVoiceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseLoopFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseTimedFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseOnceFx(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseDuration(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseShockwave(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseMarkShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseMarkSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseRockDebris(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseLoopParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSmokeParticles(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSpiralShader(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSpiralSize(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseSpiralOffset(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseIcon(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseDisplayName(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
-qboolean CG_weapGfx_ParseDummy(cg_weapGfxParser_t* parser,cg_weapGfxCategoryIndex_t category,int field);
+qboolean CG_weapGfx_ParseDummy(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseInt(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseFloat(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseString(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseRange(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseVector(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseList(cg_weapGfxParser_t* parser,void* field,int listLimit);
+qboolean CG_weapGfx_ParseTimed(cg_weapGfxParser_t* parser,void* field,int listLimit);
 typedef struct{
-	char* fieldname;
-	qboolean (*parseFunc)(cg_weapGfxParser_t*,cg_weapGfxCategoryIndex_t,int);
+	char* name;
+	void* field;
+	qboolean (*Parse)(cg_weapGfxParser_t*,void*,int);
+	int listIterations;
 }cg_weapGfxField_t;
+typedef struct{
+	char* name;
+	cg_weapGfxField_t* fields;
+}cg_weapGfxCategory_t;
+typedef struct{
+	char* symbol;
+	int tokenType;
+}cg_weapGfxSyntax_t;
 // --< Shared variables (located in cg_weapGfxScanner.c) >--
-extern cg_weapGfxField_t cg_weapGfxFields[];
-extern char* cg_weapGfxCategories[];
+extern cg_userWeaponParseBuffer_t cg_weapGfxBuffer;
+extern cg_weapGfxCategory_t cg_weapGfxCategories[];
 // --< Accesible functions >--
 // -Lexical Scanner-
 qboolean CG_weapGfx_NextSym(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* token);
 qboolean CG_weapGfx_LoadFile(cg_weapGfxScanner_t* scanner,char* filename);
 // -Token Parser-
-qboolean CG_weapGfx_ErrorHandle(cg_weapGfxError_t errorNr,cg_weapGfxScanner_t* scanner,char* string1,char* string2);
+qboolean CG_weapGfx_Error(cg_weapGfxError_t errorNr,cg_weapGfxScanner_t* scanner,char* string1,char* string2);
 // -Attribute Evaluator-
 int CG_weapGfx_FindImportRef(cg_weapGfxParser_t* parser,char* refname);
 int CG_weapGfx_FindDefinitionRef(cg_weapGfxParser_t* parser,char* refname);
 qboolean CG_weapGfx_AddImportRef(cg_weapGfxParser_t* parser,char* refname,char* filename,char* defname);
 qboolean CG_weapGfx_AddDefinitionRef(cg_weapGfxParser_t* parser,char* refname,char* pos,int line,cg_weapGfxAccessLvls_t accessLvl,qboolean hasSuper,char* supername);
 qboolean CG_weapGfx_AddLinkRef(cg_weapGfxParser_t* parser,int index,char* pri_refname,char* sec_refname);
-qboolean CG_weapGfx_CheckPrematureEOF(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* token);
+qboolean CG_weapGfx_Scan(cg_weapGfxScanner_t* scanner,cg_weapGfxToken_t* token);
