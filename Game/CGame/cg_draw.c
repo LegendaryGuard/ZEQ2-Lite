@@ -507,37 +507,44 @@ static float CG_DrawSnapshot( float y ) {
 CG_DrawFPS
 ==================
 */
-#define	FPS_FRAMES	16
-static float CG_DrawFPS( float y ) {
-	char		*s;
-	int			w;
-	static int	previousTimes[FPS_FRAMES];
-	static int	index;
-	int			i, total;
-	int			fps;
-	static	int	previous, lastupdate;
-	int			t, frameTime;
-	const int	xOffset = 0;
-	t = trap_Milliseconds();
-	frameTime = t - previous;
-	previous = t;
-	if (t - lastupdate > 50){
-		lastupdate = t;
-		previousTimes[index % FPS_FRAMES] = frameTime;
-		index++;
+#define FPS_CRITICAL 30
+#define FPS_LOW 60
+static float CG_DrawFPS(float y) {
+	static int count = 0;
+	static int nextUpdate = 0;
+	static int previousCount = 0;
+	char* color = "^7";
+	char* displayString;
+	int width;
+	int currentTime = trap_Milliseconds();
+	if(previousCount < FPS_LOW){color = "^3";}
+	if(previousCount < FPS_CRITICAL){color = "^1";}
+	displayString = va("%sFrame Rate: %ifps",color,previousCount);
+	width = CG_DrawStrlen(displayString) * SMALLCHAR_WIDTH;
+	CG_DrawSmallString(635 - width,y + 2,displayString,1.0f);
+	count += 1;
+	if(currentTime >= nextUpdate){
+		nextUpdate = currentTime + 1000;
+		previousCount = count;
+		count = 0;
 	}
-	total = 0;
-	for(i = 0 ; i < FPS_FRAMES ; i++){
-		total += previousTimes[i];
-	}
-	if(!total){total = 1;}
-	fps = 1000 * FPS_FRAMES / total;
-	s = va( "%ifps", fps );
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
-	return y + BIGCHAR_HEIGHT + 4;
+	return y + SMALLCHAR_HEIGHT + 4;
 }
-
+static float CG_DrawFrameTime(float y){
+	static int previousFrame = 0;
+	int currentTime = trap_Milliseconds();
+	int frameTime = currentTime - previousFrame;
+	int width;
+	char* color = "^7";
+	char* displayString;
+	if(frameTime >= 1.0f / FPS_LOW * 1000){color = "^3";}
+	if(frameTime >= 1.0f / FPS_CRITICAL * 1000){color = "^1";}
+	displayString = va("%sFrame Time: %ims",color,frameTime);
+	width = CG_DrawStrlen(displayString) * SMALLCHAR_WIDTH;
+	CG_DrawSmallString(635 - width,y + 2,displayString,1.0f);
+	previousFrame = currentTime;
+	return y + SMALLCHAR_HEIGHT + 4;
+}
 /*=================
 CG_DrawTimer
 =================*/
@@ -577,6 +584,9 @@ static void CG_DrawUpperRight( void ) {
 	}
 	if ( cg_drawFPS.integer ) {
 		y = CG_DrawFPS( y );
+	}
+	if ( cg_drawFrameTime.integer ) {
+		y = CG_DrawFrameTime( y );
 	}
 	if ( cg_drawTimer.integer ) {
 		y = CG_DrawTimer( y );
