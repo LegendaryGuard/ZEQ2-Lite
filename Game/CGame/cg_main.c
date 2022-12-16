@@ -88,6 +88,7 @@ vmCvar_t	cg_shadows;
 vmCvar_t	cg_gibs;
 vmCvar_t	cg_drawTimer;
 vmCvar_t	cg_drawFPS;
+vmCvar_t	cg_drawFrameTime;
 vmCvar_t	cg_drawSnapshot;
 vmCvar_t	cg_draw3dIcons;
 vmCvar_t	cg_drawIcons;
@@ -207,6 +208,7 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_drawStatus, "cg_drawStatus", "1", CVAR_ARCHIVE  },
 	{ &cg_drawTimer, "cg_drawTimer", "0", CVAR_ARCHIVE  },
 	{ &cg_drawFPS, "cg_drawFPS", "0", CVAR_ARCHIVE  },
+	{ &cg_drawFrameTime, "cg_drawFrameTime", "0", CVAR_ARCHIVE  },
 	{ &cg_drawSnapshot, "cg_drawSnapshot", "0", CVAR_ARCHIVE  },
 	{ &cg_draw3dIcons, "cg_draw3dIcons", "1", CVAR_ARCHIVE  },
 	{ &cg_advancedFlight, "cg_advancedFlight", "0", CVAR_USERINFO |CVAR_ARCHIVE  },
