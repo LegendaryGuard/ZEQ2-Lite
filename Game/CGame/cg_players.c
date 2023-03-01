@@ -48,6 +48,7 @@ char	*cg_customSoundNames[MAX_CUSTOM_SOUNDS] = {
 //       WTF is up with this stupid bug anyway?! Same thing happened when adding
 //       certain fields to centity_t...
 static playerEntity_t	playerInfoDuplicate[MAX_GENTITIES];
+
 /*================
 CG_CustomSound
 ================*/
@@ -993,6 +994,11 @@ void CG_Player( centity_t *cent ) {
 	head.hModel = ci->tierConfig[tier].headModelDamaged[damageModelState];
 	head.customSkin = ci->tierConfig[tier].headSkinDamaged[damageTextureState];
 	if(!head.hModel){return;}
+	if( cent->currentState.number == ps->clientNum	// no head model display on first person mode
+		&& !(cent->currentState.eFlags & EF_DEAD)
+		&& cg_thirdPersonCamera.integer < 1 ) {
+			head.hModel = 0;		
+	}
 	VectorCopy( cent->lerpOrigin, head.lightingOrigin );
 	CG_PositionRotatedEntityOnTag( &head, &torso, torso.hModel, "tag_head");
 	head.shadowPlane = shadowPlane;
@@ -1048,27 +1054,15 @@ void CG_Player( centity_t *cent ) {
 	if(ci->auraConfig[tier]->showLightning && ps->bitFlags & usingMelee){CG_BigLightningEffect(cent->lerpOrigin);}
 }
 qboolean CG_GetTagOrientationFromPlayerEntityHeadModel( centity_t *cent, char *tagName, orientation_t *tagOrient ) {
-	int				i, clientNum;
+	int				i;
 	orientation_t	lerped;
 	vec3_t			tempAxis[3];
 	playerEntity_t	*pe;
 	if(cent->currentState.eType != ET_PLAYER || !tagName[0]){return qfalse;}
-	// The client number is stored in clientNum.  It can't be derived
-	// from the entity number, because a single client may have
-	// multiple corpses on the level using the same clientinfo
-	clientNum = cent->currentState.clientNum;
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		CG_Error( "Bad clientNum on player entity" );
-	}
-	// It is possible to see corpses from disconnected players that may
-	// not have valid clientinfo
-	if ( !cgs.clientinfo[clientNum].infoValid ) {
-		return qfalse;
-	}
 	// HACK: Use this copy, which is sure to be stored correctly, unlike
 	//       reading it from cg_entities, which tends to clear out its
 	//       fields every now and then. WTF?!
-	pe = &playerInfoDuplicate[clientNum];
+	pe = &playerInfoDuplicate[cent->currentState.clientNum];
 	// Prepare the destination orientation_t
 	AxisClear( tagOrient->axis );
 	// Try to find the tag and return its coordinates
@@ -1085,27 +1079,15 @@ qboolean CG_GetTagOrientationFromPlayerEntityHeadModel( centity_t *cent, char *t
 }
 
 qboolean CG_GetTagOrientationFromPlayerEntityTorsoModel( centity_t *cent, char *tagName, orientation_t *tagOrient ) {
-	int				i, clientNum;
+	int				i;
 	orientation_t	lerped;
 	vec3_t			tempAxis[3];
 	playerEntity_t	*pe;
 	if(cent->currentState.eType != ET_PLAYER || !tagName[0]){return qfalse;}
-	// The client number is stored in clientNum.  It can't be derived
-	// from the entity number, because a single client may have
-	// multiple corpses on the level using the same clientinfo
-	clientNum = cent->currentState.clientNum;
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		CG_Error( "Bad clientNum on player entity" );
-	}
-	// It is possible to see corpses from disconnected players that may
-	// not have valid clientinfo
-	if ( !cgs.clientinfo[clientNum].infoValid ) {
-		return qfalse;
-	}
 	// HACK: Use this copy, which is sure to be stored correctly, unlike
 	//       reading it from cg_entities, which tends to clear out its
 	//       fields every now and then. WTF?!
-	pe = &playerInfoDuplicate[clientNum];
+	pe = &playerInfoDuplicate[cent->currentState.clientNum];
 	// Prepare the destination orientation_t
 	AxisClear( tagOrient->axis );
 	// Try to find the tag and return its coordinates
@@ -1142,27 +1124,15 @@ qboolean CG_GetTagOrientationFromPlayerEntityTorsoModel( centity_t *cent, char *
 }
 
 qboolean CG_GetTagOrientationFromPlayerEntityLegsModel( centity_t *cent, char *tagName, orientation_t *tagOrient ) {
-	int				i, clientNum;
+	int				i;
 	orientation_t	lerped;
 	vec3_t			tempAxis[3];
 	playerEntity_t	*pe;
 	if(cent->currentState.eType != ET_PLAYER || !tagName[0]){return qfalse;}
-	// The client number is stored in clientNum.  It can't be derived
-	// from the entity number, because a single client may have
-	// multiple corpses on the level using the same clientinfo
-	clientNum = cent->currentState.clientNum;
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		CG_Error( "Bad clientNum on player entity" );
-	}
-	// It is possible to see corpses from disconnected players that may
-	// not have valid clientinfo
-	if ( !cgs.clientinfo[clientNum].infoValid ) {
-		return qfalse;
-	}
 	// HACK: Use this copy, which is sure to be stored correctly, unlike
 	//       reading it from cg_entities, which tends to clear out its
 	//       fields every now and then. WTF?!
-	pe = &playerInfoDuplicate[clientNum];
+	pe = &playerInfoDuplicate[cent->currentState.clientNum];
 	// Prepare the destination orientation_t
 	AxisClear( tagOrient->axis );
 	// Try to find the tag and return its coordinates
@@ -1198,27 +1168,15 @@ qboolean CG_GetTagOrientationFromPlayerEntityLegsModel( centity_t *cent, char *t
 }
 
 qboolean CG_GetTagOrientationFromPlayerEntityCameraModel( centity_t *cent, char *tagName, orientation_t *tagOrient ) {
-	int				i, clientNum;
+	int				i;
 	orientation_t	lerped;
 	vec3_t			tempAxis[3];
 	playerEntity_t	*pe;
 	if(cent->currentState.eType != ET_PLAYER || !tagName[0]){return qfalse;}
-	// The client number is stored in clientNum.  It can't be derived
-	// from the entity number, because a single client may have
-	// multiple corpses on the level using the same clientinfo
-	clientNum = cent->currentState.clientNum;
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		CG_Error( "Bad clientNum on player entity" );
-	}
-	// It is possible to see corpses from disconnected players that may
-	// not have valid clientinfo
-	if ( !cgs.clientinfo[clientNum].infoValid ) {
-		return qfalse;
-	}
 	// HACK: Use this copy, which is sure to be stored correctly, unlike
 	//       reading it from cg_entities, which tends to clear out its
 	//       fields every now and then. WTF?!
-	pe = &playerInfoDuplicate[clientNum];
+	pe = &playerInfoDuplicate[cent->currentState.clientNum];
 	// Prepare the destination orientation_t
 	AxisClear( tagOrient->axis );
 	// Try to find the tag and return its coordinates
