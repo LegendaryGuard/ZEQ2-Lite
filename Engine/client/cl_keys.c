@@ -177,7 +177,7 @@ keyname_t keynames[] =
 
 	{"PAUSE", K_PAUSE},
 	
-	{"SEMICOLON", ';'},	// because a raw semicolon seperates commands
+	{"SEMICOLON", ';'},	// because a raw semicolon separates commands
 
 	{"WORLD_0", K_WORLD_0},
 	{"WORLD_1", K_WORLD_1},
@@ -288,6 +288,40 @@ keyname_t keynames[] =
 	{"POWER", K_POWER},
 	{"EURO", K_EURO},
 	{"UNDO", K_UNDO},
+
+	{"PAD0_A", K_PAD0_A },
+	{"PAD0_B", K_PAD0_B },
+	{"PAD0_X", K_PAD0_X },
+	{"PAD0_Y", K_PAD0_Y },
+	{"PAD0_BACK", K_PAD0_BACK },
+	{"PAD0_GUIDE", K_PAD0_GUIDE },
+	{"PAD0_START", K_PAD0_START },
+	{"PAD0_LEFTSTICK_CLICK", K_PAD0_LEFTSTICK_CLICK },
+	{"PAD0_RIGHTSTICK_CLICK", K_PAD0_RIGHTSTICK_CLICK },
+	{"PAD0_LEFTSHOULDER", K_PAD0_LEFTSHOULDER },
+	{"PAD0_RIGHTSHOULDER", K_PAD0_RIGHTSHOULDER },
+	{"PAD0_DPAD_UP", K_PAD0_DPAD_UP },
+	{"PAD0_DPAD_DOWN", K_PAD0_DPAD_DOWN },
+	{"PAD0_DPAD_LEFT", K_PAD0_DPAD_LEFT },
+	{"PAD0_DPAD_RIGHT", K_PAD0_DPAD_RIGHT },
+
+	{"PAD0_LEFTSTICK_LEFT", K_PAD0_LEFTSTICK_LEFT },
+	{"PAD0_LEFTSTICK_RIGHT", K_PAD0_LEFTSTICK_RIGHT },
+	{"PAD0_LEFTSTICK_UP", K_PAD0_LEFTSTICK_UP },
+	{"PAD0_LEFTSTICK_DOWN", K_PAD0_LEFTSTICK_DOWN },
+	{"PAD0_RIGHTSTICK_LEFT", K_PAD0_RIGHTSTICK_LEFT },
+	{"PAD0_RIGHTSTICK_RIGHT", K_PAD0_RIGHTSTICK_RIGHT },
+	{"PAD0_RIGHTSTICK_UP", K_PAD0_RIGHTSTICK_UP },
+	{"PAD0_RIGHTSTICK_DOWN", K_PAD0_RIGHTSTICK_DOWN },
+	{"PAD0_LEFTTRIGGER", K_PAD0_LEFTTRIGGER },
+	{"PAD0_RIGHTTRIGGER", K_PAD0_RIGHTTRIGGER },
+
+	{"PAD0_MISC1", K_PAD0_MISC1 },
+	{"PAD0_PADDLE1", K_PAD0_PADDLE1 },
+	{"PAD0_PADDLE2", K_PAD0_PADDLE2 },
+	{"PAD0_PADDLE3", K_PAD0_PADDLE3 },
+	{"PAD0_PADDLE4", K_PAD0_PADDLE4 },
+	{"PAD0_TOUCHPAD", K_PAD0_TOUCHPAD },
 
 	{NULL,0}
 };
@@ -580,12 +614,14 @@ void Field_CharEvent( field_t *edit, int ch ) {
 	}
 
 	if ( key_overstrikeMode ) {	
-		if ( edit->cursor == MAX_EDIT_LINE - 1 )
+		// - 2 to leave room for the leading slash and trailing \0
+		if ( edit->cursor == MAX_EDIT_LINE - 2 )
 			return;
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
 	} else {	// insert mode
-		if ( len == MAX_EDIT_LINE - 1 ) {
+		// - 2 to leave room for the leading slash and trailing \0
+		if ( len == MAX_EDIT_LINE - 2 ) {
 			return; // all full
 		}
 		memmove( edit->buffer + edit->cursor + 1, 
@@ -629,7 +665,7 @@ void Console_Key (int key) {
 	// enter finishes the line
 	if ( key == K_ENTER || key == K_KP_ENTER ) {
 		// if not in the game explicitly prepend a slash if needed
-		if ( clc.state != CA_ACTIVE &&
+		if ( clc.state != CA_ACTIVE && con_autochat->integer &&
 				g_consoleField.buffer[0] &&
 				g_consoleField.buffer[0] != '\\' &&
 				g_consoleField.buffer[0] != '/' ) {
@@ -651,7 +687,10 @@ void Console_Key (int key) {
 			if ( !g_consoleField.buffer[0] ) {
 				return;	// empty lines just scroll the console without adding to history
 			} else {
-				Cbuf_AddText ("cmd say ");
+				if ( con_autochat->integer ) {
+					Cbuf_AddText ("cmd say ");
+				}
+
 				Cbuf_AddText( g_consoleField.buffer );
 				Cbuf_AddText ("\n");
 			}
@@ -838,21 +877,19 @@ to be configured even if they don't have defined names.
 */
 int Key_StringToKeynum( char *str ) {
 	keyname_t	*kn;
+	int			n;
 	
 	if ( !str || !str[0] ) {
 		return -1;
 	}
 	if ( !str[1] ) {
-		return str[0];
+		return tolower( str[0] );
 	}
 
 	// check for hex code
-	if ( strlen( str ) == 4 ) {
-		int n = Com_HexStrToInt( str );
-
-		if ( n >= 0 ) {
-			return n;
-		}
+	n = Com_HexStrToInt( str );
+	if ( n >= 0 && n < MAX_KEYS ) {
+		return n;
 	}
 
 	// scan for a text match
@@ -932,7 +969,7 @@ void Key_SetBinding( int keynum, const char *binding ) {
 	keys[keynum].binding = CopyString( binding );
 
 	// consider this like modifying an archived cvar, so the
-	// file write will be triggered at the next oportunity
+	// file write will be triggered at the next opportunity
 	cvar_modifiedFlags |= CVAR_ARCHIVE;
 }
 
@@ -1035,10 +1072,10 @@ void Key_Bind_f (void)
 
 	if (c == 2)
 	{
-		if (keys[b].binding)
-			Com_Printf ("\"%s\" = \"%s\"\n", Cmd_Argv(1), keys[b].binding );
+		if (keys[b].binding && keys[b].binding[0])
+			Com_Printf ("\"%s\" = \"%s\"\n", Key_KeynumToString(b), keys[b].binding );
 		else
-			Com_Printf ("\"%s\" is not bound\n", Cmd_Argv(1) );
+			Com_Printf ("\"%s\" is not bound\n", Key_KeynumToString(b) );
 		return;
 	}
 	
@@ -1165,6 +1202,25 @@ void CL_InitKeyCommands( void ) {
 
 /*
 ===================
+CL_BindUICommand
+
+Returns qtrue if bind command should be executed while user interface is shown
+===================
+*/
+static qboolean CL_BindUICommand( const char *cmd ) {
+	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
+		return qfalse;
+
+	if ( !Q_stricmp( cmd, "toggleconsole" ) )
+		return qtrue;
+	if ( !Q_stricmp( cmd, "togglemenu" ) )
+		return qtrue;
+
+	return qfalse;
+}
+
+/*
+===================
 CL_ParseBinding
 
 Execute the commands in the bind string
@@ -1173,10 +1229,19 @@ Execute the commands in the bind string
 void CL_ParseBinding( int key, qboolean down, unsigned time )
 {
 	char buf[ MAX_STRING_CHARS ], *p = buf, *end;
+	qboolean allCommands, allowUpCmds;
 
+	if( clc.state == CA_DISCONNECTED && Key_GetCatcher( ) == 0 )
+		return;
 	if( !keys[key].binding || !keys[key].binding[0] )
 		return;
 	Q_strncpyz( buf, keys[key].binding, sizeof( buf ) );
+
+	// run all bind commands if console, ui, etc aren't reading keys
+	allCommands = ( Key_GetCatcher( ) == 0 );
+
+	// allow button up commands if in game even if key catcher is set
+	allowUpCmds = ( clc.state != CA_DISCONNECTED );
 
 	while( 1 )
 	{
@@ -1190,16 +1255,20 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 			// button commands add keynum and time as parameters
 			// so that multiple sources can be discriminated and
 			// subframe corrected
-			char cmd[1024];
-			Com_sprintf( cmd, sizeof( cmd ), "%c%s %d %d\n",
-				( down ) ? '+' : '-', p + 1, key, time );
-			Cbuf_AddText( cmd );
+			if ( allCommands || ( allowUpCmds && !down ) ) {
+				char cmd[1024];
+				Com_sprintf( cmd, sizeof( cmd ), "%c%s %d %d\n",
+					( down ) ? '+' : '-', p + 1, key, time );
+				Cbuf_AddText( cmd );
+			}
 		}
 		else if( down )
 		{
 			// normal commands only execute on key press
-			Cbuf_AddText( p );
-			Cbuf_AddText( "\n" );
+			if ( allCommands || CL_BindUICommand( p ) ) {
+				Cbuf_AddText( p );
+				Cbuf_AddText( "\n" );
+			}
 		}
 		if( !end )
 			break;
@@ -1218,11 +1287,16 @@ void CL_KeyDownEvent( int key, unsigned time )
 {
 	keys[key].down = qtrue;
 	keys[key].repeats++;
-	if( keys[key].repeats == 1 && key != K_SCROLLOCK && key != K_KP_NUMLOCK && key != K_CAPSLOCK )
+	if( keys[key].repeats == 1 )
 		anykeydown++;
 
 	if( keys[K_ALT].down && key == K_ENTER )
 	{
+		// don't repeat fullscreen toggle when keys are held down
+		if ( keys[K_ENTER].repeats > 1 ) {
+			return;
+		}
+
 		Cvar_SetValue( "r_fullscreen",
 			!Cvar_VariableIntegerValue( "r_fullscreen" ) );
 		return;
@@ -1460,9 +1534,10 @@ void CL_LoadConsoleHistory( void )
 		return;
 	}
 
-	if( consoleSaveBufferSize <= MAX_CONSOLE_SAVE_BUFFER &&
+	if( consoleSaveBufferSize < MAX_CONSOLE_SAVE_BUFFER &&
 			FS_Read( consoleSaveBuffer, consoleSaveBufferSize, f ) == consoleSaveBufferSize )
 	{
+		consoleSaveBuffer[consoleSaveBufferSize] = '\0';
 		text_p = consoleSaveBuffer;
 
 		for( i = COMMAND_HISTORY - 1; i >= 0; i-- )

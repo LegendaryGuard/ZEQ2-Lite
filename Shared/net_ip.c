@@ -317,7 +317,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 				search->ai_addrlen = sadr_len;
 				
 			memcpy(sadr, search->ai_addr, search->ai_addrlen);
-			freeaddrinfo(search);
+			freeaddrinfo(res);
 			
 			return qtrue;
 		}
@@ -647,6 +647,7 @@ void Sys_SendPacket( int length, const void *data, netadr_t to ) {
 	}
 
 	if( (ip_socket == INVALID_SOCKET && to.type == NA_IP) ||
+		(ip_socket == INVALID_SOCKET && to.type == NA_BROADCAST) ||
 		(ip6_socket == INVALID_SOCKET && to.type == NA_IP6) ||
 		(ip6_socket == INVALID_SOCKET && to.type == NA_MULTICAST6) )
 		return;
@@ -686,7 +687,7 @@ void Sys_SendPacket( int length, const void *data, netadr_t to ) {
 			return;
 		}
 
-		Com_Printf( "NET_SendPacket: %s\n", NET_ErrorString() );
+		Com_Printf( "Sys_SendPacket: %s\n", NET_ErrorString() );
 	}
 }
 
@@ -805,7 +806,7 @@ void Sys_ShowIP(void) {
 NET_IPSocket
 ====================
 */
-int NET_IPSocket( char *net_interface, int port, int *err ) {
+SOCKET NET_IPSocket( char *net_interface, int port, int *err ) {
 	SOCKET				newsocket;
 	struct sockaddr_in	address;
 	ioctlarg_t			_true = 1;
@@ -873,7 +874,7 @@ int NET_IPSocket( char *net_interface, int port, int *err ) {
 NET_IP6Socket
 ====================
 */
-int NET_IP6Socket( char *net_interface, int port, struct sockaddr_in6 *bindto, int *err ) {
+SOCKET NET_IP6Socket( char *net_interface, int port, struct sockaddr_in6 *bindto, int *err ) {
 	SOCKET				newsocket;
 	struct sockaddr_in6	address;
 	ioctlarg_t			_true = 1;
@@ -1263,7 +1264,7 @@ static void NET_AddLocalAddress(char *ifname, struct sockaddr *addr, struct sock
 	}
 }
 
-#if defined(__linux__) || defined(MACOSX) || defined(__BSD__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__BSD__)
 static void NET_GetLocalAddress(void)
 {
 	struct ifaddrs *ifap, *search;
@@ -1529,7 +1530,7 @@ void NET_Config( qboolean enableNetworking ) {
 			ip_socket = INVALID_SOCKET;
 		}
 
-		if(multicast6_socket)
+		if(multicast6_socket != INVALID_SOCKET)
 		{
 			if(multicast6_socket != ip6_socket)
 				closesocket(multicast6_socket);
@@ -1614,7 +1615,7 @@ Called from NET_Sleep which uses select() to determine which sockets have seen a
 void NET_Event(fd_set *fdr)
 {
 	byte bufData[MAX_MSGLEN + 1];
-	netadr_t from;
+	netadr_t from = {0};
 	msg_t netmsg;
 	
 	while(1)
@@ -1628,7 +1629,7 @@ void NET_Event(fd_set *fdr)
 				// com_dropsim->value percent of incoming packets get dropped.
 				if(rand() < (int) (((double) RAND_MAX) / 100.0 * (double) net_dropsim->value))
 					continue;          // drop this packet
-                        }
+			}
 
 			if(com_sv_running->integer)
 				Com_RunAndTimeServerPacket(&from, &netmsg);
@@ -1651,7 +1652,8 @@ void NET_Sleep(int msec)
 {
 	struct timeval timeout;
 	fd_set fdr;
-	int highestfd = -1, retval;
+	int retval;
+	SOCKET highestfd = INVALID_SOCKET;
 
 	if(msec < 0)
 		msec = 0;
@@ -1667,16 +1669,13 @@ void NET_Sleep(int msec)
 	if(ip6_socket != INVALID_SOCKET)
 	{
 		FD_SET(ip6_socket, &fdr);
-		
-		if(ip6_socket > highestfd)
+
+		if(highestfd == INVALID_SOCKET || ip6_socket > highestfd)
 			highestfd = ip6_socket;
 	}
 
-	timeout.tv_sec = msec/1000;
-	timeout.tv_usec = (msec%1000)*1000;
-	
 #ifdef _WIN32
-	if(highestfd < 0)
+	if(highestfd == INVALID_SOCKET)
 	{
 		// windows ain't happy when select is called without valid FDs
 		SleepEx(msec, 0);
@@ -1684,9 +1683,12 @@ void NET_Sleep(int msec)
 	}
 #endif
 
+	timeout.tv_sec = msec/1000;
+	timeout.tv_usec = (msec%1000)*1000;
+
 	retval = select(highestfd + 1, &fdr, NULL, NULL, &timeout);
-	
-	if(retval < 0)
+
+	if(retval == SOCKET_ERROR)
 		Com_Printf("Warning: select() syscall failed: %s\n", NET_ErrorString());
 	else if(retval > 0)
 		NET_Event(&fdr);

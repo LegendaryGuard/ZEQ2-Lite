@@ -45,11 +45,7 @@ static clock_t time_total_vm = 0;
 #endif
 
 /* exit() won't be called but use it because it is marked with noreturn */
-#define DIE( reason ) \
-	do { \
-		Com_Error(ERR_DROP, "vm_powerpc compiler error: " reason); \
-		exit(1); \
-	} while(0)
+#define DIE( reason ) Com_Error( ERR_DROP, "vm_powerpc compiler error: " reason )
 
 /*
  * vm_powerpc uses large quantities of memory during compilation,
@@ -311,7 +307,7 @@ typedef struct VM_Data {
 
 	// function pointers, no use to waste registers for them
 	long int (* AsmCall)( int, int );
-	void (* BlockCopy )( unsigned int, unsigned int, unsigned int );
+	void (* BlockCopy )( unsigned int, unsigned int, size_t );
 
 	// instruction pointers, rarely used so don't waste register
 	ppc_instruction_t *iPointers;
@@ -367,13 +363,13 @@ VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 
 		ret = currentVM->systemCall( argPosition );
 	} else {
-		intptr_t args[11];
+		intptr_t args[MAX_VMSYSCALL_ARGS];
 
 		// generated code does not invert syscall number
 		args[0] = -1 - callSyscallInvNum;
 
 		int *argPosition = (int *)((byte *)currentVM->dataBase + callProgramStack + 4);
-		for( i = 1; i < 11; i++ )
+		for( i = 1; i < ARRAY_LEN(args); i++ )
 			args[ i ] = argPosition[ i ];
 
 		ret = currentVM->systemCall( args );
@@ -405,7 +401,7 @@ struct symbolic_jump {
 	// extensions / modifiers (branch-link)
 	unsigned long ext;
 
-	// dest_instruction refering to this jump
+	// dest_instruction referring to this jump
 	dest_instruction_t *parent;
 
 	// next jump
@@ -660,7 +656,7 @@ PPC_MakeFastMask( int mask )
  * function local registers,
  *
  * normally only volatile registers are used, but if there aren't enough
- * or function has to preserve some value while calling annother one
+ * or function has to preserve some value while calling another one
  * then caller safe registers are used as well
  */
 static const long int gpr_list[] = {
@@ -1965,8 +1961,6 @@ PPC_ComputeCode( vm_t *vm )
 			di_now = di_first;
 		}
 	}
-
-	return;
 }
 
 static void
@@ -2105,9 +2099,9 @@ VM_CallCompiled( vm_t *vm, int *args )
 
 	vm->currentlyInterpreting = qtrue;
 
-	programStack -= 48;
+	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
 	argPointer = (int *)&image[ programStack + 8 ];
-	memcpy( argPointer, args, 4 * 9 );
+	memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
 	argPointer[ -1 ] = 0;
 	argPointer[ -2 ] = -1;
 

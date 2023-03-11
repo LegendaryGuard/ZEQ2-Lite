@@ -183,7 +183,7 @@ typedef enum {
 	CG_ACOS,
 	// <-- RiO: Supply file list trap call
 	CG_FS_GETFILELIST,
-	CG_R_ADDFOGTOSCENE,
+	CG_R_ADDFOGTOSCENE
 	// -->
 } cgameImport_t;
 
@@ -208,7 +208,7 @@ typedef enum {
 
 	CG_SHUTDOWN,
 //	void (*CG_Shutdown)( void );
-	// oportunity to flush and close any open files
+	// opportunity to flush and close any open files
 
 	CG_CONSOLE_COMMAND,
 //	qboolean (*CG_ConsoleCommand)( void );

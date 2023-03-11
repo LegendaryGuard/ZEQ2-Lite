@@ -178,153 +178,128 @@ typedef struct {
 /*
 ==============================================================================
 
-MDM file format
-MDM skeletal model file format
+MDR file format
 
 ==============================================================================
- */
-#define MDM_IDENT			(('W' << 24) + ('M' << 16) + ('D' << 8 ) + 'M')
-#define MDM_VERSION			3
-#define MDM_MAX_VERTS		6000
-#define MDM_MAX_TRIANGLES	8192
-#define MDM_MAX_SURFACES	32
-#define MDM_MAX_TAGS		128
+*/
 
-#define MDM_TRANSLATION_SCALE	(1.0 / 64)
+/*
+ * Here are the definitions for Ravensoft's model format of md4. Raven stores their
+ * playermodels in .mdr files, in some games, which are pretty much like the md4
+ * format implemented by ID soft. It seems like ID's original md4 stuff is not used at all.
+ * MDR is being used in EliteForce, JediKnight2 and Soldiers of Fortune2 (I think).
+ * So this comes in handy for anyone who wants to make it possible to load player
+ * models from these games.
+ * This format has bone tags, which is similar to the thing you have in md3 I suppose.
+ * Raven has released their version of md3view under GPL enabling me to add support
+ * to this codebase. Thanks to Steven Howes aka Skinner for helping with example
+ * source code.
+ *
+ * - Thilo Schulz (arny@ats.s.bawue.de)
+ */
+
+#define MDR_IDENT	(('5'<<24)+('M'<<16)+('D'<<8)+'R')
+#define MDR_VERSION	2
+#define	MDR_MAX_BONES	128
 
 typedef struct {
-	int		boneIndex;			/* these are indexes into the boneReferences, */
-	float	boneWeight;			/* not the global per-frame bone list */
-	vec3_t	offset;
-} mdmWeight_t;
+	int			boneIndex;	// these are indexes into the boneReferences,
+	float		   boneWeight;		// not the global per-frame bone list
+	vec3_t		offset;
+} mdrWeight_t;
 
 typedef struct {
 	vec3_t		normal;
 	vec2_t		texCoords;
 	int			numWeights;
-	mdmWeight_t	weights[1];		/* variable sized */
-} mdmVertex_t;
+	mdrWeight_t	weights[1];		// variable sized
+} mdrVertex_t;
 
 typedef struct {
-	int		indexes[3];
-} mdmTriangle_t;
+	int			indexes[3];
+} mdrTriangle_t;
 
 typedef struct {
-	int		ident;
-	char	name[MAX_QPATH];	/*  polyset name */
-	char	shader[MAX_QPATH];
-	int		shaderIndex;		/* for in-game use */
-	int		minLod;
-	int		ofsHeader;			/* this will be a negative number */
-	int		numVerts;
-	int		ofsVerts;
-	int		numTriangles;
-	int		ofsTriangles;
-	int		ofsCollapseMap;		/* numVerts * int */
+	int			ident;
 
-	/*
-	 * Bone references are a set of ints representing all the bones
-	 * present in any vertex weights for this surface.  This is
-	 * needed because a model may have surfaces that need to be
-	 * drawn at different sort times, and we don't want to have
-	 * to re-interpolate all the bones for each surface.
-	 */
-	int		numBoneReferences;
-	int		ofsBoneReferences;
-	int		ofsEnd;				/* next surface follows */
-} mdmSurface_t;
+	char		name[MAX_QPATH];	// polyset name
+	char		shader[MAX_QPATH];
+	int			shaderIndex;	// for in-game use
 
-typedef struct {
-	int		numSurfaces;
-	int		ofsSurfaces;		/* first surface, others follow */
-	int		ofsEnd;				/* next lod follows */
-} mdmLOD_t;
+	int			ofsHeader;	// this will be a negative number
 
-/* tags always only have one parent bone */
-typedef struct {
-	char	name[MAX_QPATH];	/* name of tag */
-	vec3_t	axis[3];
-	int		boneIndex;
-	vec3_t	offset;
-	int		numBoneReferences;
-	int		ofsBoneReferences;
-	int		ofsEnd;				/* next tag follows */
-} mdmTag_t;
+	int			numVerts;
+	int			ofsVerts;
+
+	int			numTriangles;
+	int			ofsTriangles;
+
+	// Bone references are a set of ints representing all the bones
+	// present in any vertex weights for this surface.  This is
+	// needed because a model may have surfaces that need to be
+	// drawn at different sort times, and we don't want to have
+	// to re-interpolate all the bones for each surface.
+	int			numBoneReferences;
+	int			ofsBoneReferences;
+
+	int			ofsEnd;		// next surface follows
+} mdrSurface_t;
 
 typedef struct {
-	int 	ident;
-	int		version;
-	char 	name[MAX_QPATH];	/* model name */
-	float	lodScale;
-	float	lodBias;
-	int		numSurfaces;
-	int		ofsSurfaces;
-
-	/* tag data */
-	int		numTags;
-	int		ofsTags;
-
-	int		ofsEnd;				/* end of file */
-} mdmHeader_t;
-
-/*
-==============================================================================
-
-MDX file format
-MDX skeletal animation file format
-
-==============================================================================
-*/
-
-/*
-==============================================================================
-
-  .BSP file format
-
-==============================================================================
-*/
-
-#define MDX_IDENT			(('W' << 24) + ('X' << 16) + ('D' << 8) + 'M')
-#define MDX_VERSION			2
-#define MDX_MAX_BONES		128
+	float		matrix[3][4];
+} mdrBone_t;
 
 typedef struct {
-	vec3_t	bounds[2];			/* bounds of this frame */
-	vec3_t	localOrigin;		/* midpoint of bounds, used for sphere cull */
-	float	radius;				/* dist from localOrigin to corner */
-	vec3_t	parentOffset;		/* one bone is an ascendant of all other bones, it starts the hierachy at this position */
-} mdxFrame_t;
+	vec3_t		bounds[2];		// bounds of all surfaces of all LOD's for this frame
+	vec3_t		localOrigin;		// midpoint of bounds, used for sphere cull
+	float		radius;			// dist from localOrigin to corner
+	char		name[16];
+	mdrBone_t	bones[1];		// [numBones]
+} mdrFrame_t;
 
 typedef struct {
-	short	angles[4];			/* to be converted to axis at run-time (this is also better for lerping) */
-	short	ofsAngles[2];		/* PITCH/YAW, head in this direction from parent to go to the offset position */
-} mdxBoneFrameCompressed_t;
+        unsigned char Comp[24]; // MC_COMP_BYTES is in MatComp.h, but don't want to couple
+} mdrCompBone_t;
 
 typedef struct {
-	float	matrix[3][3];		/* 3x3 rotation */
-	vec3_t	translation;		/* translation vector */
-} mdxBoneFrame_t;
+        vec3_t          bounds[2];		// bounds of all surfaces of all LOD's for this frame
+        vec3_t          localOrigin;		// midpoint of bounds, used for sphere cull
+        float           radius;			// dist from localOrigin to corner
+        mdrCompBone_t   bones[1];		// [numBones]
+} mdrCompFrame_t;
 
 typedef struct {
-	char	name[MAX_QPATH];	/* name of bone */
-	int		parent;				/* not sure if this is required, no harm throwing it in */
-	float	torsoWeight;		/* scale torso rotation about torsoParent by this */
-	float	parentDist;
-	int		flags;
-} mdxBoneInfo_t;
+	int			numSurfaces;
+	int			ofsSurfaces;		// first surface, others follow
+	int			ofsEnd;				// next lod follows
+} mdrLOD_t;
 
 typedef struct {
-	int		ident;
-	int		version;
-	char	name[MAX_QPATH];	/* model name */
-	/* bones are shared by all levels of detail */
-	int		numFrames;
-	int		numBones;
-	int		ofsFrames;			/* (mdxFrame_t + mdxBoneFrameCompressed_t[numBones]) * numframes */
-	int		ofsBones;			/* mdxBoneInfo_t[numBones] */
-	int		torsoParent;		/* index of bone that is the parent of the torso */
-	int		ofsEnd;				/* end of file */
-} mdxHeader_t;
+        int                     boneIndex;
+        char            name[32];
+} mdrTag_t;
+
+typedef struct {
+	int			ident;
+	int			version;
+
+	char		name[MAX_QPATH];	// model name
+
+	// frames and bones are shared by all levels of detail
+	int			numFrames;
+	int			numBones;
+	int			ofsFrames;			// mdrFrame_t[numFrames]
+
+	// each level of detail has completely separate sets of surfaces
+	int			numLODs;
+	int			ofsLODs;
+
+        int                     numTags;
+        int                     ofsTags;
+
+	int			ofsEnd;				// end of file
+} mdrHeader_t;
+
 
 /*
 ==============================================================================

@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 #ifdef USE_LOCAL_HEADERS
-  #include "../Engine/zlib/zlib.h"
+  #include "../zlib/zlib.h"
 #else
   #include <zlib.h>
 #endif
@@ -125,8 +125,8 @@ extern int ZEXPORT unzStringFileNameCompare OF ((const char* fileName1,
                                                  int iCaseSensitivity));
 /*
    Compare two filename (fileName1,fileName2).
-   If iCaseSenisivity = 1, comparision is case sensitivity (like strcmp)
-   If iCaseSenisivity = 2, comparision is not case sensitivity (like strcmpi
+   If iCaseSenisivity = 1, comparison is case sensitivity (like strcmp)
+   If iCaseSenisivity = 2, comparison is not case sensitivity (like strcmpi
                                 or strcasecmp)
    If iCaseSenisivity = 0, case sensitivity is defaut of your operating system
     (like 1 on Unix, 2 on Windows)
@@ -136,11 +136,11 @@ extern int ZEXPORT unzStringFileNameCompare OF ((const char* fileName1,
 extern unzFile ZEXPORT unzOpen OF((const char *path));
 /*
   Open a Zip file. path contain the full pathname (by example,
-     on a Windows XP computer "c:\\zlib\\zlib113.zip" or on an Unix computer
+     on a Windows XP computer "c:\\zlib\\zlib113.zip" or on a Unix computer
      "zlib/zlib113.zip".
      If the zipfile cannot be opened (file don't exist or in not valid), the
        return value is NULL.
-     Else, the return value is a unzFile Handle, usable with other function
+     Else, the return value is an unzFile Handle, usable with other function
        of this unzip package.
 */
 

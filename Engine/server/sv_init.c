@@ -82,7 +82,7 @@ void SV_UpdateConfigstrings(client_t *client)
 {
 	int index;
 
-	for( index = 0; index <= MAX_CONFIGSTRINGS; index++ ) {
+	for( index = 0; index < MAX_CONFIGSTRINGS; index++ ) {
 		// if the CS hasn't changed since we went to CS_PRIMED, ignore
 		if(!client->csUpdated[index])
 			continue;
@@ -128,7 +128,7 @@ void SV_SetConfigstring (int index, const char *val) {
 	// spawning a new server
 	if ( sv.state == SS_GAME || sv.restarting ) {
 
-		// send the data to all relevent clients
+		// send the data to all relevant clients
 		for (i = 0, client = svs.clients; i < sv_maxclients->integer ; i++, client++) {
 			if ( client->state < CS_ACTIVE ) {
 				if ( client->state == CS_PRIMED )
@@ -271,10 +271,10 @@ static void SV_Startup( void ) {
 
 	svs.clients = Z_Malloc (sizeof(client_t) * sv_maxclients->integer );
 	if ( com_dedicated->integer ) {
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * 64;
+		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
 	} else {
 		// we don't need nearly as many when playing locally
-		svs.numSnapshotEntities = sv_maxclients->integer * 4 * 64;
+		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
 	}
 	svs.initialized = qtrue;
 
@@ -349,10 +349,10 @@ void SV_ChangeMaxClients( void ) {
 	
 	// allocate new snapshot entities
 	if ( com_dedicated->integer ) {
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * 64;
+		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
 	} else {
 		// we don't need nearly as many when playing locally
-		svs.numSnapshotEntities = sv_maxclients->integer * 4 * 64;
+		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
 	}
 }
 
@@ -374,16 +374,12 @@ static void SV_ClearServer(void) {
 
 /*
 ================
-SV_TouchCGame
-
-  touch the cgame.vm so that a pure client can load it if it's in a seperate pk3
+SV_TouchFile
 ================
 */
-static void SV_TouchCGame(void) {
+static void SV_TouchFile( const char *filename ) {
 	fileHandle_t	f;
-	char filename[MAX_QPATH];
 
-	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", "cgame" );
 	FS_FOpenFileRead( filename, &f, qfalse );
 	if ( f ) {
 		FS_FCloseFile( f );
@@ -420,11 +416,6 @@ void SV_SpawnServer( char *server ) {
 
 	// clear the whole hunk because we're (re)loading the server
 	Hunk_Clear();
-
-#ifndef DEDICATED
-	// Restart renderer
-	CL_StartHunkUsers( qtrue );
-#endif
 
 	// clear collision map data
 	CM_ClearMap();
@@ -472,7 +463,7 @@ void SV_SpawnServer( char *server ) {
 	Cvar_Set("cl_paused", "0");
 
 	// get a new checksum feed and restart the file system
-	sv.checksumFeed = ( ((int) rand() << 16) ^ rand() ) ^ Com_Milliseconds();
+	sv.checksumFeed = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ Com_Milliseconds();
 	FS_Restart( sv.checksumFeed );
 
 	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum );
@@ -548,11 +539,11 @@ void SV_SpawnServer( char *server ) {
 		p = FS_LoadedPakNames();
 		Cvar_Set( "sv_pakNames", p );
 
-		// if a dedicated pure server we need to touch the cgame because it could be in a
-		// seperate pk3 file and the client will need to load the latest cgame.qvm
-		if ( com_dedicated->integer ) {
-			SV_TouchCGame();
-		}
+		// we need to touch the cgame and ui qvm because they could be in
+		// separate pk3 files and the client will need to download the pk3
+		// files with the latest cgame and ui qvm to pass the pure check
+		SV_TouchFile( "vm/cgame.qvm" );
+		SV_TouchFile( "vm/ui.qvm" );
 	}
 	else {
 		Cvar_Set( "sv_paks", "" );
@@ -582,6 +573,14 @@ void SV_SpawnServer( char *server ) {
 	SV_Heartbeat_f();
 
 	Hunk_SetMark();
+
+#ifndef DEDICATED
+	if ( com_dedicated->integer ) {
+		// restart renderer in order to show console for dedicated servers
+		// launched through the regular binary
+		CL_StartHunkUsers( qtrue );
+	}
+#endif
 
 	Com_Printf ("-----------------------------------\n");
 }
@@ -622,8 +621,9 @@ void SV_Init (void)
 	sv_serverid = Cvar_Get ("sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_pure = Cvar_Get ("sv_pure", "1", CVAR_SYSTEMINFO );
 #ifdef USE_VOIP
-	sv_voip = Cvar_Get("sv_voip", "1", CVAR_SYSTEMINFO | CVAR_LATCH);
+	sv_voip = Cvar_Get("sv_voip", "1", CVAR_LATCH);
 	Cvar_CheckRange(sv_voip, 0, 1, qtrue);
+	sv_voipProtocol = Cvar_Get("sv_voipProtocol", sv_voip->integer ? "opus" : "", CVAR_SYSTEMINFO | CVAR_ROM );
 #endif
 	Cvar_Get ("sv_paks", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_Get ("sv_pakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );

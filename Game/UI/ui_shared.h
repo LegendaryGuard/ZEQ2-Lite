@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #include "../../Shared/q_shared.h"
-#include "../../Engine/renderer/tr_types.h"
+#include "../../Engine/renderercommon/tr_types.h"
 #include "../../Engine/client/keycodes.h"
 
 #include "./menudef/menudef.h"

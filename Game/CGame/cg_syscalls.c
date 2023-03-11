@@ -296,7 +296,7 @@ void	trap_R_DrawStretchPic( float x, float y, float w, float h,
 }
 
 void	trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs, int frame ) {
-	syscall( CG_R_MODELBOUNDS, model, mins, maxs, frame );
+	syscall( CG_R_MODELBOUNDS, model, mins, maxs );
 }
 
 int		trap_R_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, 

@@ -56,6 +56,7 @@ typedef struct sfx_s {
 	qboolean		soundCompressed;		// not in Memory
 	int				soundCompressionMethod;	
 	int 			soundLength;
+	int			soundChannels;
 	char 			soundName[MAX_QPATH];
 	int				lastTimeUsed;
 	struct sfx_s	*next;
@@ -64,8 +65,10 @@ typedef struct sfx_s {
 typedef struct {
 	int			channels;
 	int			samples;				// mono samples in buffer
+	int			fullsamples;			// samples with all channels in buffer (samples divided by channels)
 	int			submission_chunk;		// don't mix less than this #
 	int			samplebits;
+	int			isfloat;
 	int			speed;
 	byte		*buffer;
 } dma_t;
@@ -73,6 +76,8 @@ typedef struct {
 #define START_SAMPLE_IMMEDIATE	0x7fffffff
 
 #define MAX_DOPPLER_SCALE 50.0f //arbitrary
+
+#define THIRD_PERSON_THRESHOLD_SQ (48.0f*48.0f)
 
 typedef struct loopSound_s {
 	vec3_t		origin;
@@ -103,6 +108,7 @@ typedef struct
 	qboolean	fixed_origin;	// use origin instead of fetching entnum's origin
 	sfx_t		*thesfx;		// sfx structure
 	qboolean	doppler;
+	qboolean	fullVolume;
 } channel_t;
 
 
@@ -171,6 +177,15 @@ void	SNDDMA_Shutdown(void);
 void	SNDDMA_BeginPainting (void);
 
 void	SNDDMA_Submit(void);
+
+#ifdef USE_VOIP
+void SNDDMA_StartCapture(void);
+int SNDDMA_AvailableCaptureSamples(void);
+void SNDDMA_Capture(int samples, byte *data);
+void SNDDMA_StopCapture(void);
+void SNDDMA_MasterGain(float val);
+#endif
+
 
 //====================================================================
 
@@ -251,3 +266,7 @@ typedef enum
 typedef int srcHandle_t;
 
 qboolean S_AL_Init( soundInterface_t *si );
+
+#ifdef idppc_altivec
+void S_PaintChannelFrom16_altivec( portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE], int snd_vol, channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset );
+#endif

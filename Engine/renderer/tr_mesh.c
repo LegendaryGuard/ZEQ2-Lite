@@ -168,6 +168,8 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 	float flod, lodscale;
 	float projectedRadius;
 	md3Frame_t *frame;
+	mdrHeader_t *mdr;
+	mdrFrame_t *mdrframe;
 	int lod;
 
 	if ( tr.currentModel->numLods < 2 )
@@ -179,17 +181,30 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 	{
 		// multiple LODs exist, so compute projected bounding sphere
 		// and use that as a criteria for selecting LOD
-		frame = ( md3Frame_t * ) ( ( ( unsigned char * ) tr.currentModel->md3[0] ) + tr.currentModel->md3[0]->ofsFrames );
 
-		frame += ent->e.frame;
+		if(tr.currentModel->type == MOD_MDR)
+		{
+			int frameSize;
+			mdr = (mdrHeader_t *) tr.currentModel->modelData;
+			frameSize = (size_t) (&((mdrFrame_t *)0)->bones[mdr->numBones]);
+			
+			mdrframe = (mdrFrame_t *) ((byte *) mdr + mdr->ofsFrames + frameSize * ent->e.frame);
+			
+			radius = RadiusFromBounds(mdrframe->bounds[0], mdrframe->bounds[1]);
+		}
+		else
+		{
+			frame = ( md3Frame_t * ) ( ( ( unsigned char * ) tr.currentModel->md3[0] ) + tr.currentModel->md3[0]->ofsFrames );
 
-		radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
+			frame += ent->e.frame;
 
+			radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
+		}
 
 		if ( ( projectedRadius = ProjectRadius( radius, ent->e.origin ) ) != 0 )
 		{
 			lodscale = r_lodscale->value;
-			if (lodscale > 100) lodscale = 100;
+			if (lodscale > 20) lodscale = 20;
 			flod = 1.0f - projectedRadius * lodscale;
 		}
 		else
@@ -346,8 +361,8 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 			shader = tr.defaultShader;
 			for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
 				// the names have both been lowercased
-				if ( !strcmp( skin->surfaces[j]->name, surface->name ) ) {
-					shader = skin->surfaces[j]->shader;
+				if ( !strcmp( skin->surfaces[j].name, surface->name ) ) {
+					shader = skin->surfaces[j].shader;
 					break;
 				}
 			}

@@ -53,11 +53,10 @@ typedef struct {
 	vec4_t	color;
 } console_t;
 
-extern	console_t	con;
-
 console_t	con;
 
 cvar_t		*con_conspeed;
+cvar_t		*con_autoclear;
 cvar_t		*con_notifytime;
 cvar_t		*con_displayAmount;
 cvar_t		*con_displayIngameAmount;
@@ -76,11 +75,24 @@ void Con_ToggleConsole_f (void) {
 		return;
 	}
 
-	Field_Clear( &g_consoleField );
+	if ( con_autoclear->integer ) {
+		Field_Clear( &g_consoleField );
+	}
+
 	g_consoleField.widthInChars = g_console_field_width;
 
 	Con_ClearNotify ();
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_CONSOLE );
+}
+
+/*
+===================
+Con_ToggleMenu_f
+===================
+*/
+void Con_ToggleMenu_f( void ) {
+	CL_KeyEvent( K_ESCAPE, qtrue, Sys_Milliseconds() );
+	CL_KeyEvent( K_ESCAPE, qfalse, Sys_Milliseconds() );
 }
 
 /*
@@ -172,7 +184,9 @@ void Con_Dump_f (void)
 	int		l, x, i;
 	short	*line;
 	fileHandle_t	f;
-	char	buffer[1024];
+	int		bufferlen;
+	char	*buffer;
+	char	filename[MAX_QPATH];
 
 	if (Cmd_Argc() != 2)
 	{
@@ -180,14 +194,23 @@ void Con_Dump_f (void)
 		return;
 	}
 
-	Com_Printf ("Dumped console text to %s.\n", Cmd_Argv(1) );
+	Q_strncpyz( filename, Cmd_Argv( 1 ), sizeof( filename ) );
+	COM_DefaultExtension( filename, sizeof( filename ), ".txt" );
 
-	f = FS_FOpenFileWrite( Cmd_Argv( 1 ) );
-	if (!f)
+	if (!COM_CompareExtension(filename, ".txt"))
 	{
-		Com_Printf ("ERROR: couldn't open.\n");
+		Com_Printf("Con_Dump_f: Only the \".txt\" extension is supported by this command!\n");
 		return;
 	}
+
+	f = FS_FOpenFileWrite( filename );
+	if (!f)
+	{
+		Com_Printf ("ERROR: couldn't open %s.\n", filename);
+		return;
+	}
+
+	Com_Printf ("Dumped console text to %s.\n", filename );
 
 	// skip empty lines
 	for (l = con.current - con.totallines + 1 ; l <= con.current ; l++)
@@ -200,8 +223,16 @@ void Con_Dump_f (void)
 			break;
 	}
 
+#ifdef _WIN32
+	bufferlen = con.linewidth + 3 * sizeof ( char );
+#else
+	bufferlen = con.linewidth + 2 * sizeof ( char );
+#endif
+
+	buffer = Hunk_AllocateTempMemory( bufferlen );
+
 	// write the remaining lines
-	buffer[con.linewidth] = 0;
+	buffer[bufferlen-1] = 0;
 	for ( ; l <= con.current ; l++)
 	{
 		line = con.text + (l%con.totallines)*con.linewidth;
@@ -214,10 +245,15 @@ void Con_Dump_f (void)
 			else
 				break;
 		}
-		strcat( buffer, "\n" );
+#ifdef _WIN32
+		Q_strcat(buffer, bufferlen, "\r\n");
+#else
+		Q_strcat(buffer, bufferlen, "\n");
+#endif
 		FS_Write(buffer, strlen(buffer), f);
 	}
 
+	Hunk_FreeTempMemory( buffer );
 	FS_FCloseFile( f );
 }
 
@@ -323,7 +359,8 @@ void Con_Init (void) {
 	int		i;
 
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
-	con_conspeed = Cvar_Get ("scr_conspeed", "5", 0);
+	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
+	con_autoclear = Cvar_Get("con_autoclear", "1", CVAR_ARCHIVE);
 	con_displayAmount = Cvar_Get ("con_displayAmount", "0.5", CVAR_ARCHIVE);
 	con_displayIngameAmount= Cvar_Get ("con_displayIngameAmount", "0.0", CVAR_ARCHIVE);
 
@@ -336,6 +373,7 @@ void Con_Init (void) {
 	CL_LoadConsoleHistory( );
 
 	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
+	Cmd_AddCommand ("togglemenu", Con_ToggleMenu_f);
 	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
 	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
 	Cmd_AddCommand ("messagemode3", Con_MessageMode3_f);
@@ -353,6 +391,7 @@ Con_Shutdown
 void Con_Shutdown(void)
 {
 	Cmd_RemoveCommand("toggleconsole");
+	Cmd_RemoveCommand("togglemenu");
 	Cmd_RemoveCommand("messagemode");
 	Cmd_RemoveCommand("messagemode2");
 	Cmd_RemoveCommand("messagemode3");
@@ -565,8 +604,8 @@ void Con_DrawNotify (void)
 			if ( ( text[x] & 0xff ) == ' ' ) {
 				continue;
 			}
-			if ( ( (text[x]>>8)&7 ) != currentColor ) {
-				currentColor = (text[x]>>8)&7;
+			if ( ColorIndexForNumber( text[x]>>8 ) != currentColor ) {
+				currentColor = ColorIndexForNumber( text[x]>>8 );
 				re.SetColor( g_color_table[currentColor] );
 			}
 			//SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH, v, text[x] & 0xff );
@@ -689,8 +728,8 @@ void Con_DrawSolidConsole( float frac ) {
 				continue;
 			}
 
-			if ( ( (text[x]>>8)&7 ) != currentColor ) {
-				currentColor = (text[x]>>8)&7;
+			if ( ColorIndexForNumber( text[x]>>8 ) != currentColor ) {
+				currentColor = ColorIndexForNumber( text[x]>>8 );
 				re.SetColor( g_color_table[currentColor] );
 			}
 			SCR_DrawSmallChar(  con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, text[x] & 0xff );

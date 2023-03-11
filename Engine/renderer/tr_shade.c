@@ -22,9 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h" 
-#if idppc_altivec && !defined(MACOS_X)
-#include <altivec.h>
-#endif
 
 /*
 
@@ -163,7 +160,7 @@ instead of using the single glDrawElements call that may be inefficient
 without compiled vertex arrays.
 ==================
 */
-static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
+void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 	int		primitives;
 
 	primitives = r_primitives->integer;
@@ -218,7 +215,7 @@ R_BindAnimatedImage
 =================
 */
 static void R_BindAnimatedImage( textureBundle_t *bundle ) {
-	int		index;
+	int64_t index;
 
 	if ( bundle->isVideoMap ) {
 		ri.CIN_RunCinematic(bundle->videoMapHandle);
@@ -233,13 +230,18 @@ static void R_BindAnimatedImage( textureBundle_t *bundle ) {
 
 	// it is necessary to do this messy calc to make sure animations line up
 	// exactly with waveforms of the same frequency
-	index = ri.ftol(tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE);
+	index = tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE;
 	index >>= FUNCTABLE_SIZE2;
 
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
 	}
-	index %= bundle->numImageAnimations;
+
+	// Windows x86 doesn't load renderer DLL with 64 bit modulus
+	//index %= bundle->numImageAnimations;
+	while ( index >= bundle->numImageAnimations ) {
+		index -= bundle->numImageAnimations;
+	}
 
 	GL_Bind( bundle->image[ index ] );
 }
@@ -436,189 +438,6 @@ ProjectDlightTexture
 Perform dynamic lighting with another rendering pass
 ===================
 */
-#if idppc_altivec
-static void ProjectDlightTexture_altivec( void ) {
-	int		i, l;
-	vec_t	origin0, origin1, origin2;
-	float   texCoords0, texCoords1;
-	vector float floatColorVec0, floatColorVec1;
-	vector float modulateVec, colorVec, zero;
-	vector short colorShort;
-	vector signed int colorInt;
-	vector unsigned char floatColorVecPerm, modulatePerm, colorChar;
-	vector unsigned char vSel = VECCONST_UINT8(0x00, 0x00, 0x00, 0xff,
-                                               0x00, 0x00, 0x00, 0xff,
-                                               0x00, 0x00, 0x00, 0xff,
-                                               0x00, 0x00, 0x00, 0xff);
-	float	*texCoords;
-	byte	*colors;
-	byte	clipBits[SHADER_MAX_VERTEXES];
-	float	texCoordsArray[SHADER_MAX_VERTEXES][2];
-	byte	colorArray[SHADER_MAX_VERTEXES][4];
-	unsigned	hitIndexes[SHADER_MAX_INDEXES];
-	int		numIndexes;
-	float	scale;
-	float	radius;
-	vec3_t	floatColor;
-	float	modulate = 0.0f;
-
-	if ( !backEnd.refdef.num_dlights ) {
-		return;
-	}
-
-	// There has to be a better way to do this so that floatColor
-	// and/or modulate are already 16-byte aligned.
-	floatColorVecPerm = vec_lvsl(0,(float *)floatColor);
-	modulatePerm = vec_lvsl(0,(float *)&modulate);
-	modulatePerm = (vector unsigned char)vec_splat((vector unsigned int)modulatePerm,0);
-	zero = (vector float)vec_splat_s8(0);
-
-	for ( l = 0 ; l < backEnd.refdef.num_dlights ; l++ ) {
-		dlight_t	*dl;
-
-		if ( !( tess.dlightBits & ( 1 << l ) ) ) {
-			continue;	// this surface definately doesn't have any of this light
-		}
-		texCoords = texCoordsArray[0];
-		colors = colorArray[0];
-
-		dl = &backEnd.refdef.dlights[l];
-		origin0 = dl->transformed[0];
-		origin1 = dl->transformed[1];
-		origin2 = dl->transformed[2];
-		radius = dl->radius;
-		scale = 1.0f / radius;
-
-		if(r_greyscale->integer)
-		{
-			float luminance;
-			
-			luminance = LUMA(dl->color[0], dl->color[1], dl->color[2]) * 255.0f;
-			floatColor[0] = floatColor[1] = floatColor[2] = luminance;
-		}
-		else if(r_greyscale->value)
-		{
-			float luminance;
-			
-			luminance = LUMA(dl->color[0], dl->color[1], dl->color[2]) * 255.0f;
-			floatColor[0] = LERP(dl->color[0] * 255.0f, luminance, r_greyscale->value);
-			floatColor[1] = LERP(dl->color[1] * 255.0f, luminance, r_greyscale->value);
-			floatColor[2] = LERP(dl->color[2] * 255.0f, luminance, r_greyscale->value);
-		}
-		else
-		{
-			floatColor[0] = dl->color[0] * 255.0f;
-			floatColor[1] = dl->color[1] * 255.0f;
-			floatColor[2] = dl->color[2] * 255.0f;
-		}
-		floatColorVec0 = vec_ld(0, floatColor);
-		floatColorVec1 = vec_ld(11, floatColor);
-		floatColorVec0 = vec_perm(floatColorVec0,floatColorVec0,floatColorVecPerm);
-		for ( i = 0 ; i < tess.numVertexes ; i++, texCoords += 2, colors += 4 ) {
-			int		clip = 0;
-			vec_t dist0, dist1, dist2;
-			
-			dist0 = origin0 - tess.xyz[i][0];
-			dist1 = origin1 - tess.xyz[i][1];
-			dist2 = origin2 - tess.xyz[i][2];
-
-			backEnd.pc.c_dlightVertexes++;
-
-			texCoords0 = 0.5f + dist0 * scale;
-			texCoords1 = 0.5f + dist1 * scale;
-
-			if( !r_dlightBacks->integer &&
-					// dist . tess.normal[i]
-					( dist0 * tess.normal[i][0] +
-					dist1 * tess.normal[i][1] +
-					dist2 * tess.normal[i][2] ) < 0.0f ) {
-				clip = 63;
-			} else {
-				if ( texCoords0 < 0.0f ) {
-					clip |= 1;
-				} else if ( texCoords0 > 1.0f ) {
-					clip |= 2;
-				}
-				if ( texCoords1 < 0.0f ) {
-					clip |= 4;
-				} else if ( texCoords1 > 1.0f ) {
-					clip |= 8;
-				}
-				texCoords[0] = texCoords0;
-				texCoords[1] = texCoords1;
-
-				// modulate the strength based on the height and color
-				if ( dist2 > radius ) {
-					clip |= 16;
-					modulate = 0.0f;
-				} else if ( dist2 < -radius ) {
-					clip |= 32;
-					modulate = 0.0f;
-				} else {
-					dist2 = Q_fabs(dist2);
-					if ( dist2 < radius * 0.5f ) {
-						modulate = 1.0f;
-					} else {
-						modulate = 2.0f * (radius - dist2) * scale;
-					}
-				}
-			}
-			clipBits[i] = clip;
-
-			modulateVec = vec_ld(0,(float *)&modulate);
-			modulateVec = vec_perm(modulateVec,modulateVec,modulatePerm);
-			colorVec = vec_madd(floatColorVec0,modulateVec,zero);
-			colorInt = vec_cts(colorVec,0);	// RGBx
-			colorShort = vec_pack(colorInt,colorInt);		// RGBxRGBx
-			colorChar = vec_packsu(colorShort,colorShort);	// RGBxRGBxRGBxRGBx
-			colorChar = vec_sel(colorChar,vSel,vSel);		// RGBARGBARGBARGBA replace alpha with 255
-			vec_ste((vector unsigned int)colorChar,0,(unsigned int *)colors);	// store color
-		}
-
-		// build a list of triangles that need light
-		numIndexes = 0;
-		for ( i = 0 ; i < tess.numIndexes ; i += 3 ) {
-			int		a, b, c;
-
-			a = tess.indexes[i];
-			b = tess.indexes[i+1];
-			c = tess.indexes[i+2];
-			if ( clipBits[a] & clipBits[b] & clipBits[c] ) {
-				continue;	// not lighted
-			}
-			hitIndexes[numIndexes] = a;
-			hitIndexes[numIndexes+1] = b;
-			hitIndexes[numIndexes+2] = c;
-			numIndexes += 3;
-		}
-
-		if ( !numIndexes ) {
-			continue;
-		}
-
-		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
-		qglTexCoordPointer( 2, GL_FLOAT, 0, texCoordsArray[0] );
-
-		qglEnableClientState( GL_COLOR_ARRAY );
-		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorArray );
-
-		GL_Bind( tr.dlightImage );
-		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
-		// where they aren't rendered
-		if ( dl->additive ) {
-			GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
-		}
-		else {
-			GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
-		}
-		R_DrawElements( numIndexes, hitIndexes );
-		backEnd.pc.c_totalIndexes += numIndexes;
-		backEnd.pc.c_dlightIndexes += numIndexes;
-	}
-}
-#endif
-
-
 static void ProjectDlightTexture_scalar( void ) {
 	int		i, l;
 	vec3_t	origin;
@@ -627,7 +446,7 @@ static void ProjectDlightTexture_scalar( void ) {
 	byte	clipBits[SHADER_MAX_VERTEXES];
 	float	texCoordsArray[SHADER_MAX_VERTEXES][2];
 	byte	colorArray[SHADER_MAX_VERTEXES][4];
-	unsigned	hitIndexes[SHADER_MAX_INDEXES];
+	glIndex_t	hitIndexes[SHADER_MAX_INDEXES];
 	int		numIndexes;
 	float	scale;
 	float	radius;
@@ -642,7 +461,7 @@ static void ProjectDlightTexture_scalar( void ) {
 		dlight_t	*dl;
 
 		if ( !( tess.dlightBits & ( 1 << l ) ) ) {
-			continue;	// this surface definately doesn't have any of this light
+			continue;	// this surface definitely doesn't have any of this light
 		}
 		texCoords = texCoordsArray[0];
 		colors = colorArray[0];
@@ -774,7 +593,7 @@ static void ProjectDlightTexture_scalar( void ) {
 static void ProjectDlightTexture( void ) {
 #if idppc_altivec
 	if (com_altivec->integer) {
-		// must be in a seperate function or G3 systems will crash.
+		// must be in a separate translation unit or G3 systems will crash.
 		ProjectDlightTexture_altivec();
 		return;
 	}
@@ -818,52 +637,6 @@ static void RB_FogPass( void ) {
 
 	R_DrawElements( tess.numIndexes, tess.indexes );
 }
-
-
-/*
-===================
-RB_HazePass
-
-Blends a fog texture on top of everything but the skybox
-===================
-*/
-static void RB_HazePass( void ) {
-	int			i;
-	unsigned int color[3], colorInt;
-
-	// TODO; Get color from worlspawn. Use black for now.
-	color[0] = 0;
-	color[1] = 0;
-	color[2] = 0;
-	
-	colorInt = ColorBytes4( color[0] * tr.identityLight, color[1] * tr.identityLight, color[2] * tr.identityLight, 1.0 );
-
-	qglEnableClientState( GL_COLOR_ARRAY );
-	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
-
-	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
-	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
-
-	//fog = tr.world->fogs + tess.fogNum;
-
-	for ( i = 0; i < tess.numVertexes; i++ ) {
-		* ( int * )&tess.svars.colors[i] = colorInt;
-	}
-
-
-	RB_CalcFogTexCoords( ( float * ) tess.svars.texcoords[0] );
-
-	GL_Bind( tr.fogImage );
-
-	if ( tess.shader->fogPass == FP_EQUAL ) {
-		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
-	} else {
-		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
-	}
-
-	R_DrawElements( tess.numIndexes, tess.indexes );
-}
-
 
 /*
 ===================
@@ -1271,7 +1044,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		{
 			break;
 		}
-		qglTexEnvf(GL_TEXTURE_FILTER_CONTROL,GL_TEXTURE_LOD_BIAS,r_mipBias->value + pStage->mipBias);
+
 		ComputeColors( pStage );
 		ComputeTexCoords( pStage );
 
@@ -1298,12 +1071,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			//
 			// set state
 			//
-			if ( pStage->bundle[0].vertexLightmap && ( (r_vertexLight->integer && !r_uiFullScreen->integer) || glConfig.hardwareType == GLHW_PERMEDIA2 ) && r_lightmap->integer )
-			{
-				GL_Bind( tr.whiteImage );
-			}
-			else 
-				R_BindAnimatedImage( &pStage->bundle[0] );
+			R_BindAnimatedImage( &pStage->bundle[0] );
 
 			GL_State( pStage->stateBits );
 
@@ -1313,7 +1081,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			R_DrawElements( input->numIndexes, input->indexes );
 		}
 		// allow skipping out to show just lightmaps during development
-		if ( r_lightmap->integer && ( pStage->bundle[0].isLightmap || pStage->bundle[1].isLightmap || pStage->bundle[0].vertexLightmap ) )
+		if ( r_lightmap->integer && ( pStage->bundle[0].isLightmap || pStage->bundle[1].isLightmap ) )
 		{
 			break;
 		}
@@ -1632,328 +1400,6 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 		qglUnlockArraysEXT();
 		GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
-}
-
-/*
- * RB_GLSL_IterateStagesGeneric
- * Iterate over each stage of a shader
- */
-static void RB_GLSL_IterateStagesGeneric(shaderCommands_t *input) {
-	int	stage;
-
-	for(stage = 0; stage < MAX_SHADER_STAGES; stage++) {
-		shaderStage_t	*pStage = tess.xstages[stage];
-		glslProgram_t	*program;
-
-		if (!pStage || pStage->program == tr.skipProgram)
-			break;
-
-		/* set state */
-		GL_State(pStage->stateBits);
-
-		/*
-		 * this is an ugly hack to work around a GeForce driver
-		 * bug with multitexture and clip planes
-		 */
-		if (backEnd.viewParms.isPortal)
-			qglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		if (pStage->program)
-			/* use specified program */
-			R_GLSL_UseProgram(pStage->program);
-		else
-			/* use default program */
-			R_GLSL_UseProgram(tr.defaultProgram);
-
-		program = tr.programs[glState.currentProgram];
-
-		/* alphaGen */
-		if (program->u_AlphaGen > -1)
-			R_GLSL_SetUniform_AlphaGen(program, pStage->alphaGen);
-
-		/* ambient light */
-		if (program->u_AmbientLight > -1)
-			R_GLSL_SetUniform_AmbientLight(program, backEnd.currentEntity->ambientLight);
-
-		/* dynamic light */
-		if (program->u_DynamicLight > -1)
-			R_GLSL_SetUniform_DynamicLight(program, backEnd.currentEntity->dynamicLight);
-
-		/* light distance */
-		if (program->u_LightDistance > -1)
-			R_GLSL_SetUniform_LightDistance(program, backEnd.currentEntity->lightDistance);
-
-		/* rgbGen */
-		if (program->u_ColorGen > -1)
-			R_GLSL_SetUniform_ColorGen(program, pStage->rgbGen);
-
-		/* constant color */
-		if (program->u_ConstantColor > -1)
-			R_GLSL_SetUniform_ConstantColor(program, pStage->constantColor);
-
-		/* directed light */
-		if (program->u_DirectedLight > -1)
-			R_GLSL_SetUniform_DirectedLight(program, backEnd.currentEntity->directedLight);
-
-		/* entity color */
-		if (program->u_EntityColor > -1)
-			R_GLSL_SetUniform_EntityColor(program, backEnd.currentEntity->e.shaderRGBA);
-
-		/* fog color */
-		if (program->u_FogColor > -1 && tess.fogNum)
-			R_GLSL_SetUniform_FogColor(program, (tr.world->fogs + tess.fogNum)->colorInt);
-
-		/* greyscale */
-		if (program->u_Greyscale > -1)
-			R_GLSL_SetUniform_Greyscale(program, r_greyscale->integer);
-
-		/* identity light */
-		if (program->u_IdentityLight > -1)
-			R_GLSL_SetUniform_IdentityLight(program, tr.identityLight);
-
-		/* light direction */
-		if (program->u_LightDirection > -1)
-			R_GLSL_SetUniform_LightDirection(program, backEnd.currentEntity->lightDir);
-
-		/* model view matrix */
-		if (program->u_ModelViewMatrix > -1)
-			R_GLSL_SetUniform_ModelViewMatrix(program, glState.currentModelViewMatrix);
-
-		/* model view projection matrix */
-		if (program->u_ModelViewProjectionMatrix > -1)
-			R_GLSL_SetUniform_ModelViewProjectionMatrix(program, glState.currentModelViewProjectionMatrix);
-
-		/* projection matrix */
-		if (program->u_ProjectionMatrix > -1)
-			R_GLSL_SetUniform_ProjectionMatrix(program, glState.currentProjectionMatrix);
-
-		/* texture coordinates 0 */
-		if (program->u_TCGen0 > -1)
-			R_GLSL_SetUniform_TCGen0(program, pStage->bundle[0].tcGen);
-
-		/* texture coordinates 1 */
-		if (program->u_TCGen1 > -1)
-			R_GLSL_SetUniform_TCGen1(program, pStage->bundle[1].tcGen);
-
-		/* tex env */
-		if (program->u_TexEnv > -1) {
-			if (r_lightmap->integer)
-				R_GLSL_SetUniform_TexEnv(program, GL_REPLACE);
-			else
-				R_GLSL_SetUniform_TexEnv(program, input->shader->multitextureEnv);
-		}
-
-		/* texture unit 0 */
-		if (program->u_Texture0 > -1 && pStage->bundle[0].image[0]) {
-			GL_SelectTexture(0);
-
-			if (pStage->bundle[0].vertexLightmap && ((r_vertexLight->integer && !r_uiFullScreen->integer) || glConfig.hardwareType == GLHW_PERMEDIA2) && r_lightmap->integer)
-				GL_Bind(tr.whiteImage);
-			else
-				R_BindAnimatedImage(&pStage->bundle[0]);
-		}
-
-		/* texture unit 1 */
-		if (program->u_Texture1 > -1 && pStage->bundle[1].image[0]) {
-			GL_SelectTexture(1);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[1]);
-		}
-
-		/* texture unit 2 */
-		if (program->u_Texture2 > -1 && pStage->bundle[2].image[0]) {
-			GL_SelectTexture(2);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[2]);
-		}
-
-		/* texture unit 3 */
-		if (program->u_Texture3 > -1 && pStage->bundle[3].image[0]) {
-			GL_SelectTexture(3);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[3]);
-		}
-
-		/* texture unit 4 */
-		if (program->u_Texture4 > -1 && pStage->bundle[4].image[0]) {
-			GL_SelectTexture(4);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[4]);
-		}
-
-		/* texture unit 5 */
-		if (program->u_Texture5 > -1 && pStage->bundle[5].image[0]) {
-			GL_SelectTexture(5);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[5]);
-		}
-
-		/* texture unit 6 */
-		if (program->u_Texture6 > -1 && pStage->bundle[6].image[0]) {
-			GL_SelectTexture(6);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[6]);
-		}
-
-		/* texture unit 7 */
-		if (program->u_Texture7 > -1 && pStage->bundle[7].image[0]) {
-			GL_SelectTexture(7);
-			qglEnable(GL_TEXTURE_2D);
-			R_BindAnimatedImage(&pStage->bundle[7]);
-		}
-
-		/* time */
-		if (program->u_Time > -1)
-			R_GLSL_SetUniform_Time(program, input->shaderTime);
-
-		/* view origin */
-		if (program->u_ViewOrigin > -1)
-			R_GLSL_SetUniform_ViewOrigin(program, backEnd.or.viewOrigin);
-
-		/* draw */
-		R_DrawElements(input->numIndexes, input->indexes);
-
-		/* disable texture unit 7 */
-		if (program->u_Texture7 > -1)
-			qglDisable(GL_TEXTURE_2D);
-
-		/* disable texture unit 6 */
-		if (program->u_Texture6 > -1) {
-			GL_SelectTexture(6);
-			qglDisable(GL_TEXTURE_2D);
-		}
-
-		/* disable texture unit 5 */
-		if (program->u_Texture5 > -1) {
-			GL_SelectTexture(5);
-			qglDisable(GL_TEXTURE_2D);
-		}
-
-		/* disable texture unit 4 */
-		if (program->u_Texture4 > -1) {
-			GL_SelectTexture(4);
-			qglDisable(GL_TEXTURE_2D);
-		}
-
-		/* disable texture unit 3 */
-		if (program->u_Texture3 > -1) {
-			GL_SelectTexture(3);
-			qglDisable(GL_TEXTURE_2D);
-		}
-
-		/* disable texture unit 2 */
-		if (program->u_Texture2 > -1) {
-			GL_SelectTexture(2);
-			qglDisable(GL_TEXTURE_2D);
-		}
-
-		/* disable texture unit 1 */
-		if (program->u_Texture1 > -1) {
-			GL_SelectTexture(1);
-			qglDisable(GL_TEXTURE_2D);
-			qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		/* switch to texture unit 0 */
-		GL_SelectTexture(0);
-
-		/* allow skipping out to show just lightmaps during development */
-		if (r_lightmap->integer && (pStage->bundle[0].isLightmap || pStage->bundle[1].isLightmap || pStage->bundle[0].vertexLightmap))
-			break;
-	}
-
-	/* switch to standard rendering pipeline */
-	R_GLSL_UseProgram(0);
-}
-
-/*
- * RB_GLSL_StageIteratorGeneric
- * Stage iterator for GLSL programs
- */
-void RB_GLSL_StageIteratorGeneric(void) {
-	shaderCommands_t	*input;
-
-	input = &tess;
-
-	/* log this call */
-	if (r_logFile->integer) {
-		/* don't just call LogComment, or we will get a call to va() every frame! */
-		GLimp_LogComment(va("--- R_GLSL_StageIteratorGeneric( %s ) ---\n", input->shader->name));
-	}
-
-	/* set face culling appropiately */
-	GL_Cull(input->shader->cullType);
-
-	/* set polygon offset if necessary */
-	if (input->shader->polygonOffset) {
-		qglEnable(GL_POLYGON_OFFSET_FILL);
-		qglPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
-	}
-
-	/* set vertex color array */
-	qglEnableClientState(GL_COLOR_ARRAY);
-	qglColorPointer(4, GL_UNSIGNED_BYTE, 0, input->vertexColors);
-
-	/* set texture coordinate array 0 */
-	GL_SelectTexture(0);
-	qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	qglTexCoordPointer(2, GL_FLOAT, 16, input->texCoords[0][0]);
-
-	/* set texture coordinate array 1 */
-	GL_SelectTexture(1);
-	qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	qglTexCoordPointer(2, GL_FLOAT, 16, input->texCoords[0][1]);
-
-	/* set vertex normal array */
-	qglEnableClientState(GL_NORMAL_ARRAY);
-	qglNormalPointer(GL_FLOAT, 16, input->normal);
-
-	/* lock XYZ */
-	qglVertexPointer(3, GL_FLOAT, 16, input->xyz); /* padded SIMD */
-	if (qglLockArraysEXT) {
-		qglLockArraysEXT(0, input->numVertexes);
-		GLimp_LogComment("glLockArraysEXT\n");
-	}
-
-	RB_GLSL_IterateStagesGeneric(input);
-
-	/* now do any dynamic lighting needed */
-	if (input->dlightBits && input->shader->sort <= SS_OPAQUE && !(input->shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY)))
-		ProjectDlightTexture();
-
-	// <-- RiO_Outlines: now do outlines
-	RB_OutlinesPass();
-	// -->
-
-	/* now do fog */
-	if (input->fogNum && input->shader->fogPass)
-		RB_FogPass(); // TODO: uses svars which aren't set, so move to program
-
-	/* unlock arrays */
-	if (qglUnlockArraysEXT) {
-		qglUnlockArraysEXT();
-		GLimp_LogComment("glUnlockArraysExt\n");
-	}
-
-	/* reset polygon offset */
-	if (input->shader->polygonOffset)
-		qglDisable(GL_POLYGON_OFFSET_FILL);
-}
-
-/*
- * RB_GLSL_StageIteratorVertexLitTexture
- * Stage iterator for GLSL vertex lit texture program
- */
-void RB_GLSL_StageIteratorVertexLitTexture(void) {
-	RB_StageIteratorVertexLitTexture(); // TODO: placeholder
-}
-
-/*
- * RB_GLSL_StageIteratorLightmappedMultitexture
- * Stage iterator for GLSL lightmapped multitexture program
- */
-void RB_GLSL_StageIteratorLightmappedMultitexture(void) {
-	RB_StageIteratorLightmappedMultitexture(); // TODO: placeholder
 }
 
 /*

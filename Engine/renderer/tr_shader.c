@@ -23,14 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
-// SKYBOX FIX START !!
-
-#ifndef CL_CLAMP_TO_EDGE
-#define GL_CLAMP_TO_EDGE 0x812F
-#endif
-
-// SKYBOX FIX END !!
-
 static char *s_shaderText;
 
 // the shader is parsed into these global variables, then copied into
@@ -597,18 +589,10 @@ ParseStage
 static qboolean ParseStage( shaderStage_t *stage, char **text )
 {
 	char *token;
-	char programName[MAX_QPATH];
-	char programVertexObjects[MAX_PROGRAM_OBJECTS][MAX_QPATH];
-	char programFragmentObjects[MAX_PROGRAM_OBJECTS][MAX_QPATH];
-	int numVertexObjects = 0;
-	int numFragmentObjects = 0;
 	int depthMaskBits = GLS_DEPTHMASK_TRUE, blendSrcBits = 0, blendDstBits = 0, atestBits = 0, depthFuncBits = 0;
 	qboolean depthMaskExplicit = qfalse;
-	qboolean stageMipmaps = !shader.noMipMaps;
 
 	stage->active = qtrue;
-
-	Com_Memset(programName, 0, sizeof(programName));
 
 	while ( 1 )
 	{
@@ -621,124 +605,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 
 		if ( token[0] == '}' )
 		{
-			if (programName[0]) {
-				if (!Q_stricmp(programName, "skip")) {
-					stage->program = tr.skipProgram;
-				} else {
-					if (!numVertexObjects) {
-						ri.Printf(PRINT_WARNING, "WARNING: no 'vertexProgram' specified for 'program %s' in shader '%s'\n", programName, shader.name);
-						return qfalse;
-					}
-
-					if (!numFragmentObjects) {
-						ri.Printf(PRINT_WARNING, "WARNING: no 'fragmentProgram' specified for 'program %s' in shader '%s'\n", programName, shader.name);
-						return qfalse;
-					}
-
-					stage->program = RE_GLSL_RegisterProgram(programName, (const char *)programVertexObjects, numVertexObjects, (const char *)programFragmentObjects, numFragmentObjects);
-					if (!stage->program) {
-						ri.Printf(PRINT_WARNING, "WARNING: RE_GLSL_RegisterProgram failed for 'program %s' in shader '%s'\n", programName, shader.name);
-						return qfalse;
-					}
-				}
-			} else if (numVertexObjects) {
-				ri.Printf(PRINT_WARNING, "WARNING: no 'program' specified for 'vertexProgram' in shader '%s'\n", shader.name);
-				return qfalse;
-			} else if (numFragmentObjects) {
-				ri.Printf(PRINT_WARNING, "WARNING: no 'program' specified for 'fragmentProgram' in shader '%s'\n", shader.name);
-				return qfalse;
-			}
-
 			break;
-		}
-		//
-		// program <name>
-		//
-		else if (!Q_stricmp(token, "program")) {
-			token = COM_ParseExt(text, qfalse);
-
-			if (!vertexShaders)
-				continue;
-
-			if (!token[0]) {
-				ri.Printf(PRINT_WARNING, "WARNING: missing parameter for 'program' keyword in shader '%s'\n", shader.name);
-				return qfalse;
-			}
-
-			Q_strncpyz(programName, token, sizeof(programName));
-		}
-		//
-		// vertexProgram <path1> .... <pathN>
-		//
-		else if (!Q_stricmp(token, "vertexProgram")) {
-			token = COM_ParseExt(text, qfalse);
-
-			if (!vertexShaders) {
-				while (token[0])
-					token = COM_ParseExt(text, qfalse);
-
-				continue;
-			}
-
-			if (!token[0]) {
-				ri.Printf(PRINT_WARNING, "WARNING: missing parameter(s) for 'vertexProgram' keyword in shader '%s'\n", shader.name);
-				return qfalse;
-			}
-
-			// parse up to MAX_PROGRAM_OBJECTS files
-			for(;;) {
-				if (numVertexObjects < MAX_PROGRAM_OBJECTS) {
-					Q_strncpyz(programVertexObjects[numVertexObjects], token, sizeof(programVertexObjects[numVertexObjects]));
-					numVertexObjects++;
-				} else {
-					ri.Printf(PRINT_WARNING, "WARNING: Too many parameters for 'vertexProgram' keyword in shader '%s'\n", shader.name);
-					return qfalse;
-				}
-
-				token = COM_ParseExt(text, qfalse);
-				if (!token[0])
-					break;
-			}
-		}
-		//
-		// fragmentProgram <path1> .... <pathN>
-		//
-		else if (!Q_stricmp(token, "fragmentProgram")) {
-			token = COM_ParseExt(text, qfalse);
-
-			if (!vertexShaders) {
-				while (token[0])
-					token = COM_ParseExt(text, qfalse);
-
-				continue;
-			}
-
-			if (!token[0]) {
-				ri.Printf(PRINT_WARNING, "WARNING: missing parameter(s) for 'fragmentProgram' keyword in shader '%s'\n", shader.name);
-				return qfalse;
-			}
-
-			// parse up to MAX_PROGRAM_OBJECTS files
-			for(;;) {
-				if (numFragmentObjects < MAX_PROGRAM_OBJECTS) {
-					Q_strncpyz(programFragmentObjects[numFragmentObjects], token, sizeof(programFragmentObjects[numFragmentObjects]));
-					numFragmentObjects++;
-				} else {
-					ri.Printf(PRINT_WARNING, "WARNING: Too many parameters for 'fragmentProgram' keyword in shader '%s'\n", shader.name);
-					return qfalse;
-				}
-
-				token = COM_ParseExt(text, qfalse);
-				if (!token[0])
-					break;
-			}
-		}
-		else if ( !Q_stricmp( token, "mipOffset" ) ){
-			token = COM_ParseExt(text,qfalse);
-			stage->mipBias = atoi(token);
-		}
-		else if ( !Q_stricmp( token, "nomipmaps" ) ){
-			stageMipmaps = qfalse;
 		}
 		//
 		// map <name>
@@ -760,7 +627,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			else if ( !Q_stricmp( token, "$lightmap" ) )
 			{
 				stage->bundle[0].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
+				if ( shader.lightmapIndex < 0 || !tr.lightmaps ) {
 					stage->bundle[0].image[0] = tr.whiteImage;
 				} else {
 					stage->bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
@@ -769,230 +636,18 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			}
 			else
 			{
-				stage->bundle[0].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT);
+				imgType_t type = IMGTYPE_COLORALPHA;
+				imgFlags_t flags = IMGFLAG_NONE;
+
+				if (!shader.noMipMaps)
+					flags |= IMGFLAG_MIPMAP;
+
+				if (!shader.noPicMip)
+					flags |= IMGFLAG_PICMIP;
+
+				stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
+
 				if ( !stage->bundle[0].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map2 <name>
-		//
-		else if ( !Q_stricmp( token, "map2" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map2' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[2].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[2].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[2].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[2].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[2].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[2].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map3 <name>
-		//
-		else if ( !Q_stricmp( token, "map3" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map3' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[3].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[3].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[3].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[3].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[3].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[3].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map4 <name>
-		//
-		else if ( !Q_stricmp( token, "map4" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map4' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[4].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[4].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[4].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[4].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[4].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[4].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map5 <name>
-		//
-		else if ( !Q_stricmp( token, "map5" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map5' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[5].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[5].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[5].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[5].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[5].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[5].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map6 <name>
-		//
-		else if ( !Q_stricmp( token, "map6" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map6' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[6].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[6].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[6].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[6].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[6].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[6].image[0] )
-				{
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-					return qfalse;
-				}
-			}
-		}
-		//
-		// map7 <name>
-		//
-		else if ( !Q_stricmp( token, "map7" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'map7' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			if ( !Q_stricmp( token, "$whiteimage" ) )
-			{
-				stage->bundle[7].image[0] = tr.whiteImage;
-				continue;
-			}
-			else if ( !Q_stricmp( token, "$lightmap" ) )
-			{
-				stage->bundle[7].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[7].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[7].image[0] = tr.lightmaps[shader.lightmapIndex];
-				}
-				continue;
-			}
-			else
-			{
-				stage->bundle[7].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-				if ( !stage->bundle[7].image[0] )
 				{
 					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 					return qfalse;
@@ -1004,6 +659,9 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		//
 		else if ( !Q_stricmp( token, "clampmap" ) )
 		{
+			imgType_t type = IMGTYPE_COLORALPHA;
+			imgFlags_t flags = IMGFLAG_CLAMPTOEDGE;
+
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
@@ -1011,122 +669,14 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				return qfalse;
 			}
 
-			stage->bundle[0].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE);
+			if (!shader.noMipMaps)
+				flags |= IMGFLAG_MIPMAP;
+
+			if (!shader.noPicMip)
+				flags |= IMGFLAG_PICMIP;
+
+			stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
 			if ( !stage->bundle[0].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap2 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap2" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap2' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[2].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[2].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap3 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap3" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap3' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[3].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[3].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap4 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap4" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap4' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[4].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[4].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap5 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap5" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap5' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[5].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[5].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap6 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap6" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap6' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[6].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[6].image[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-		}
-		//
-		// clampmap7 <name>
-		//
-		else if ( !Q_stricmp( token, "clampmap7" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampmap7' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[7].image[0] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-			if ( !stage->bundle[7].image[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 				return qfalse;
@@ -1137,10 +687,12 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		//
 		else if ( !Q_stricmp( token, "animMap" ) )
 		{
+			int	totalImages = 0;
+
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMmap' keyword in shader '%s'\n", shader.name );
+				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap' keyword in shader '%s'\n", shader.name );
 				return qfalse;
 			}
 			stage->bundle[0].imageAnimationSpeed = atof( token );
@@ -1155,7 +707,15 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				}
 				num = stage->bundle[0].numImageAnimations;
 				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[0].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
+					imgFlags_t flags = IMGFLAG_NONE;
+
+					if (!shader.noMipMaps)
+						flags |= IMGFLAG_MIPMAP;
+
+					if (!shader.noPicMip)
+						flags |= IMGFLAG_PICMIP;
+
+					stage->bundle[0].image[num] = R_FindImageFile( token, IMGTYPE_COLORALPHA, flags );
 					if ( !stage->bundle[0].image[num] )
 					{
 						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
@@ -1163,212 +723,22 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					}
 					stage->bundle[0].numImageAnimations++;
 				}
+				totalImages++;
 			}
-		}
-		//
-		// animMap2 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap2" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap2' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[2].imageAnimationSpeed = atof( token );
 
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[2].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[2].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[2].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[2].numImageAnimations++;
-				}
-			}
-		}
-		//
-		// animMap3 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap3" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap3' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[3].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[3].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[3].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[3].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[3].numImageAnimations++;
-				}
-			}
-		}
-		//
-		// animMap4 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap4" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap4' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[4].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[4].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[4].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[4].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[4].numImageAnimations++;
-				}
-			}
-		}
-		//
-		// animMap5 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap5" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap5' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[5].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[5].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[5].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[5].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[5].numImageAnimations++;
-				}
-			}
-		}
-		//
-		// animMap6 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap6" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap6' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[6].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[6].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[6].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[6].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[6].numImageAnimations++;
-				}
-			}
-		}
-		//
-		// animMap7 <frequency> <image1> .... <imageN>
-		//
-		else if ( !Q_stricmp( token, "animMap7" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap7' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[7].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[7].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[7].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_REPEAT );
-					if ( !stage->bundle[7].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[7].numImageAnimations++;
-				}
+			if ( totalImages > MAX_IMAGE_ANIMATIONS ) {
+				ri.Printf( PRINT_WARNING, "WARNING: ignoring excess images for 'animMap' (found %d, max is %d) in shader '%s'\n",
+						totalImages, MAX_IMAGE_ANIMATIONS, shader.name );
 			}
 		}
 		else if ( !Q_stricmp( token, "clampAnimMap" ) )
 		{
+			int	totalImages = 0;
+
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap' keyword in shader '%s'\n", shader.name );
+				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMap' keyword in shader '%s'\n", shader.name );
 				return qfalse;
 			}
 			stage->bundle[0].imageAnimationSpeed = atof( token );
@@ -1383,7 +753,14 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				}
 				num = stage->bundle[0].numImageAnimations;
 				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[0].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
+					imgFlags_t flags = IMGFLAG_CLAMPTOEDGE;
+					if (!shader.noMipMaps)
+						flags |= IMGFLAG_MIPMAP;
+
+					if (!shader.noPicMip)
+						flags |= IMGFLAG_PICMIP;
+
+					stage->bundle[0].image[num] = R_FindImageFile( token, IMGTYPE_COLORALPHA, flags );
 					if ( !stage->bundle[0].image[num] )
 					{
 						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
@@ -1391,186 +768,12 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					}
 					stage->bundle[0].numImageAnimations++;
 				}
+				totalImages++;
 			}
-		}
-		else if ( !Q_stricmp( token, "clampAnimMap2" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap2' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[2].imageAnimationSpeed = atof( token );
 
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[2].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[2].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[2].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[2].numImageAnimations++;
-				}
-			}
-		}
-		else if ( !Q_stricmp( token, "clampAnimMap3" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap3' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[3].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[3].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[3].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[3].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[3].numImageAnimations++;
-				}
-			}
-		}
-				else if ( !Q_stricmp( token, "clampAnimMap4" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap4' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[4].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[4].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[4].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[4].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[4].numImageAnimations++;
-				}
-			}
-		}
-				else if ( !Q_stricmp( token, "clampAnimMap5" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap5' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[5].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[5].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[5].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[5].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[5].numImageAnimations++;
-				}
-			}
-		}
-				else if ( !Q_stricmp( token, "clampAnimMap6" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap6' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[6].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[6].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[6].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[6].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[6].numImageAnimations++;
-				}
-			}
-		}
-				else if ( !Q_stricmp( token, "clampAnimMap7" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'clampAnimMmap7' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[7].imageAnimationSpeed = atof( token );
-
-			// parse up to MAX_IMAGE_ANIMATIONS animations
-			while ( 1 ) {
-				int		num;
-
-				token = COM_ParseExt( text, qfalse );
-				if ( !token[0] ) {
-					break;
-				}
-				num = stage->bundle[7].numImageAnimations;
-				if ( num < MAX_IMAGE_ANIMATIONS ) {
-					stage->bundle[7].image[num] = R_FindImageFile( token, stageMipmaps, !shader.noPicMip, GL_CLAMP_TO_EDGE );
-					if ( !stage->bundle[7].image[num] )
-					{
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-						return qfalse;
-					}
-					stage->bundle[7].numImageAnimations++;
-				}
+			if ( totalImages > MAX_IMAGE_ANIMATIONS ) {
+				ri.Printf( PRINT_WARNING, "WARNING: ignoring excess images for 'clampAnimMap' (found %d, max is %d) in shader '%s'\n",
+						totalImages, MAX_IMAGE_ANIMATIONS, shader.name );
 			}
 		}
 		else if ( !Q_stricmp( token, "videoMap" ) )
@@ -1578,115 +781,15 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMmap' keyword in shader '%s'\n", shader.name );
+				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap' keyword in shader '%s'\n", shader.name );
 				return qfalse;
 			}
 			stage->bundle[0].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
 			if (stage->bundle[0].videoMapHandle != -1) {
 				stage->bundle[0].isVideoMap = qtrue;
 				stage->bundle[0].image[0] = tr.scratchImage[stage->bundle[0].videoMapHandle];
-			}
-		}
-		//
-		// videoMap2 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap2" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap2' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[2].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[2].videoMapHandle != -1) {
-				stage->bundle[2].isVideoMap = qtrue;
-				stage->bundle[2].image[0] = tr.scratchImage[stage->bundle[2].videoMapHandle];
-			}
-		}
-		//
-		// videoMap3 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap3" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap3' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[3].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[3].videoMapHandle != -1) {
-				stage->bundle[3].isVideoMap = qtrue;
-				stage->bundle[3].image[0] = tr.scratchImage[stage->bundle[3].videoMapHandle];
-			}
-		}
-		//
-		// videoMap4 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap4" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap4' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[4].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[4].videoMapHandle != -1) {
-				stage->bundle[4].isVideoMap = qtrue;
-				stage->bundle[4].image[0] = tr.scratchImage[stage->bundle[4].videoMapHandle];
-			}
-		}
-		//
-		// videoMap5 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap5" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap5' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[5].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[5].videoMapHandle != -1) {
-				stage->bundle[5].isVideoMap = qtrue;
-				stage->bundle[5].image[0] = tr.scratchImage[stage->bundle[5].videoMapHandle];
-			}
-		}
-		//
-		// videoMap6 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap6" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap6' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[6].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[6].videoMapHandle != -1) {
-				stage->bundle[6].isVideoMap = qtrue;
-				stage->bundle[6].image[0] = tr.scratchImage[stage->bundle[6].videoMapHandle];
-			}
-		}
-		//
-		// videoMap7 <name>
-		//
-		else if ( !Q_stricmp( token, "videoMap7" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'videoMap7' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-			stage->bundle[7].videoMapHandle = ri.CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader));
-			if (stage->bundle[7].videoMapHandle != -1) {
-				stage->bundle[7].isVideoMap = qtrue;
-				stage->bundle[7].image[0] = tr.scratchImage[stage->bundle[7].videoMapHandle];
+			} else {
+				ri.Printf( PRINT_WARNING, "WARNING: could not load '%s' for 'videoMap' keyword in shader '%s'\n", token, shader.name );
 			}
 		}
 		//
@@ -1798,6 +901,8 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			else if ( !Q_stricmp( token, "const" ) )
 			{
 				vec3_t	color;
+
+				VectorClear( color );
 
 				ParseVector( text, 3, color );
 				stage->constantColor[0] = 255 * color[0];
@@ -1974,8 +1079,8 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				token = COM_ParseExt( text, qfalse );
 				if ( token[0] == 0 )
 					break;
-				strcat( buffer, token );
-				strcat( buffer, " " );
+				Q_strcat( buffer, sizeof (buffer), token );
+				Q_strcat( buffer, sizeof (buffer), " " );
 			}
 
 			ParseTexMod( buffer, stage );
@@ -2211,6 +1316,7 @@ static void ParseSkyParms( char **text ) {
 	static char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 	char		pathname[MAX_QPATH];
 	int			i;
+	imgFlags_t imgFlags = IMGFLAG_MIPMAP | IMGFLAG_PICMIP;
 
 	// outerbox
 	token = COM_ParseExt( text, qfalse );
@@ -2222,7 +1328,7 @@ static void ParseSkyParms( char **text ) {
 		for (i=0 ; i<6 ; i++) {
 			Com_sprintf( pathname, sizeof(pathname), "%s_%s.tga"
 				, token, suf[i] );
-			shader.sky.outerbox[i] = R_FindImageFile( ( char * ) pathname, qtrue, qtrue, GL_CLAMP_TO_EDGE );
+			shader.sky.outerbox[i] = R_FindImageFile( ( char * ) pathname, IMGTYPE_COLORALPHA, imgFlags | IMGFLAG_CLAMPTOEDGE );
 
 			if ( !shader.sky.outerbox[i] ) {
 				shader.sky.outerbox[i] = tr.defaultImage;
@@ -2253,7 +1359,7 @@ static void ParseSkyParms( char **text ) {
 		for (i=0 ; i<6 ; i++) {
 			Com_sprintf( pathname, sizeof(pathname), "%s_%s.tga"
 				, token, suf[i] );
-			shader.sky.innerbox[i] = R_FindImageFile( ( char * ) pathname, qtrue, qtrue, GL_REPEAT );
+			shader.sky.innerbox[i] = R_FindImageFile( ( char * ) pathname, IMGTYPE_COLORALPHA, imgFlags );
 			if ( !shader.sky.innerbox[i] ) {
 				shader.sky.innerbox[i] = tr.defaultImage;
 			}
@@ -2422,7 +1528,7 @@ static qboolean ParseShader( char **text )
 		else if ( token[0] == '{' )
 		{
 			if ( s >= MAX_SHADER_STAGES ) {
-				ri.Printf( PRINT_WARNING, "WARNING: too many stages in shader %s\n", shader.name );
+				ri.Printf( PRINT_WARNING, "WARNING: too many stages in shader %s (max is %i)\n", shader.name, MAX_SHADER_STAGES );
 				return qfalse;
 			}
 
@@ -2441,7 +1547,7 @@ static qboolean ParseShader( char **text )
 			continue;
 		}
 		// sun parms
-		else if ( !Q_stricmp( token, "q3map_sun" ) ) {
+		else if ( !Q_stricmp( token, "q3map_sun" ) || !Q_stricmp( token, "q3map_sunExt" ) ) {
 			float	a, b;
 
 			token = COM_ParseExt( text, qfalse );
@@ -2468,6 +1574,9 @@ static qboolean ParseShader( char **text )
 			tr.sunDirection[0] = cos( a ) * cos( b );
 			tr.sunDirection[1] = sin( a ) * cos( b );
 			tr.sunDirection[2] = sin( b );
+
+			SkipRestOfLine( text );
+			continue;
 		}
 		else if ( !Q_stricmp( token, "deformVertexes" ) ) {
 			ParseDeform( text );
@@ -2536,6 +1645,23 @@ static qboolean ParseShader( char **text )
 				return qfalse;
 			}
 
+			if ( r_greyscale->integer )
+			{
+				float luminance;
+
+				luminance = LUMA( shader.fogParms.color[0], shader.fogParms.color[1], shader.fogParms.color[2] );
+				VectorSet( shader.fogParms.color, luminance, luminance, luminance );
+			}
+			else if ( r_greyscale->value )
+			{
+				float luminance;
+
+				luminance = LUMA( shader.fogParms.color[0], shader.fogParms.color[1], shader.fogParms.color[2] );
+				shader.fogParms.color[0] = LERP( shader.fogParms.color[0], luminance, r_greyscale->value );
+				shader.fogParms.color[1] = LERP( shader.fogParms.color[1], luminance, r_greyscale->value );
+				shader.fogParms.color[2] = LERP( shader.fogParms.color[2], luminance, r_greyscale->value );
+			}
+
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) 
 			{
@@ -2563,7 +1689,7 @@ static qboolean ParseShader( char **text )
 		// light <value> determines flaring in q3map, not needed here
 		else if ( !Q_stricmp(token, "light") ) 
 		{
-			token = COM_ParseExt( text, qfalse );
+			(void)COM_ParseExt( text, qfalse );
 			continue;
 		}
 		// cull <face>
@@ -2633,22 +1759,15 @@ otherwise set to the generic stage function
 */
 static void ComputeStageIteratorFunc( void )
 {
-	if (vertexShaders)
-		shader.optimalStageIteratorFunc = RB_GLSL_StageIteratorGeneric;
-	else
-		shader.optimalStageIteratorFunc = RB_StageIteratorGeneric;
+	shader.optimalStageIteratorFunc = RB_StageIteratorGeneric;
 
 	//
 	// see if this should go into the sky path
 	//
 	if ( shader.isSky )
 	{
-		if (vertexShaders)
-			shader.optimalStageIteratorFunc = RB_GLSL_StageIteratorSky;
-		else
-			shader.optimalStageIteratorFunc = RB_StageIteratorSky;
-
-		goto done;
+		shader.optimalStageIteratorFunc = RB_StageIteratorSky;
+		return;
 	}
 
 	if ( r_ignoreFastPath->integer )
@@ -2673,12 +1792,8 @@ static void ComputeStageIteratorFunc( void )
 						{
 							if ( !shader.numDeforms )
 							{
-								if (vertexShaders)
-									shader.optimalStageIteratorFunc = RB_GLSL_StageIteratorVertexLitTexture;
-								else
-									shader.optimalStageIteratorFunc = RB_StageIteratorVertexLitTexture;
-
-								goto done;
+								shader.optimalStageIteratorFunc = RB_StageIteratorVertexLitTexture;
+								return;
 							}
 						}
 					}
@@ -2703,21 +1818,13 @@ static void ComputeStageIteratorFunc( void )
 					{
 						if ( shader.multitextureEnv )
 						{
-							if (vertexShaders)
-								shader.optimalStageIteratorFunc = RB_GLSL_StageIteratorLightmappedMultitexture;
-							else
-								shader.optimalStageIteratorFunc = RB_StageIteratorLightmappedMultitexture;
-
-							goto done;
+							shader.optimalStageIteratorFunc = RB_StageIteratorLightmappedMultitexture;
 						}
 					}
 				}
 			}
 		}
 	}
-
-done:
-	return;
 }
 
 typedef struct {
@@ -2888,7 +1995,7 @@ sortedIndex.
 ==============
 */
 static void FixRenderCommandList( int newShader ) {
-	renderCommandList_t	*cmdList = &backEndData[tr.smpFrame]->commands;
+	renderCommandList_t	*cmdList = &backEndData->commands;
 
 	if( cmdList ) {
 		const void *curCmd = cmdList->cmds;
@@ -2956,7 +2063,7 @@ static void FixRenderCommandList( int newShader ) {
 SortNewShader
 
 Positions the most recently created shader in the tr.sortedShaders[]
-array so that the shader->sort key is sorted reletive to the other
+array so that the shader->sort key is sorted relative to the other
 shaders.
 
 Sets shader->sortedIndex
@@ -3048,7 +2155,7 @@ static shader_t *GeneratePermanentShader( void ) {
 VertexLightingCollapse
 
 If vertex lighting is enabled, only render a single
-pass, trying to guess which is the correct one to best aproximate
+pass, trying to guess which is the correct one to best approximate
 what it is supposed to look like.
 =================
 */
@@ -3129,6 +2236,26 @@ static void VertexLightingCollapse( void ) {
 		}
 
 		Com_Memset( pStage, 0, sizeof( *pStage ) );
+	}
+}
+
+/*
+===============
+InitShader
+===============
+*/
+static void InitShader( const char *name, int lightmapIndex ) {
+	int i;
+
+	// clear the global shader
+	Com_Memset( &shader, 0, sizeof( shader ) );
+	Com_Memset( &stages, 0, sizeof( stages ) );
+
+	Q_strncpyz( shader.name, name, sizeof( shader.name ) );
+	shader.lightmapIndex = lightmapIndex;
+
+	for ( i = 0 ; i < MAX_SHADER_STAGES ; i++ ) {
+		stages[i].bundle[0].texMods = texMods[i];
 	}
 }
 
@@ -3223,9 +2350,9 @@ static shader_t *FinishShader( void ) {
 
     // not a true lightmap but we want to leave existing 
     // behaviour in place and not print out a warning
-    if (pStage->rgbGen == CGEN_VERTEX) {
-      vertexLightmap = qtrue;
-    }
+    //if (pStage->rgbGen == CGEN_VERTEX) {
+    //  vertexLightmap = qtrue;
+    //}
 
 
 
@@ -3344,11 +2471,15 @@ static char *FindShaderInShaderText( const char *shadername ) {
 
 	hash = generateHashValue(shadername, MAX_SHADERTEXT_HASH);
 
-	for (i = 0; shaderTextHashTable[hash][i]; i++) {
-		p = shaderTextHashTable[hash][i];
-		token = COM_ParseExt(&p, qtrue);
-		if ( !Q_stricmp( token, shadername ) ) {
-			return p;
+	if(shaderTextHashTable[hash])
+	{
+		for (i = 0; shaderTextHashTable[hash][i]; i++)
+		{
+			p = shaderTextHashTable[hash][i];
+			token = COM_ParseExt(&p, qtrue);
+		
+			if(!Q_stricmp(token, shadername))
+				return p;
 		}
 	}
 
@@ -3370,7 +2501,7 @@ static char *FindShaderInShaderText( const char *shadername ) {
 		}
 		else {
 			// skip the definition
-			SkipBracedSection( &p );
+			SkipBracedSection( &p, 0 );
 		}
 	}
 
@@ -3429,25 +2560,25 @@ be defined for every single image used in the game, three default
 shader behaviors can be auto-created for any image:
 
 If lightmapIndex == LIGHTMAP_NONE, then the image will have
-dynamic diffuse lighting applied to it, as apropriate for most
+dynamic diffuse lighting applied to it, as appropriate for most
 entity skin surfaces.
 
 If lightmapIndex == LIGHTMAP_2D, then the image will be used
 for 2D rendering unless an explicit shader is found
 
 If lightmapIndex == LIGHTMAP_BY_VERTEX, then the image will use
-the vertex rgba modulate values, as apropriate for misc_model
+the vertex rgba modulate values, as appropriate for misc_model
 pre-lit surfaces.
 
 Other lightmapIndex values will have a lightmap stage created
-and src*dest blending applied with the texture, as apropriate for
+and src*dest blending applied with the texture, as appropriate for
 most world construction surfaces.
 
 ===============
 */
 shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage ) {
 	char		strippedName[MAX_QPATH];
-	int			i, hash;
+	int			hash;
 	char		*shaderText;
 	image_t		*image;
 	shader_t	*sh;
@@ -3485,22 +2616,9 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		}
 	}
 
-	// make sure the render thread is stopped, because we are probably
-	// going to have to upload an image
-	if (r_smp->integer) {
-		R_SyncRenderThread();
-	}
+	InitShader( strippedName, lightmapIndex );
 
-	// clear the global shader
-	Com_Memset( &shader, 0, sizeof( shader ) );
-	Com_Memset( &stages, 0, sizeof( stages ) );
-	Q_strncpyz(shader.name, strippedName, sizeof(shader.name));
-	shader.lightmapIndex = lightmapIndex;
-	for ( i = 0 ; i < MAX_SHADER_STAGES ; i++ ) {
-		stages[i].bundle[0].texMods = texMods[i];
-	}
-
-	// FIXME: set these "need" values apropriately
+	// FIXME: set these "need" values appropriately
 	shader.needsNormal = qtrue;
 	shader.needsST1 = qtrue;
 	shader.needsST2 = qtrue;
@@ -3530,11 +2648,26 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	// if not defined in the in-memory shader descriptions,
 	// look for a single supported image file
 	//
-	image = R_FindImageFile( name, mipRawImage, mipRawImage, mipRawImage ? GL_REPEAT : GL_CLAMP_TO_EDGE );
-	if ( !image ) {
-		ri.Printf( PRINT_DEVELOPER, "Couldn't find image file for shader %s\n", name );
-		shader.defaultShader = qtrue;
-		return FinishShader();
+	{
+		imgFlags_t flags;
+
+		flags = IMGFLAG_NONE;
+
+		if (mipRawImage)
+		{
+			flags |= IMGFLAG_MIPMAP | IMGFLAG_PICMIP;
+		}
+		else
+		{
+			flags |= IMGFLAG_CLAMPTOEDGE;
+		}
+
+		image = R_FindImageFile( name, IMGTYPE_COLORALPHA, flags );
+		if ( !image ) {
+			ri.Printf( PRINT_DEVELOPER, "Couldn't find image file for shader %s\n", name );
+			shader.defaultShader = qtrue;
+			return FinishShader();
+		}
 	}
 
 	//
@@ -3593,7 +2726,7 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 
 
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage) {
-	int			i, hash;
+	int			hash;
 	shader_t	*sh;
 
 	hash = generateHashValue(name, FILE_HASH_SIZE);
@@ -3621,22 +2754,9 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 		}
 	}
 
-	// make sure the render thread is stopped, because we are probably
-	// going to have to upload an image
-	if (r_smp->integer) {
-		R_SyncRenderThread();
-	}
+	InitShader( name, lightmapIndex );
 
-	// clear the global shader
-	Com_Memset( &shader, 0, sizeof( shader ) );
-	Com_Memset( &stages, 0, sizeof( stages ) );
-	Q_strncpyz(shader.name, name, sizeof(shader.name));
-	shader.lightmapIndex = lightmapIndex;
-	for ( i = 0 ; i < MAX_SHADER_STAGES ; i++ ) {
-		stages[i].bundle[0].texMods = texMods[i];
-	}
-
-	// FIXME: set these "need" values apropriately
+	// FIXME: set these "need" values appropriately
 	shader.needsNormal = qtrue;
 	shader.needsST1 = qtrue;
 	shader.needsST2 = qtrue;
@@ -3895,12 +3015,14 @@ a single large text block that can be scanned for shader names
 static void ScanAndLoadShaderFiles( void )
 {
 	char **shaderFiles;
-	char *buffers[MAX_SHADER_FILES];
+	char *buffers[MAX_SHADER_FILES] = {0};
 	char *p;
 	int numShaderFiles;
 	int i;
 	char *oldp, *token, *hashMem, *textEnd;
 	int shaderTextHashTableSizes[MAX_SHADERTEXT_HASH], hash, size;
+	char shaderName[MAX_QPATH];
+	int shaderLine;
 
 	long sum = 0, summand;
 	// scan for shader files
@@ -3930,26 +3052,40 @@ static void ScanAndLoadShaderFiles( void )
 		
 		// Do a simple check on the shader structure in that file to make sure one bad shader file cannot fuck up all other shaders.
 		p = buffers[i];
+		COM_BeginParseSession(filename);
 		while(1)
 		{
 			token = COM_ParseExt(&p, qtrue);
 			
 			if(!*token)
 				break;
-			
-			oldp = p;
-			
+
+			Q_strncpyz(shaderName, token, sizeof(shaderName));
+			shaderLine = COM_GetCurrentParseLine();
+
 			token = COM_ParseExt(&p, qtrue);
-			if(token[0] != '{' && token[1] != '\0')
+			if(token[0] != '{' || token[1] != '\0')
 			{
-				ri.Printf(PRINT_WARNING, "WARNING: Bad shader file %s has incorrect syntax.\n", filename);
+				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing opening brace",
+							filename, shaderName, shaderLine);
+				if (token[0])
+				{
+					ri.Printf(PRINT_WARNING, " (found \"%s\" on line %d)", token, COM_GetCurrentParseLine());
+				}
+				ri.Printf(PRINT_WARNING, ".\n");
 				ri.FS_FreeFile(buffers[i]);
 				buffers[i] = NULL;
 				break;
 			}
 
-			SkipBracedSection(&oldp);
-			p = oldp;
+			if(!SkipBracedSection(&p, 1))
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
+							filename, shaderName, shaderLine);
+				ri.FS_FreeFile(buffers[i]);
+				buffers[i] = NULL;
+				break;
+			}
 		}
 			
 		
@@ -3993,7 +3129,7 @@ static void ScanAndLoadShaderFiles( void )
 		hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 		shaderTextHashTableSizes[hash]++;
 		size++;
-		SkipBracedSection(&p);
+		SkipBracedSection(&p, 0);
 	}
 
 	size += MAX_SHADERTEXT_HASH;
@@ -4019,7 +3155,7 @@ static void ScanAndLoadShaderFiles( void )
 		hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 		shaderTextHashTable[hash][shaderTextHashTableSizes[hash]++] = oldp;
 
-		SkipBracedSection(&p);
+		SkipBracedSection(&p, 0);
 	}
 
 	return;
@@ -4036,12 +3172,7 @@ static void CreateInternalShaders( void ) {
 	tr.numShaders = 0;
 
 	// init the default shader
-	Com_Memset( &shader, 0, sizeof( shader ) );
-	Com_Memset( &stages, 0, sizeof( stages ) );
-
-	Q_strncpyz( shader.name, "<default>", sizeof( shader.name ) );
-
-	shader.lightmapIndex = LIGHTMAP_NONE;
+	InitShader( "<default>", LIGHTMAP_NONE );
 	stages[0].bundle[0].image[0] = tr.defaultImage;
 	stages[0].active = qtrue;
 	stages[0].stateBits = GLS_DEFAULT;

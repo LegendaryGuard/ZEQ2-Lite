@@ -1096,7 +1096,9 @@ float PM_CmdScale(usercmd_t *cmd){
 	if(pm->cmd.buttons & BUTTON_WALKING){totalSpeed = 1000;}
 	if(pm->ps->powerups[PW_DRIFTING] > 0){
 		totalSpeed = 500;
-		if(pm->ps->lockedPlayer->timers[tmMeleeIdle] > 1500 && pm->ps->timers[tmMeleeIdle] > 1500){totalSpeed = 1500;}
+		if(pm->ps->lockedPlayer && pm->ps->lockedPlayer->timers[tmMeleeIdle] > 1500 && pm->ps->timers[tmMeleeIdle] > 1500){
+			totalSpeed = 1500;
+		}
 	}
 	if(pm->ps->timers[tmMeleeIdle] < 0){totalSpeed = 4000;}
 	scale = (float)totalSpeed * max / (127.0 * total);
@@ -3448,7 +3450,7 @@ void PmoveSingle(pmove_t *pmove){
 	if(pm->cmd.buttons != 0 && pm->cmd.buttons != 2048){
 		//Com_Printf("%i\n",pm->cmd.buttons);
 	}
-	if(pm->ps->lockedTarget > 0){
+	if(pm->ps->lockedTarget > 0 && pm->ps->lockedPosition){
 		meleeRange = Distance(pm->ps->origin,*(pm->ps->lockedPosition)) <= 48 ? qtrue : qfalse;
 	}
 	if(!(pm->ps->bitFlags & isTransforming)){
