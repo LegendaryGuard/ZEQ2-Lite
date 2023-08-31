@@ -686,69 +686,10 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
 
 #define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
 
-extern	vmCvar_t	g_gametype;
-extern	vmCvar_t	g_dedicated;
-extern	vmCvar_t	g_cheats;
-extern	vmCvar_t	g_maxclients;			// allow this many total, including spectators
-extern	vmCvar_t	g_maxGameClients;		// allow this many active
-extern	vmCvar_t	g_restarted;
+#define EXTERN_G_CVAR
+	#include "g_cvar.h"
+#undef EXTERN_G_CVAR
 
-extern	vmCvar_t	g_dmflags;
-extern	vmCvar_t	g_fraglimit;
-extern	vmCvar_t	g_timelimit;
-extern	vmCvar_t	g_friendlyFire;
-extern	vmCvar_t	g_password;
-extern	vmCvar_t	g_needpass;
-extern	vmCvar_t	g_knockback;
-extern	vmCvar_t	g_forcerespawn;
-extern	vmCvar_t	g_inactivity;
-extern	vmCvar_t	g_debugMove;
-extern	vmCvar_t	g_debugAlloc;
-extern	vmCvar_t	g_debugDamage;
-extern	vmCvar_t	g_synchronousClients;
-extern	vmCvar_t	g_motd;
-extern	vmCvar_t	g_warmup;
-extern	vmCvar_t	g_doWarmup;
-extern	vmCvar_t	g_allowVote;
-extern	vmCvar_t	g_teamAutoJoin;
-extern	vmCvar_t	g_teamForceBalance;
-extern	vmCvar_t	g_banIPs;
-extern	vmCvar_t	g_filterBan;
-extern	vmCvar_t	g_smoothClients;
-extern	vmCvar_t	pmove_fixed;
-extern	vmCvar_t	pmove_msec;
-extern	vmCvar_t	g_rankings;
-extern	vmCvar_t	g_enableDust;
-extern	vmCvar_t	g_enableBreath;
-extern	vmCvar_t	g_singlePlayer;
-extern	vmCvar_t	g_proxMineTimeout;
-// ADDING FOR ZEQ2
-extern	vmCvar_t	g_verboseParse;
-extern	vmCvar_t	g_powerlevel;
-extern	vmCvar_t	g_powerlevelMaximum;
-extern	vmCvar_t	g_breakLimitRate;
-extern	vmCvar_t	g_allowTiers;
-extern	vmCvar_t	g_allowScoreboard;
-extern	vmCvar_t	g_allowSoar;
-extern	vmCvar_t	g_allowBoost;
-extern	vmCvar_t	g_allowFly;
-extern	vmCvar_t	g_allowZanzoken;
-extern	vmCvar_t	g_allowJump;
-extern	vmCvar_t	g_allowBallFlip;
-extern	vmCvar_t	g_allowOverheal;
-extern	vmCvar_t	g_allowBreakLimit;
-extern	vmCvar_t	g_allowMelee;
-extern	vmCvar_t	g_allowLockon;
-extern	vmCvar_t	g_allowBlock;
-extern	vmCvar_t	g_allowAdvancedMelee;
-extern	vmCvar_t	g_rolling;
-extern	vmCvar_t	g_running;
-extern	vmCvar_t	g_pointGravity;
-extern	vmCvar_t	g_quickTransformCost;
-extern	vmCvar_t	g_quickTransformCostPerTier ;
-extern	vmCvar_t	g_quickZanzokenCost ;
-extern	vmCvar_t	g_quickZanzokenDistance ;
-// END ADDING
 void	trap_Printf( const char *fmt );
 void	trap_Error(const char *fmt) __attribute__((noreturn));
 int		trap_Milliseconds( void );
