@@ -2503,37 +2503,41 @@ OBJ = $(Q3OBJ) $(Q3ROBJ) $(Q3DOBJ) $(JPGOBJ) \
   $(GVMOBJ) $(CGVMOBJ) $(UIVMOBJ)
 TOOLSOBJ = $(LBURGOBJ) $(Q3CPPOBJ) $(Q3RCCOBJ) $(Q3LCCOBJ) $(Q3ASMOBJ)
 
-install: release
+install: BUILDPATH = $(BR)
+install: release internalinstall
+debuginstall: BUILDPATH = $(BD)
+debuginstall: STRIP_FLAG =
+debuginstall: debug internalinstall
 
+internalinstall:
 ifneq ($(BUILD_CLIENT),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)$(FULLBINEXT) $(INSTALLDIR)/$(CLIENTBIN)$(BINEXT)
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/$(CLIENTBIN)$(FULLBINEXT) $(INSTALLDIR)/$(CLIENTBIN)$(BINEXT)
   ifneq ($(USE_RENDERER_DLOPEN),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengl1_$(SHLIBNAME) $(INSTALLDIR)/renderer_opengl1_$(SHLIBNAME)
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/renderer_opengl1_$(SHLIBNAME) $(INSTALLDIR)/renderer_opengl1_$(SHLIBNAME)
   endif
 endif
 
-
 ifneq ($(BUILD_SERVER),0)
-	@if [ -f $(BR)/$(SERVERBIN)$(FULLBINEXT) ]; then \
-		$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(SERVERBIN)$(FULLBINEXT) $(INSTALLDIR)/$(SERVERBIN)$(BINEXT); \
+	@if [ -f $(BUILDPATH)/$(SERVERBIN)$(FULLBINEXT) ]; then \
+		$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/$(SERVERBIN)$(FULLBINEXT) $(INSTALLDIR)/$(SERVERBIN)$(BINEXT); \
 	fi
 endif
 
 ifneq ($(BUILD_GAME_SO),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/cgame$(SHLIBNAME) \
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/$(BASEGAME)/cgame$(SHLIBNAME) \
 					$(INSTALLDIR)/ZEQ2/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/game$(SHLIBNAME) \
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/$(BASEGAME)/game$(SHLIBNAME) \
 					$(INSTALLDIR)/ZEQ2/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/ui$(SHLIBNAME) \
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BUILDPATH)/$(BASEGAME)/ui$(SHLIBNAME) \
 					$(INSTALLDIR)/ZEQ2/.
 endif
 
 ifneq ($(BUILD_GAME_QVM),0)
-	$(INSTALL)  -m 0755 $(BR)/$(BASEGAME)/vm/cgame.qvm \
+	$(INSTALL)  -m 0755 $(BUILDPATH)/$(BASEGAME)/vm/cgame.qvm \
 					$(INSTALLDIR)/ZEQ2/vm/
-	$(INSTALL)  -m 0755 $(BR)/$(BASEGAME)/vm/game.qvm \
+	$(INSTALL)  -m 0755 $(BUILDPATH)/$(BASEGAME)/vm/game.qvm \
 					$(INSTALLDIR)/ZEQ2/vm/
-	$(INSTALL)  -m 0755 $(BR)/$(BASEGAME)/vm/ui.qvm \
+	$(INSTALL)  -m 0755 $(BUILDPATH)/$(BASEGAME)/vm/ui.qvm \
 					$(INSTALLDIR)/ZEQ2/vm/
 endif
 	

@@ -2,6 +2,6 @@
 set oldSystemPath=%PATH%
 set compilerPath=%~dp0Tools/MinGW-w64/bin
 set PATH=%compilerPath%;%PATH%
-%compilerPath%/make debug COMPILE_PLATFORM=mingw32 BUILD_GAME_SO=1 BUILD_GAME_QVM=1 install
+%compilerPath%/make install COMPILE_PLATFORM=mingw32 BUILD_GAME_SO=1 BUILD_GAME_QVM=1
 pause
 set PATH=%oldSystemPath%
