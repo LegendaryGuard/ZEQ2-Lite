@@ -12,15 +12,15 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 	Com_sprintf(headPath,sizeof(headPath),"%s",modelName);
 	Com_sprintf(cameraPath,sizeof(cameraPath),"%s",modelName);
 	Com_sprintf(tempPath,sizeof(tempPath),"players/%s/animCam.cfg",modelName);
-	if(ci->cameraModelName && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
+	if(ci->cameraModelName[0] && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
 		Com_sprintf(cameraPath,sizeof(modelName),"%s",ci->cameraModelName);
 	}
 	Com_sprintf(tempPath,sizeof(tempPath),"players/%s/animation.cfg",ci->legsModelName);
-	if(ci->legsModelName && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
+	if(ci->legsModelName[0] && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
 		Com_sprintf(legsPath,sizeof(legsPath),"%s",ci->legsModelName);
 	}
 	Com_sprintf(tempPath,sizeof(tempPath),"players/%s/animation.cfg",ci->headModelName);
-	if(ci->headModelName && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
+	if(ci->headModelName[0] && trap_FS_FOpenFile(tempPath,0,FS_READ)>0){
 		Com_sprintf(headPath,sizeof(headPath),"%s",ci->headModelName);
 	}
 	Com_sprintf(filename,sizeof(filename),"players/%s/animation.cfg",modelName);
@@ -57,43 +57,31 @@ qboolean CG_RegisterClientModelnameWithTiers(clientInfo_t *ci, const char *model
 		// Models
 		// ===================================
 		if(!ci->tierConfig[i].headModel){
-			if(i != 0){
-				ci->tierConfig[i].headModel = ci->tierConfig[i-1].headModel;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].headModel = ci->tierConfig[i-1].headModel;
 		}
 		if(!ci->tierConfig[i].torsoModel){
-			if(i != 0){
-				ci->tierConfig[i].torsoModel = ci->tierConfig[i-1].torsoModel;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].torsoModel = ci->tierConfig[i-1].torsoModel;
 		}
 		if(!ci->tierConfig[i].legsModel){
-			if(i != 0){
-				ci->tierConfig[i].legsModel = ci->tierConfig[i-1].legsModel;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].legsModel = ci->tierConfig[i-1].legsModel;
 		}
 		// ===================================
 		// Skins
 		// ===================================
 		if(!ci->tierConfig[i].headSkin){
-			if(i != 0){
-				ci->tierConfig[i].headSkin = ci->tierConfig[i-1].headSkin;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].headSkin = ci->tierConfig[i-1].headSkin;
 		}
 		if(!ci->tierConfig[i].torsoSkin){
-			if(i != 0){
-				ci->tierConfig[i].torsoSkin = ci->tierConfig[i-1].torsoSkin;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].torsoSkin = ci->tierConfig[i-1].torsoSkin;
 		}
 		if(!ci->tierConfig[i].legsSkin){
-			if(i != 0){
-				ci->tierConfig[i].legsSkin = ci->tierConfig[i-1].legsSkin;
-			}
-			else{return qfalse;}
+			if(!i){return qfalse;}
+			ci->tierConfig[i].legsSkin = ci->tierConfig[i-1].legsSkin;
 		}
 		// ===================================
 		// Damage States

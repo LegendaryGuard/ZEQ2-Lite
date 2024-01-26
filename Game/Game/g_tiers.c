@@ -19,6 +19,7 @@ void syncTier(gclient_t *client){
 	ps->baseStats[stSpeed] = tier->speed;
 	ps->baseStats[stZanzokenDistance] = tier->zanzokenDistance;
 	ps->baseStats[stZanzokenQuickDistance] = g_quickZanzokenDistance.value != -1.0 ? g_quickZanzokenDistance.value : tier->zanzokenQuickDistance;
+	ps->baseStats[stZanzokenQuickDistance] = fabs(ps->baseStats[stZanzokenQuickDistance]);
 	ps->baseStats[stZanzokenSpeed] = tier->zanzokenSpeed;
 	ps->baseStats[stZanzokenCost] = tier->zanzokenCost;
 	ps->baseStats[stZanzokenQuickCost] = g_quickZanzokenCost.value != -1.0 ? g_quickZanzokenCost.value : tier->zanzokenQuickCost;
