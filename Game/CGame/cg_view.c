@@ -749,7 +749,6 @@ void CG_DrawActiveFrame(int serverTime, stereoFrame_t stereoView, qboolean demoP
 		CG_FrameHist_NextFrame();
 		CG_AddPacketEntities();			// adter calcViewValues, so predicted player state is correct
 		CG_AddBeamTables();
-		CG_AddTrailsToScene();
 		CG_AddMarks();
 		CG_AddLocalEntities();
 		CG_AddParticleSystems();

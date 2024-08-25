@@ -1411,9 +1411,8 @@ void CG_BeamTableUpdate( centity_t *cent, float width, qhandle_t shader, char *t
 // cg_trails.c
 //
 void CG_InitTrails( void );
-void CG_ResetTrail( int entityNum, vec3_t origin, float baseSpeed, float width, qhandle_t shader, vec3_t color );
-void CG_UpdateTrailHead( int entityNum, vec3_t origin );
-void CG_AddTrailsToScene ( void );
+void CG_ResetTrail( int entityNum, vec3_t origin );
+void CG_Trail( int entityNum, vec3_t origin, qboolean remove, int maxNumSegments, float width, qhandle_t hShader, vec3_t color );
 
 
 //

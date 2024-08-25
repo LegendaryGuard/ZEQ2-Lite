@@ -625,37 +625,48 @@ static void CG_Aura_ConvexHullRender( centity_t *player, auraState_t *state, aur
 //    A U R A   M A N A G E M E N T
 //
 // ===================================
+/*===================
+CG_Aura_HandleTrail
+===================*/
+static void CG_Aura_HandleTrail( centity_t *player, auraConfig_t *config ) {
+	if ( cg.time > player->lastTrailTime ) {
+		CG_ResetTrail( player->currentState.clientNum, player->lerpOrigin );
+	} else {
+		CG_Trail( player->currentState.clientNum, player->lerpOrigin, qtrue, cg_trailSegments.integer, config->trailWidth, config->trailShader, config->trailColor );
+	}
+}
+
 /*==================
 CG_Aura_AddTrail
 ==================*/
-static void CG_Aura_AddTrail( centity_t *player, auraState_t *state, auraConfig_t *config){
+static void CG_Aura_AddTrail( centity_t *player, auraState_t *state, auraConfig_t *config ) {
+	// Don't draw if trail segments cvar is 0 or less
+	if ( cg_trailSegments.integer <= 0 ) {
+		return;
+	}
+
 	// Don't draw a trail if the aura isn't active
-	if(!state->isActive){
+	if ( !state->isActive ) {
+		CG_Aura_HandleTrail( player, config );
 		return;
 	}
 
 	// Don't draw a trail if configuration says we shouldn't.
-	if(!config->showTrail){
+	if ( !config->showTrail ) {
+		CG_Aura_HandleTrail( player, config );
 		return;
 	}
 
 	// Update the trail only if we're using the boost aura
-	if(!(player->currentState.playerBitFlags & usingBoost)){
+	if ( !( player->currentState.playerBitFlags & usingBoost ) ) {
+		CG_Aura_HandleTrail( player, config );
 		return;
 	}
 
-	// If we didn't draw the tail last frame, this is a new instantiation
-	// of the entity and we will have to reset the tail positions.
-	// NOTE: Give 1.5 second leeway for 'snapping' the tail
-	//       incase we (almost) immediately restart boosting.
-	if(player->lastTrailTime < (cg.time - cg.frametime - 1500)){		
-		CG_ResetTrail( player->currentState.clientNum, player->lerpOrigin, 1000,
-			config->trailWidth, config->trailShader, config->trailColor);
-	}
-	
-	CG_UpdateTrailHead( player->currentState.clientNum, player->lerpOrigin);
+	// Apply time for using trail
+	player->lastTrailTime = cg.time + cg_trailSegments.integer*5;
 
-	player->lastTrailTime = cg.time;
+	CG_Trail( player->currentState.clientNum, player->lerpOrigin, qfalse, cg_trailSegments.integer, config->trailWidth, config->trailShader, config->trailColor );
 }
 
 

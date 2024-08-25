@@ -569,6 +569,9 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	CG_InitMarkPolys();
 
+	// Initialize trails
+	CG_InitTrails();
+
 	// remove the last loading update
 	cg.infoScreenText[0] = 0;
 

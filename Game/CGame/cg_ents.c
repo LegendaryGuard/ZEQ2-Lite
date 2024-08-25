@@ -585,7 +585,7 @@ CG_TrailFunc_FadeTail
 void CG_TrailFunc_FadeTail( centity_t *cent ) {
 	entityState_t	*es;
 	cg_userWeapon_t	*weaponGraphics;
-	vec3_t			delta;
+	vec3_t			color = { 1, 1, 1 };
 
 	es = &cent->currentState;
 	
@@ -595,17 +595,15 @@ void CG_TrailFunc_FadeTail( centity_t *cent ) {
 		return;
 	}
 
-	// If we didn't draw the tail last frame this is a new instantiation
-	// of the entity and we will have to reset the tail positions.
-	if ( cent->lastTrailTime < (cg.time - cg.frametime - 200) ) { // -200; give 0.2 sec leeway, just in case
-		BG_EvaluateTrajectoryDelta( es, &es->pos, cg.time, delta );
-		CG_ResetTrail( es->number, cent->lerpOrigin, VectorLength( delta ),
-			weaponGraphics->missileTrailRadius, weaponGraphics->missileTrailShader, NULL );
+	// When spawned initially, place in the correct origin
+	if ( cg.time > cent->lastTrailTime ) {
+		CG_ResetTrail( es->number, cent->lerpOrigin );
 	}
-	
-	CG_UpdateTrailHead( es->number, cent->lerpOrigin );
 
-	cent->lastTrailTime = cg.time;
+	// Apply time for using the trail
+	cent->lastTrailTime = cg.time + cg_trailSegments.integer*10;
+
+	CG_Trail( es->number, cent->lerpOrigin, qfalse, 30, weaponGraphics->missileTrailRadius, weaponGraphics->missileTrailShader, color );
 }
 
 /*
