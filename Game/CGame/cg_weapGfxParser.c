@@ -269,6 +269,7 @@ static qboolean CG_weapGfx_ParseImports(cg_weapGfxParser_t* parser){
 static qboolean CG_weapGfx_ParseFields(cg_weapGfxParser_t* parser){
 	cg_weapGfxScanner_t* scanner = &parser->scanner;
 	cg_weapGfxToken_t* token = &parser->token;
+	cg_userWeaponParseBuffer_t* buffer = &cg_weapGfxBuffer;
 	while(token->tokenSym == TOKEN_FIELD){
 		int fieldIndex = token->identifierIndex;
 		cg_weapGfxCategory_t* category = &cg_weapGfxCategories[scanner->category];
@@ -282,6 +283,23 @@ static qboolean CG_weapGfx_ParseFields(cg_weapGfxParser_t* parser){
 		}
 		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 		if(!field->Parse(parser,field->field,field->listIterations)){return qfalse;}
+		if(field->field == &buffer->chargePercentRange){
+			int index = 0;
+			for(;index < ARRAY_LEN(buffer->chargePercentRange);index += 1){
+				char* valueToString = va("%.1g",buffer->chargePercentRange[index]);
+				if(buffer->chargePercentRange[index] < 0){
+					return CG_weapGfx_Error(ERROR_UNDER_MINBOUND,scanner,valueToString,"0");
+				}
+				if(buffer->chargePercentRange[index] > 100){
+					return CG_weapGfx_Error(ERROR_OVER_MAXBOUND,scanner,valueToString,"100");
+				}
+			}
+			if(buffer->chargePercentRange[1] < buffer->chargePercentRange[0]){
+				char* startToString = va("%.1g",buffer->chargePercentRange[0]);
+				char* endToString = va("%.1g",buffer->chargePercentRange[1]);
+				return CG_weapGfx_Error(ERROR_INVERTED_RANGE,scanner,endToString,startToString);
+			}
+		}
 		if(!CG_weapGfx_Scan(scanner,token)){return qfalse;}
 	}
 	return qtrue;
