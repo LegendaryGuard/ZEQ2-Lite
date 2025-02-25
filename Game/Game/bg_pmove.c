@@ -820,7 +820,7 @@ void PM_CheckPowerLevel(void){
 			pm->ps->eFlags |= EF_AURA;
 			timers[tmPowerRaise] += pml.msec;
 			while(timers[tmPowerRaise] >= 25){
-				if(!pm->ps->options & canBreakLimit){break;}
+				if(!(pm->ps->options & canBreakLimit)){break;}
 				timers[tmPowerRaise] -= 25;
 				raise = powerLevel[plMaximum] * 0.009;
 				if(powerLevel[plCurrent] > powerLevel[plFatigue]){raise *= 0.6;}
@@ -1011,7 +1011,7 @@ void PM_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 PM_Friction
 ==================*/
 void PM_Friction(void){
-	float speed,newspeed,control,drop;
+	float speed,newspeed,control,drop=0;
 	speed = VectorLength(pm->ps->velocity);
 	if(speed < 5){
 		PM_StopDash();
@@ -1019,11 +1019,11 @@ void PM_Friction(void){
 		return;
 	}
 	if(pm->waterlevel){
-		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime;
+		drop = speed*pm_waterfriction*pm->waterlevel*pml.frametime;
 	}
 	if(pm->ps->bitFlags & usingFlight || pml.onGround){
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
-		drop += control*pm_friction*pml.frametime;
+		drop = control*pm_friction*pml.frametime;
 	}
 	/*
 	if(pm->ps->timers[tmKnockback] > 0){
@@ -2394,7 +2394,7 @@ void PM_StopDrift(void){
 }
 void PM_SyncMelee(void){
 	if(pm->ps->lockedPlayer){
-		if(pm->ps->lockedPlayer->bitFlags & usingZanzoken || pm->ps->lockedPlayer->bitFlags & usingZanzoken){return;}
+		if(pm->ps->lockedPlayer->bitFlags & usingZanzoken){return;}
 		pm->ps->pm_flags |= PMF_ATTACK1_HELD;
 		pm->ps->pm_flags |= PMF_ATTACK2_HELD;
 		pm->ps->bitFlags |= usingMelee;
